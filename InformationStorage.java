@@ -64,7 +64,7 @@ public class InformationStorage extends JFrame {
             return;
         }
 
-        try (FileWriter writer = new FileWriter("information.txt", true)) {
+        try (FileWriter writer = new FileWriter("information.csv", true)) {
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String timestamp = LocalDateTime.now().format(formatter);
