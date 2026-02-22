@@ -1,8 +1,12 @@
 import javax.swing.*;
+
 import java.awt.event.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 
 public class VehicleOwnerFrame
 {
@@ -131,20 +135,44 @@ public class VehicleOwnerFrame
     	    
     	    
     	    });
-      //subat
-      frame.add(panel);
+    
+  // =====================
+   // Styling and Layout - Moontarin
+   // =====================
 
-      final int FRAME_WIDTH = 600;
-      final int FRAME_HEIGHT = 500;
-      //made GUI 600 by 500 so labels fit in properly with their text fields
+   // Set panel background
+   panel.setBackground(new Color(0, 0, 128));
 
-      frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
-      frame.setTitle("Vehicle Owner Information");
-      //title of the frame is vehicle owner information now
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      //program closes when exit
-      
-      frame.setVisible(true);
-      //window can show on screen 
+   // Font styling for labels
+   Font labelFont = new Font("Georgia", Font.PLAIN, 16);
+   ownerIDLabel.setFont(labelFont);
+   ownerIDLabel.setForeground(Color.WHITE);
+   makeLabel.setFont(labelFont);
+   makeLabel.setForeground(Color.WHITE);
+   modelLabel.setFont(labelFont);
+   modelLabel.setForeground(Color.WHITE);
+   vinLabel.setFont(labelFont);
+   vinLabel.setForeground(Color.WHITE);
+   residencyLabel.setFont(labelFont);
+   residencyLabel.setForeground(Color.WHITE);
+
+   // Button styling
+   submitButton.setFont(new Font("Georgia", Font.BOLD, 14));
+   submitButton.setForeground(Color.BLACK);
+
+   // Title styling
+   JLabel titleLabel = new JLabel("Vehicle Owner Form", JLabel.CENTER);
+   titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
+   titleLabel.setForeground(Color.BLACK);
+
+   // Frame layout
+   frame.setLayout(new BorderLayout());
+   frame.add(titleLabel, BorderLayout.NORTH);
+   frame.add(panel, BorderLayout.CENTER);
+
+   frame.setSize(600, 500);
+   frame.setTitle("Vehicle Owner Information");
+   frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+   frame.setVisible(true);
    }
 }
