@@ -170,9 +170,10 @@ public class VehicleOwnerFrame
    frame.add(titleLabel, BorderLayout.NORTH);
    frame.add(panel, BorderLayout.CENTER);
 
-   frame.setSize(600, 500);
+   frame.setSize(700, 500);
    frame.setTitle("Vehicle Owner Information");
    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
    frame.setVisible(true);
    }
 }
+
