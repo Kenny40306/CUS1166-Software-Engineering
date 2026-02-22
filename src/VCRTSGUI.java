@@ -45,7 +45,7 @@ public class VCRTSGUI {
 
         jobOwnerBtn.addActionListener(e -> {
             frame.dispose();          // close main menu
-           //new JobOwnerFrame();      // open client screen
+            new JobOwnerFrame();      // open client screen
         });
 
         frame.dispose();

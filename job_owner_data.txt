@@ -1,0 +1,6 @@
+Timestamp: 2026-02-22T15:41:27.013649300
+Client ID: 12
+Job Name: Jaden
+Job Duration (minutes): 12
+Job Deadline (minutes): 120
+---------------------------------

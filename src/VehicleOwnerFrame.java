@@ -50,6 +50,7 @@ public class VehicleOwnerFrame
       
       //subat
       JButton submitButton = new JButton("Submit");
+      JButton backButton = new JButton("Back");
       //creates button for submit
 
       JPanel panel = new JPanel();
@@ -63,6 +64,7 @@ public class VehicleOwnerFrame
       panel.add(vinField);
       panel.add(residencyLabel);
       panel.add(residencyBox);
+      panel.add(backButton);
       panel.add(submitButton);
       
       //adding each of the labels, buttons, and text fields to panel
@@ -134,8 +136,14 @@ public class VehicleOwnerFrame
     	        }
     	    
     	    
-    	    });
-    
+            	});
+            // =====================
+        // Back Logic
+        // =====================
+        backButton.addActionListener(e -> {
+            frame.dispose();
+            VCRTSGUI.main(null); // return to main menu
+        });
   // =====================
    // Styling and Layout - Moontarin
    // =====================
