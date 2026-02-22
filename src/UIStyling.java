@@ -14,7 +14,7 @@ public class UIStyling {
 
 	  // Font styling for labels
 	public static void styleLabel(JLabel label) {
-		Font labelFont = new Font("Georgia", Font.PLAIN, 16);
+		Font labelFont = new Font("Georgia", Font.PLAIN, 13);
 		label.setFont(labelFont);
 		label.setForeground(Color.WHITE);
 		
@@ -37,7 +37,7 @@ public class UIStyling {
 	// Apply styling to the frame and panel
 	 public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel) {
 	  // Frame layout
-	  frame.setLayout(new BorderLayout());
+	  
 	  frame.add(titleLabel, BorderLayout.NORTH);
 	  frame.add(panel, BorderLayout.CENTER);
 

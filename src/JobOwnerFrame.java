@@ -22,20 +22,29 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		
 		setTitle("Job Owner Information"); //text for window identification
 		setSize(600,400); //size dimension for window components to fit in and avoids resizing issues
-		setLocationRelativeTo(null); //allows for window to be centered on the screen 
+		setLocationRelativeTo(null); //allows for window to be centered on the screen
+		setLayout(new  BorderLayout()); 
 		JPanel panel = new JPanel(new GridLayout(5,2,10,10)); //grid allows for alignments (5 rows, 2 columns, 10 pixel spacing horizontal and vertical)
         UIStyling.styleVehiclePanel(panel);
         
-		panel.add(new JLabel("Client ID:"));
+		JLabel clientLabel = new JLabel("Client ID:");
+		UIStyling.styleLabel(clientLabel);
+		panel.add(clientLabel);
 		panel.add(clientID);
 
-		panel.add(new JLabel("Job Name:"));
+		JLabel jobLabel = new JLabel("Job Name:");
+		UIStyling.styleLabel(jobLabel);
+		panel.add(jobLabel);
 		panel.add(jobName);
 
-		panel.add(new JLabel("Job Duration:"));
+		JLabel durationLabel = new JLabel("Job Duration:");
+		UIStyling.styleLabel(durationLabel);
+		panel.add(durationLabel);
 		panel.add(duration);
 
-		panel.add(new JLabel("Deadline:"));
+		JLabel deadlineLabel = new JLabel("Job Deadline:");
+		UIStyling.styleLabel(deadlineLabel);
+		panel.add(deadlineLabel);
 		panel.add(deadline);
 
 		JButton submit = new JButton("Submit"); //create submit action button to save data

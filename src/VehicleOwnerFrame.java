@@ -25,24 +25,35 @@ Vehicle Owner Frame
 	        setTitle("Vehicle Owner Information");
 	        setSize(600,400);
 	        setLocationRelativeTo(null);
+			setLayout(new BorderLayout());
 	        JPanel panel = new JPanel(new GridLayout(7,2,10,10));
 	        UIStyling.styleVehiclePanel(panel);
 	      
-	        panel.add(new JLabel("Owner ID:"));
-	        panel.add(ownerIDField);
+	        JLabel ownerIDLabel = new JLabel("Owner ID:");
+			UIStyling.styleLabel(ownerIDLabel);
+			panel.add(ownerIDLabel);
+			panel.add(ownerIDField);
 
-	        panel.add(new JLabel("Make:"));
-	        panel.add(makeField);
+	        JLabel makeLabel = new JLabel("Make:");
+			UIStyling.styleLabel(makeLabel);
+			panel.add(makeLabel);
+			panel.add(makeField);
 
-	        panel.add(new JLabel("Model:"));
-	        panel.add(modelField);
+	        JLabel modelLabel = new JLabel("Model:");
+			UIStyling.styleLabel(modelLabel);
+			panel.add(modelLabel);
+			panel.add(modelField);
 
-	        panel.add(new JLabel("VIN:"));
-	        panel.add(vinField);
+	        JLabel vinLabel = new JLabel("VIN:");
+			UIStyling.styleLabel(vinLabel);
+			panel.add(vinLabel);
+			panel.add(vinField);
 
 	        //Avneet
 	        //created the Residency Time Dropdown
-	        panel.add(new JLabel("Residency Time:"));
+	        JLabel residencyLabel = new JLabel("Residency Time:");
+			UIStyling.styleLabel(residencyLabel);
+			panel.add(residencyLabel);
 
 	        String[] residencyOptions = {
 	        		"1 hour",
