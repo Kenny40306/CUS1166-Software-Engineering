@@ -1,6 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
 //Jaden opens the main frame where you select your role as either a vehicle owner or job owner (client)
+// Moontarin styled the main frame 
 public class VCRTSGUI {
 
     public static void main(String[] args) {
@@ -8,27 +9,30 @@ public class VCRTSGUI {
         JFrame frame = new JFrame();
         frame.setTitle("Vehicular Cloud Console (VCRTS)");
         frame.setSize(450, 250);
-        frame.setLocationRelativeTo(null); // center window
+        frame.setLocationRelativeTo(null); 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Main panel with spacing
+        // Main panel with spacing  
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setBackground(new Color(0, 0, 128));
 
-        // Title
+        // Title 
         JLabel title = new JLabel("Select Your Role", JLabel.CENTER);
-        title.setFont(new Font("SansSerif", Font.BOLD, 18));
+        title.setFont(new Font("Georgia", Font.BOLD, 18)); 
+        title.setForeground(Color.WHITE);
         panel.add(title, BorderLayout.NORTH);
 
         // Button panel
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 15));
+        buttonPanel.setBackground(new Color(0, 0, 128)); 
 
         JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
         JButton jobOwnerBtn = new JButton("Job Owner (Client)");
 
-        vehicleOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        jobOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        vehicleOwnerBtn.setFont(new Font("Georgia", Font.PLAIN, 14)); 
+        jobOwnerBtn.setFont(new Font("Georgia", Font.PLAIN, 14));     
 
         buttonPanel.add(vehicleOwnerBtn);
         buttonPanel.add(jobOwnerBtn);

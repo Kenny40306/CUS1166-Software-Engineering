@@ -95,27 +95,33 @@ public class JobOwnerFrame extends JFrame {
         });
 
         // =====================
-        // Styling (match VehicleOwnerFrame)
+        // Styling (match VehicleOwnerFrame) - Moontarin
         // =====================
-        panel.setBackground(new Color(0, 0, 128));
 
+         // Set panel background
+        panel.setBackground(new Color(0, 0, 128));
+         
+         // Font styling for labels
         Font labelFont = new Font("Georgia", Font.PLAIN, 16);
         clientIDLabel.setFont(labelFont); clientIDLabel.setForeground(Color.WHITE);
         jobNameLabel.setFont(labelFont); jobNameLabel.setForeground(Color.WHITE);
         durationLabel.setFont(labelFont); durationLabel.setForeground(Color.WHITE);
         deadlineLabel.setFont(labelFont); deadlineLabel.setForeground(Color.WHITE);
 
+        // Button styling
         submitButton.setFont(new Font("Georgia", Font.BOLD, 14));
         backButton.setFont(new Font("Georgia", Font.BOLD, 14));
 
+        // Title styling
         JLabel titleLabel = new JLabel("Job Owner Form", JLabel.CENTER);
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
         titleLabel.setForeground(Color.BLACK);
-
+         
+        // Frame layout
         frame.setLayout(new BorderLayout());
         frame.add(titleLabel, BorderLayout.NORTH);
         frame.add(panel, BorderLayout.CENTER);
-
+        
         frame.setSize(700, 500);
         frame.setTitle("Job Owner Information");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
