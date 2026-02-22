@@ -1,22 +1,53 @@
+import java.awt.*;
 import javax.swing.*;
+//Jaden opens the main frame where you se
+public class VCRTSGUI {
 
+    public static void main(String[] args) {
 
-/*Main viewer class to launch program and display GUI window*/
-public class VCRTSGUI{
-    public static void main(String[]args){
-    	
-        JFrame frame = new JFrame(); //jframe creates new window fame to display info on screen
+        JFrame frame = new JFrame();
+        frame.setTitle("Vehicular Cloud Console (VCRTS)");
+        frame.setSize(450, 250);
+        frame.setLocationRelativeTo(null); // center window
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel(); //panel creates buttons and text fields in the window
+        // Main panel with spacing
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Title
+        JLabel title = new JLabel("Select Your Role", JLabel.CENTER);
+        title.setFont(new Font("SansSerif", Font.BOLD, 18));
+        panel.add(title, BorderLayout.NORTH);
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 15));
+
+        JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
+        JButton jobOwnerBtn = new JButton("Job Owner (Client)");
+
+        vehicleOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        jobOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+        buttonPanel.add(vehicleOwnerBtn);
+        buttonPanel.add(jobOwnerBtn);
+
+        panel.add(buttonPanel, BorderLayout.CENTER);
+
         frame.add(panel);
 
-        final int FRAME_WIDTH=400; //fixed setting so both height and width are constant pixels for how large GUI appears
-        final int FRAME_HEIGHT=200;
+        // Button Actions
+        vehicleOwnerBtn.addActionListener(e -> {
+            frame.dispose();          // close main menu
+            //new VehicleOwnerFrame();  // open owner screen
+        });
 
-        frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
-        frame.setTitle("Vehicular Cloud Console (VCRTS)"); 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //stops program when window is closed
-        frame.setVisible(true); //allows window to be shown on screen 
+        jobOwnerBtn.addActionListener(e -> {
+            frame.dispose();          // close main menu
+           //new JobOwnerFrame();      // open client screen
+        });
 
+        frame.setVisible(true);
     }
 }
