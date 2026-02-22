@@ -11,8 +11,7 @@ public class VehicleOwnerFrame
 {
    public static void main(String[] args)
    {
-	  //Subat
-	   
+      //Subat
       JFrame frame = new JFrame(); 
       //jframe creates new window frame for our vehicle owner class
 
@@ -57,13 +56,12 @@ public class VehicleOwnerFrame
       //program closes when exit
       frame.setVisible(true);
       //window can show on screen 
-   }
-}
 
       /*=====================
-        styling the vehicle owner form - Moontarin 
+        styling the vehicle owner form - Moontarin
       ======================*/
-      //font and color for all labels
+    
+      // font and color for all labels
       Font labelFont = new Font("Georgia", Font.PLAIN, 16);
       ownerIDLabel.setFont(labelFont);
       ownerIDLabel.setForeground(Color.WHITE);
@@ -73,23 +71,22 @@ public class VehicleOwnerFrame
       modelLabel.setForeground(Color.WHITE);
       vinLabel.setFont(labelFont);
       vinLabel.setForeground(Color.WHITE);
-    
+
       //button font and color
       submitButton.setFont(new Font("Georgia", Font.BOLD, 14));
       submitButton.setForeground(Color.BLACK);
-  
+
       // Panel background color
       panel.setBackground(new Color(0, 0, 128));
-    
-       // Title label styling
+
+      // Title label styling
       JLabel titleLabel = new JLabel("Vehicle Owner Form", JLabel.CENTER);
       titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
       titleLabel.setForeground(Color.BLACK);
-    
+
       //frame layout and add title
       frame.setLayout(new BorderLayout());
       frame.add(titleLabel, BorderLayout.NORTH);
       frame.add(panel, BorderLayout.CENTER);
    }
 }
-
