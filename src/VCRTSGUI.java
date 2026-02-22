@@ -1,6 +1,6 @@
 import java.awt.*;
 import javax.swing.*;
-//Jaden opens the main frame where you se
+//Jaden opens the main frame where you select your role as either a vehicle owner or job owner (client)
 public class VCRTSGUI {
 
     public static void main(String[] args) {
@@ -40,7 +40,7 @@ public class VCRTSGUI {
         // Button Actions
         vehicleOwnerBtn.addActionListener(e -> {
             frame.dispose();          // close main menu
-            //new VehicleOwnerFrame();  // open owner screen
+            new VehicleOwnerFrame();  // open owner screen
         });
 
         jobOwnerBtn.addActionListener(e -> {
@@ -48,6 +48,7 @@ public class VCRTSGUI {
            //new JobOwnerFrame();      // open client screen
         });
 
+        frame.dispose();
         frame.setVisible(true);
     }
 }
