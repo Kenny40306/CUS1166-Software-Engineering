@@ -4,6 +4,7 @@ import javax.swing.*;
 /*Main viewer class to launch program and display GUI window*/
 public class VCRTSGUI{
     public static void main(String[]args){
+    	
         JFrame frame = new JFrame(); //jframe creates new window fame to display info on screen
 
         JPanel panel = new JPanel(); //panel creates buttons and text fields in the window
