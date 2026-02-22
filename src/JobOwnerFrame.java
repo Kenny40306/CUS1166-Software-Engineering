@@ -1,131 +1,106 @@
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Font;
 
-public class JobOwnerFrame extends JFrame {
+/*=====================
+  Client Frame JOB OWNER
+ ======================*/
 
-    public JobOwnerFrame() {
-
-        JFrame frame = new JFrame();
-
-        JLabel clientIDLabel = new JLabel("Client ID:");
-        JTextField clientIDField = new JTextField(10);
-
-        JLabel jobNameLabel = new JLabel("Job Name:");
-        JTextField jobNameField = new JTextField(10);
-
-        JLabel durationLabel = new JLabel("Job Duration");
-        JTextField durationField = new JTextField(10);
-
-        JLabel deadlineLabel = new JLabel("Job Deadline");
-        JTextField deadlineField = new JTextField(10);
-
-        JButton submitButton = new JButton("Submit");
-        JButton backButton = new JButton("Back");
-
-        JPanel panel = new JPanel();
-        panel.add(clientIDLabel);
-        panel.add(clientIDField);
-        panel.add(jobNameLabel);
-        panel.add(jobNameField);
-        panel.add(durationLabel);
-        panel.add(durationField);
-        panel.add(deadlineLabel);
-        panel.add(deadlineField);
-        panel.add(backButton);
-        panel.add(submitButton);
-
+//Kendra Wrote This
+//GUI window for Job Owner to submit computational jobs to vehicular cloud systems
+class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extended JFrame for button, layout and open/close behaviors
+	
+	//all private to prevent other classes form modifying the fields
+	private JTextField clientID = new JTextField(); //identify client
+	private JTextField jobName = new JTextField(); //identify job description
+	private JTextField duration = new JTextField(); //identify execution time
+	private JTextField deadline = new JTextField(); //identify completion limit
+	
+	public JobOwnerFrame(){
+		
+		setTitle("Job Owner Information"); //text for window identification
+		setSize(600,400); //size dimension for window components to fit in and avoids resizing issues
+		setLocationRelativeTo(null); //allows for window to be centered on the screen 
+		JPanel panel = new JPanel(new GridLayout(5,2,10,10)); //grid allows for alignments (5 rows, 2 columns, 10 pixel spacing horizontal and vertical)
+        UIStyling.styleVehiclePanel(panel);
         
-        submitButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+		panel.add(new JLabel("Client ID:"));
+		panel.add(clientID);
 
-                String clientID = clientIDField.getText();
-                String jobName = jobNameField.getText();
-                String durationText = durationField.getText();
-                String deadlineText = deadlineField.getText();
+		panel.add(new JLabel("Job Name:"));
+		panel.add(jobName);
 
-                // Empty field validation
-                if (clientID.isEmpty() || jobName.isEmpty() || durationText.isEmpty() || deadlineText.isEmpty()) {
-                    JOptionPane.showMessageDialog(frame,
-                            "All fields must be filled out!",
-                            "Input Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+		panel.add(new JLabel("Job Duration:"));
+		panel.add(duration);
 
-                // Save to file (append mode)
-                try (FileWriter writer = new FileWriter("job_owner_data.txt", true)) {
+		panel.add(new JLabel("Deadline:"));
+		panel.add(deadline);
 
-                    writer.write("Timestamp: " + LocalDateTime.now() + "\n");
-                    writer.write("Client ID: " + clientID + "\n");
-                    writer.write("Job Name: " + jobName + "\n");
-                    writer.write("Job Duration (minutes): " + durationText + "\n");
-                    writer.write("Job Deadline (minutes): " + deadlineText + "\n");
-                    writer.write("---------------------------------\n");
+		JButton submit = new JButton("Submit"); //create submit action button to save data
+		JButton back= new JButton("Back"); //create back action button for navigation control
+		UIStyling.styleButton(submit);
+        UIStyling.styleButton(back);
 
-                    JOptionPane.showMessageDialog(frame,
-                            "Job submitted successfully!");
+		add(submit);
+		add(back);
+		
+		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form");
+        UIStyling.setupFrame(this, panel, titleLabel);
 
-                    // Clear fields after successful submit
-                    clientIDField.setText("");
-                    jobNameField.setText("");
-                    durationField.setText("");
-                    deadlineField.setText("");
+		submit.addActionListener(e -> saveJobData()); //event button runs saveJob method
+		back.addActionListener(e-> {
+			dispose(); //event button close current window for role selection
+			new RoleSelectionFrame();
+			
+		});//returns user to main menu
+		
+		setVisible(true); //always display GUI window 
+	}
+	
+	//Jaden Wrote this
+	//Needs save Job method for handling validation requests and storage
+	private void saveJobData() {
+		// get input from user 
+		String id = clientID.getText();;
+		String name = jobName.getText();
+		String durText = duration.getText();
+		String ddlText = deadline.getText();
 
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(frame,
-                            "Error saving file: " + ex.getMessage(),
-                            "Save Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
+		// validates that there are no empty fields
+		if (id.isEmpty() || name.isEmpty() || durText.isEmpty() || ddlText.isEmpty()) {
+		JOptionPane.showMessageDialog(this,
+		"All fields must be filled out!",
+		"Input Error",
+		JOptionPane.ERROR_MESSAGE);
+		return;
+		}
 
-        // =====================
-        // Back Logic
-        // =====================
-        backButton.addActionListener(e -> {
-            frame.dispose();
-            VCRTSGUI.main(null); // return to main menu
-        });
+		
+		//needs fileutil.writer and time stamp
+		//creates file reader 
+		 try (FileWriter writer = new FileWriter("job_owner_data.txt", true)) {
+		writer.write("Timestamp: " + LocalDateTime.now() + "\n");
+		writer.write("Client ID: " + clientID + "\n");
+		writer.write("Job Name: " + jobName + "\n");
+		writer.write("Job Duration: " + duration + "\n");
+		writer.write("Job Deadline: " + deadline + "\n");
+		writer.write("---------------------------------\n");
 
-        // =====================
-        // Styling (match VehicleOwnerFrame) - Moontarin
-        // =====================
+		JOptionPane.showMessageDialog(this, "Job saved successfully!");
 
-         // Set panel background
-        panel.setBackground(new Color(0, 0, 128));
-         
-         // Font styling for labels
-        Font labelFont = new Font("Georgia", Font.PLAIN, 16);
-        clientIDLabel.setFont(labelFont); clientIDLabel.setForeground(Color.WHITE);
-        jobNameLabel.setFont(labelFont); jobNameLabel.setForeground(Color.WHITE);
-        durationLabel.setFont(labelFont); durationLabel.setForeground(Color.WHITE);
-        deadlineLabel.setFont(labelFont); deadlineLabel.setForeground(Color.WHITE);
+		// clear fields after done 
+		clientID.setText("");
+		jobName.setText("");
+		duration.setText("");
+		deadline.setText("");
 
-        // Button styling
-        submitButton.setFont(new Font("Georgia", Font.BOLD, 14));
-        backButton.setFont(new Font("Georgia", Font.BOLD, 14));
-
-        // Title styling
-        JLabel titleLabel = new JLabel("Job Owner Form", JLabel.CENTER);
-        titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
-        titleLabel.setForeground(Color.BLACK);
-         
-        // Frame layout
-        frame.setLayout(new BorderLayout());
-        frame.add(titleLabel, BorderLayout.NORTH);
-        frame.add(panel, BorderLayout.CENTER);
-        
-        frame.setSize(700, 500);
-        frame.setTitle("Job Owner Information");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
+		} catch (IOException ex) {
+		JOptionPane.showMessageDialog(this,
+		"Error saving file: " + ex.getMessage(),
+		"Save Error",
+		JOptionPane.ERROR_MESSAGE);
+		}
+	}
 }
