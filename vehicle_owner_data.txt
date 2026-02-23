@@ -4,3 +4,10 @@ Model:
 VIN: 
 Residency Time: 1 hour
 ---------------------------------
+Timestamp: 2026-02-23T15:52:47.704151
+Owner ID: AvneetKaur123
+Make: Honda
+Model: CRV
+VIN: 12345678912345678
+Residency Time: 3 hours
+---------------------------------
