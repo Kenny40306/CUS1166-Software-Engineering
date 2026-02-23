@@ -7,7 +7,7 @@ import java.awt.*;
 
 public class UIStyling {
 	
-	public static void styleVehiclePanel(JPanel panel) {
+	public static void stylePanel(JPanel panel) {
 		  // Set panel background- navy blue color
 		  panel.setBackground(new Color(0, 0, 128));
 	}
@@ -17,14 +17,19 @@ public class UIStyling {
 		Font labelFont = new Font("Georgia", Font.PLAIN, 16);
 		label.setFont(labelFont);
 		label.setForeground(Color.WHITE);
-		
 	}
 	  // Button styling
-	  public static void styleButton(JButton button) {
-	  button.setFont(new Font("Georgia", Font.BOLD, 14));
-	  button.setForeground(Color.BLACK);
-	  }
-	  
+	public static void styleButton(JButton button) {
+	button.setFont(new Font("Georgia", Font.BOLD, 14));
+	button.setForeground(Color.BLACK);
+	}
+	  //Style text fields black text on white background
+	 public static void styleTextField(JTextField field) {
+	 field.setFont(new Font("Georgia", Font.PLAIN, 16));
+	 field.setForeground(Color.BLACK);
+	 field.setBackground(Color.WHITE);
+	 }
+	    
 	 // Creates and styles a title label
 	 public static JLabel createTitleLabel(String text) {
 	  // Title styling

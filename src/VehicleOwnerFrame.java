@@ -18,6 +18,13 @@ Vehicle Owner Frame
 	    private JTextField modelField = new JTextField(10);
 	    private JTextField vinField = new JTextField(10);
 
+	    //Label display 
+	    private JLabel ownerIDLabel;
+	    private JLabel makeLabel;
+	    private JLabel modelLabel;
+	    private JLabel vinLabel;
+	    private JLabel residencyLabel;
+
 	    private JComboBox<String> residencyBox;
 
 	    public VehicleOwnerFrame() {
@@ -26,23 +33,51 @@ Vehicle Owner Frame
 	        setSize(600,400);
 	        setLocationRelativeTo(null);
 	        JPanel panel = new JPanel(new GridLayout(7,2,10,10));
-	        UIStyling.styleVehiclePanel(panel);
+	        UIStyling.stylePanel(panel);
 	      
-	        panel.add(new JLabel("Owner ID:"));
-	        panel.add(ownerIDField);
+	        //Owner ID
+	        ownerIDLabel = new JLabel("Owner ID:");
+	        UIStyling.styleLabel(ownerIDLabel);
+	        panel.add(ownerIDLabel);
 
-	        panel.add(new JLabel("Make:"));
+	        ownerIDField = new JTextField();
+	        UIStyling.styleTextField(ownerIDField);
+	        panel.add(ownerIDField);
+	        
+	        //Make
+	        makeLabel = new JLabel("Make:");
+	        UIStyling.styleLabel(makeLabel);
+	        panel.add(makeLabel);
+	       
+	        makeField = new JTextField();
+	        UIStyling.styleTextField(makeField);
 	        panel.add(makeField);
 
-	        panel.add(new JLabel("Model:"));
+	        //Model
+	        modelLabel = new JLabel("Model:");
+	        UIStyling.styleLabel(modelLabel);
+	        panel.add(modelLabel);
+	        
+	        modelField = new JTextField();
+	        UIStyling.styleTextField(modelField);
 	        panel.add(modelField);
 
-	        panel.add(new JLabel("VIN:"));
+
+	        //Vin
+	        vinLabel = new JLabel("VIN:");
+	        UIStyling.styleLabel(vinLabel);
+	        panel.add(vinLabel);
+	       
+	        vinField = new JTextField();
+	        UIStyling.styleTextField(vinField);
 	        panel.add(vinField);
 
 	        //Avneet
 	        //created the Residency Time Dropdown
-	        panel.add(new JLabel("Residency Time:"));
+	        residencyLabel = new JLabel("Residency Time:");
+	        UIStyling.styleLabel(residencyLabel);
+	        panel.add(residencyLabel);
+
 
 	        String[] residencyOptions = {
 	        		"1 hour",

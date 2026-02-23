@@ -14,7 +14,7 @@ class RoleSelectionFrame extends JFrame{
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        UIStyling.styleVehiclePanel(panel);
+        UIStyling.stylePanel(panel);
 
         // Title
         JLabel title = new JLabel("Select Your Role", JLabel.CENTER);

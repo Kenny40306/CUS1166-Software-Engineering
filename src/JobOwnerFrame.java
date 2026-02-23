@@ -8,46 +8,78 @@ import java.time.LocalDateTime;
   Client Frame JOB OWNER
  ======================*/
 
-//Kendra Wrote This
+//Kendra Wrote This:
 //GUI window for Job Owner to submit computational jobs to vehicular cloud systems
 class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extended JFrame for button, layout and open/close behaviors
 	
 	//all private to prevent other classes form modifying the fields
-	private JTextField clientID = new JTextField(); //identify client
-	private JTextField jobName = new JTextField(); //identify job description
-	private JTextField duration = new JTextField(); //identify execution time
-	private JTextField deadline = new JTextField(); //identify completion limit
-	
-	public JobOwnerFrame(){
+	private JTextField clientIDField = new JTextField(); //identify client
+	private JTextField jobNameField = new JTextField(); //identify job description
+	private JTextField durationField = new JTextField(); //identify execution time
+	private JTextField deadlineField = new JTextField(); //identify completion limit
+	    
+	//labels for corresponding text fields
+    private JLabel clientIDLabel;
+    private JLabel jobNameLabel;
+    private JLabel durationLabel;
+    private JLabel deadlineLabel;
+    
+	public JobOwnerFrame(){ //Method for GUI setup
 		
 		setTitle("Job Owner Information"); //text for window identification
 		setSize(600,400); //size dimension for window components to fit in and avoids resizing issues
 		setLocationRelativeTo(null); //allows for window to be centered on the screen 
-		JPanel panel = new JPanel(new GridLayout(5,2,10,10)); //grid allows for alignments (5 rows, 2 columns, 10 pixel spacing horizontal and vertical)
-        UIStyling.styleVehiclePanel(panel);
+		JPanel panel = new JPanel(new GridLayout(7,2,10,10)); //grid allows for alignments (5 rows, 2 columns, 10 pixel spacing horizontal and vertical)
+        UIStyling.stylePanel(panel); //UIStyling allows for custom coloring
         
-		panel.add(new JLabel("Client ID:"));
-		panel.add(clientID);
+     // Client ID
+        clientIDLabel = new JLabel("Client ID:");
+        UIStyling.styleLabel(clientIDLabel);
+        panel.add(clientIDLabel);
 
-		panel.add(new JLabel("Job Name:"));
-		panel.add(jobName);
+        clientIDField = new JTextField();
+        UIStyling.styleTextField(clientIDField);
+        panel.add(clientIDField);
 
-		panel.add(new JLabel("Job Duration:"));
-		panel.add(duration);
+        // Job Name
+        jobNameLabel = new JLabel("Job Name:");
+        UIStyling.styleLabel(jobNameLabel);
+        panel.add(jobNameLabel);
 
-		panel.add(new JLabel("Deadline:"));
-		panel.add(deadline);
+        jobNameField = new JTextField();
+        UIStyling.styleTextField(jobNameField);
+        panel.add(jobNameField);
 
+        // Job Duration
+        durationLabel = new JLabel("Job Duration:");
+        UIStyling.styleLabel(durationLabel);
+        panel.add(durationLabel);
+
+        durationField = new JTextField();
+        UIStyling.styleTextField(durationField);
+        panel.add(durationField);
+
+        // Deadline
+        deadlineLabel = new JLabel("Deadline:");
+        UIStyling.styleLabel(deadlineLabel);
+        panel.add(deadlineLabel);
+
+        deadlineField = new JTextField();
+        UIStyling.styleTextField(deadlineField);
+        panel.add(deadlineField);
+
+        //Buttons
 		JButton submit = new JButton("Submit"); //create submit action button to save data
 		JButton back= new JButton("Back"); //create back action button for navigation control
 		UIStyling.styleButton(submit);
         UIStyling.styleButton(back);
 
-		add(submit);
-		add(back);
+        //Add buttons to panel
+		panel.add(submit);
+		panel.add(back);
 		
-		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form");
-        UIStyling.setupFrame(this, panel, titleLabel);
+		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form"); //creates title label for the form
+        UIStyling.setupFrame(this, panel, titleLabel); 
 
 		submit.addActionListener(e -> saveJobData()); //event button runs saveJob method
 		back.addActionListener(e-> {
@@ -63,10 +95,10 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	//Needs save Job method for handling validation requests and storage
 	private void saveJobData() {
 		// get input from user 
-		String id = clientID.getText();;
-		String name = jobName.getText();
-		String durText = duration.getText();
-		String ddlText = deadline.getText();
+		String id = clientIDField.getText();;
+		String name = jobNameField.getText();
+		String durText = durationField.getText();
+		String ddlText = deadlineField.getText();
 
 		// validates that there are no empty fields
 		if (id.isEmpty() || name.isEmpty() || durText.isEmpty() || ddlText.isEmpty()) {
@@ -82,19 +114,19 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		//creates file reader 
 		 try (FileWriter writer = new FileWriter("job_owner_data.txt", true)) {
 		writer.write("Timestamp: " + LocalDateTime.now() + "\n");
-		writer.write("Client ID: " + clientID + "\n");
-		writer.write("Job Name: " + jobName + "\n");
-		writer.write("Job Duration: " + duration + "\n");
-		writer.write("Job Deadline: " + deadline + "\n");
+		writer.write("Client ID: " + clientIDField + "\n");
+		writer.write("Job Name: " + jobNameField + "\n");
+		writer.write("Job Duration: " + durationField + "\n");
+		writer.write("Job Deadline: " + deadlineField + "\n");
 		writer.write("---------------------------------\n");
 
 		JOptionPane.showMessageDialog(this, "Job saved successfully!");
 
 		// clear fields after done 
-		clientID.setText("");
-		jobName.setText("");
-		duration.setText("");
-		deadline.setText("");
+		clientIDField.setText("");
+		jobNameField.setText("");
+		durationField.setText("");
+		deadlineField.setText("");
 
 		} catch (IOException ex) {
 		JOptionPane.showMessageDialog(this,
