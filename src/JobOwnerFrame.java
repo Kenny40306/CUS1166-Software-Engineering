@@ -4,10 +4,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-/*=====================
-  Client Frame JOB OWNER
- ======================*/
-
 //Kendra Wrote This:
 //GUI window for Job Owner to submit computational jobs to vehicular cloud systems
 class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extended JFrame for button, layout and open/close behaviors
@@ -135,4 +131,5 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		JOptionPane.ERROR_MESSAGE);
 		}
 	}
+
 }
