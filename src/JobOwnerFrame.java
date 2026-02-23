@@ -95,7 +95,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	//Needs save Job method for handling validation requests and storage
 	private void saveJobData() {
 		// get input from user 
-		String id = clientIDField.getText();;
+		String id = clientIDField.getText();
 		String name = jobNameField.getText();
 		String durText = durationField.getText();
 		String ddlText = deadlineField.getText();
@@ -136,3 +136,4 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	}
 
 }
+
