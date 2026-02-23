@@ -3,8 +3,6 @@ import java.awt.*;
 
 // =====================
 // Styling and Layout - Moontarin
-// UIstyling was utilzed in Role selection frame, Job Owner Frame, and Vehicle Owner Frame.
-// UI styling was used becuase repeated code everywhere makes styling easy to forget and hard to change later.
 // =====================
 
 public class UIStyling {
@@ -35,24 +33,22 @@ public class UIStyling {
 	 // Creates and styles a title label
 	 public static JLabel createTitleLabel(String text) {
 	  // Title styling
-	  JLabel titleLabel = new JLabel("Vehicle Owner Form", JLabel.CENTER);
+	  JLabel titleLabel = new JLabel(text, JLabel.CENTER);
 	  titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
 	  titleLabel.setForeground(Color.BLACK);
 	  return titleLabel;
 	  }
 	 
-	// styling to the frame and panel
-	 public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel) {
+	// Apply styling to the frame and panel
+	 public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel, String frameTitle) {
 	  // Frame layout
 	  frame.setLayout(new BorderLayout());
 	  frame.add(titleLabel, BorderLayout.NORTH);
 	  frame.add(panel, BorderLayout.CENTER);
 
 	  frame.setSize(700, 500);
-	  frame.setTitle("Vehicle Owner Information");
+	  frame.setTitle(frameTitle);
 	  frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	  frame.setVisible(true);
 	  }
 	}
-
-

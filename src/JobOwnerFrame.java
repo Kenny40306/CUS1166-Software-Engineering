@@ -4,6 +4,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+/*=====================
+  Client Frame JOB OWNER
+ ======================*/
+
 //Kendra Wrote This:
 //GUI window for Job Owner to submit computational jobs to vehicular cloud systems
 class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extended JFrame for button, layout and open/close behaviors
@@ -75,7 +79,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		panel.add(back);
 		
 		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form"); //creates title label for the form
-        UIStyling.setupFrame(this, panel, titleLabel); 
+        UIStyling.setupFrame(this, panel, titleLabel, "Job Owner Information"); 
 
 		submit.addActionListener(e -> saveJobData()); //event button runs saveJob method
 		back.addActionListener(e-> {
@@ -131,5 +135,4 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		JOptionPane.ERROR_MESSAGE);
 		}
 	}
-
 }

@@ -105,7 +105,7 @@ Vehicle Owner Frame
 	        panel.add(backButton);
 
 	        JLabel titleLabel = UIStyling.createTitleLabel("Vehicle Owner Form");
-	        UIStyling.setupFrame(this, panel, titleLabel);
+	        UIStyling.setupFrame(this, panel, titleLabel, "Vehicle Owner Information");
 
 	      //makes labels + component to enter text for all of the required information needed
 	        

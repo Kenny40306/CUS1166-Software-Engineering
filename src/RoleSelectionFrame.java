@@ -1,6 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
 
+/*=====================
+Role Selection Frame - Jaden
+======================*/
+
 class RoleSelectionFrame extends JFrame{
     	
     public RoleSelectionFrame() {
@@ -20,7 +24,7 @@ class RoleSelectionFrame extends JFrame{
         JLabel title = new JLabel("Select Your Role", JLabel.CENTER);
         UIStyling.styleLabel(title);
         title.setForeground(Color.BLACK);
-
+        
         add(title, BorderLayout.NORTH);
         add(panel, BorderLayout.CENTER);
         
