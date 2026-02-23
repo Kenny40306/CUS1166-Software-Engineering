@@ -95,7 +95,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	//Needs save Job method for handling validation requests and storage
 	private void saveJobData() {
 		// get input from user 
-		String id = clientIDField.getText();
+		String id = clientIDField.getText();;
 		String name = jobNameField.getText();
 		String durText = durationField.getText();
 		String ddlText = deadlineField.getText();
@@ -113,6 +113,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		//needs fileutil.writer and time stamp
 		//creates file reader 
 		 try (FileWriter writer = new FileWriter("job_owner_data.txt", true)) {
+		writer.write("Timestamp: " + LocalDateTime.now() + "\n");
 		writer.write("Client ID: " + id + "\n");
 		writer.write("Job Name: " + name + "\n");
 		writer.write("Job Duration: " + durText + "\n");
@@ -136,4 +137,3 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	}
 
 }
-
