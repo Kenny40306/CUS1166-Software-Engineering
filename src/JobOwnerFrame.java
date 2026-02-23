@@ -113,11 +113,10 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		//needs fileutil.writer and time stamp
 		//creates file reader 
 		 try (FileWriter writer = new FileWriter("job_owner_data.txt", true)) {
-		writer.write("Timestamp: " + LocalDateTime.now() + "\n");
-		writer.write("Client ID: " + clientIDField + "\n");
-		writer.write("Job Name: " + jobNameField + "\n");
-		writer.write("Job Duration: " + durationField + "\n");
-		writer.write("Job Deadline: " + deadlineField + "\n");
+		writer.write("Client ID: " + id + "\n");
+		writer.write("Job Name: " + name + "\n");
+		writer.write("Job Duration: " + durText + "\n");
+		writer.write("Job Deadline: " + ddlText + "\n");
 		writer.write("---------------------------------\n");
 
 		JOptionPane.showMessageDialog(this, "Job saved successfully!");
@@ -135,4 +134,5 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		JOptionPane.ERROR_MESSAGE);
 		}
 	}
+
 }
