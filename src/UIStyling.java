@@ -3,6 +3,8 @@ import java.awt.*;
 
 // =====================
 // Styling and Layout - Moontarin
+// UIstyling was utilzed in Role selection frame and Job Owner Frame.
+// UI styling was used becuase repeated code everywhere makes styling easy to forget and hard to change later.
 // =====================
 
 public class UIStyling {
