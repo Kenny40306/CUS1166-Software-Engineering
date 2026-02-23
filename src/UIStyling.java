@@ -41,7 +41,7 @@ public class UIStyling {
 	  return titleLabel;
 	  }
 	 
-	// Apply styling to the frame and panel
+	// styling to the frame and panel
 	 public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel) {
 	  // Frame layout
 	  frame.setLayout(new BorderLayout());
@@ -54,4 +54,5 @@ public class UIStyling {
 	  frame.setVisible(true);
 	  }
 	}
+
 
