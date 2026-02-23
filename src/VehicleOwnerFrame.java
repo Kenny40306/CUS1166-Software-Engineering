@@ -121,9 +121,7 @@ Vehicle Owner Frame
 	        //makes window visible
 	        setVisible(true);
 	    }
-     
-     //adding each of the labels, buttons, and text fields to panel
-     
+          
      //Avneet- I enhanced the submit button functionality to make sure the code runs when the user clicks the "Submit" button
      //the code includes validation, VIN check, timestamp, and auto-clear
      //it allows us to collect all the entered data and saves it to the text file
