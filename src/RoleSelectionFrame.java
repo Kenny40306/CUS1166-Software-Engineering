@@ -19,6 +19,7 @@ class RoleSelectionFrame extends JFrame{
         // Title
         JLabel title = new JLabel("Select Your Role", JLabel.CENTER);
         UIStyling.styleLabel(title);
+        title.setForeground(Color.BLACK);
 
         add(title, BorderLayout.NORTH);
         add(panel, BorderLayout.CENTER);
