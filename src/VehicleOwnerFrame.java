@@ -11,31 +11,35 @@ Vehicle Owner Frame
  class VehicleOwnerFrame extends JFrame{
 
 	 //Subat Wrote This
-	 //jframe creates new window frame for our vehicle owner class
+	 //creates window frame for vehicle info
 	 	
+	 //text fields for users to type in info
 	 	private JTextField ownerIDField = new JTextField(10);
 	 	private JTextField makeField = new JTextField(10);
 	    private JTextField modelField = new JTextField(10);
 	    private JTextField vinField = new JTextField(10);
-
-	    //Label display 
+	    
+	 //labels for each of the text fields
 	    private JLabel ownerIDLabel;
 	    private JLabel makeLabel;
 	    private JLabel modelLabel;
 	    private JLabel vinLabel;
 	    private JLabel residencyLabel;
-
+	    
+	 //dropdown menu for user
 	    private JComboBox<String> residencyBox;
 
 	    public VehicleOwnerFrame() {
 
+	    	//sets title and size of window
 	        setTitle("Vehicle Owner Information");
 	        setSize(600,400);
 	        setLocationRelativeTo(null);
+	        //grid for organization purposes
 	        JPanel panel = new JPanel(new GridLayout(7,2,10,10));
 	        UIStyling.stylePanel(panel);
 	      
-	        //Owner ID
+	        //owner ID + input
 	        ownerIDLabel = new JLabel("Owner ID:");
 	        UIStyling.styleLabel(ownerIDLabel);
 	        panel.add(ownerIDLabel);
@@ -44,7 +48,7 @@ Vehicle Owner Frame
 	        UIStyling.styleTextField(ownerIDField);
 	        panel.add(ownerIDField);
 	        
-	        //Make
+	        //make label + input
 	        makeLabel = new JLabel("Make:");
 	        UIStyling.styleLabel(makeLabel);
 	        panel.add(makeLabel);
@@ -53,7 +57,7 @@ Vehicle Owner Frame
 	        UIStyling.styleTextField(makeField);
 	        panel.add(makeField);
 
-	        //Model
+	        //model label + input
 	        modelLabel = new JLabel("Model:");
 	        UIStyling.styleLabel(modelLabel);
 	        panel.add(modelLabel);
@@ -61,9 +65,8 @@ Vehicle Owner Frame
 	        modelField = new JTextField();
 	        UIStyling.styleTextField(modelField);
 	        panel.add(modelField);
-
-
-	        //Vin
+	        
+	        //vehicle identifcation number label + input
 	        vinLabel = new JLabel("VIN:");
 	        UIStyling.styleLabel(vinLabel);
 	        panel.add(vinLabel);
@@ -106,14 +109,16 @@ Vehicle Owner Frame
 
 	      //makes labels + component to enter text for all of the required information needed
 	        
-	        //subat
+	        //Subat
+	        //creates button for submit and info saves
 	        submitButton.addActionListener(e -> saveVehicle());
-	        //creates button for submit
+	        //when user presses back, closes frame and returns to role select page
 	        backButton.addActionListener(e -> {
 	            dispose(); //closes frame
 	            new RoleSelectionFrame();
 	        });
 
+	        //makes window visible
 	        setVisible(true);
 	    }
      
