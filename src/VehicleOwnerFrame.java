@@ -5,27 +5,27 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 /*=====================
-Vehicle Owner Frame
+Vehicle Owner Frame - Subat + Avneet
 ======================*/
 
  class VehicleOwnerFrame extends JFrame{
 
 	 //Subat Wrote This
 	 //creates window frame for vehicle info
-	 	
+	 
 	 //text fields for users to type in info
 	 	private JTextField ownerIDField = new JTextField(10);
 	 	private JTextField makeField = new JTextField(10);
 	    private JTextField modelField = new JTextField(10);
 	    private JTextField vinField = new JTextField(10);
-	    
-	 //labels for each of the text fields
+
+	 //labels for each of the text fields 
 	    private JLabel ownerIDLabel;
 	    private JLabel makeLabel;
 	    private JLabel modelLabel;
 	    private JLabel vinLabel;
 	    private JLabel residencyLabel;
-	    
+
 	 //dropdown menu for user
 	    private JComboBox<String> residencyBox;
 
@@ -37,6 +37,7 @@ Vehicle Owner Frame
 	        setLocationRelativeTo(null);
 	        //grid for organization purposes
 	        JPanel panel = new JPanel(new GridLayout(7,2,10,10));
+	        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 	        UIStyling.stylePanel(panel);
 	      
 	        //owner ID + input
@@ -48,7 +49,7 @@ Vehicle Owner Frame
 	        UIStyling.styleTextField(ownerIDField);
 	        panel.add(ownerIDField);
 	        
-	        //make label + input
+	        //Make label + input
 	        makeLabel = new JLabel("Make:");
 	        UIStyling.styleLabel(makeLabel);
 	        panel.add(makeLabel);
@@ -57,7 +58,7 @@ Vehicle Owner Frame
 	        UIStyling.styleTextField(makeField);
 	        panel.add(makeField);
 
-	        //model label + input
+	        //Model label + input
 	        modelLabel = new JLabel("Model:");
 	        UIStyling.styleLabel(modelLabel);
 	        panel.add(modelLabel);
@@ -65,7 +66,8 @@ Vehicle Owner Frame
 	        modelField = new JTextField();
 	        UIStyling.styleTextField(modelField);
 	        panel.add(modelField);
-	        
+
+
 	        //vehicle identifcation number label + input
 	        vinLabel = new JLabel("VIN:");
 	        UIStyling.styleLabel(vinLabel);
@@ -109,8 +111,8 @@ Vehicle Owner Frame
 
 	      //makes labels + component to enter text for all of the required information needed
 	        
-	        //Subat
-	        //creates button for submit and info saves
+	        //subat
+	        //creates button for submit
 	        submitButton.addActionListener(e -> saveVehicle());
 	        //when user presses back, closes frame and returns to role select page
 	        backButton.addActionListener(e -> {
@@ -121,7 +123,8 @@ Vehicle Owner Frame
 	        //makes window visible
 	        setVisible(true);
 	    }
-          
+     
+     
      //Avneet- I enhanced the submit button functionality to make sure the code runs when the user clicks the "Submit" button
      //the code includes validation, VIN check, timestamp, and auto-clear
      //it allows us to collect all the entered data and saves it to the text file

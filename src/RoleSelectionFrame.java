@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /*=====================
-Role Selection Frame - Jaden
+Role Selection Frame - Jaden + Ryan
 ======================*/
 
 class RoleSelectionFrame extends JFrame{
@@ -10,7 +10,7 @@ class RoleSelectionFrame extends JFrame{
     public RoleSelectionFrame() {
  
         setTitle("Vehicular Cloud Console (VCRTS)");
-        setSize(450, 250);
+        setSize(600, 400);
         setLocationRelativeTo(null); // center window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
