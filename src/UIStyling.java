@@ -33,6 +33,7 @@ public class UIStyling {
 	 }
 	    
 	 // Creates and styles a title label
+	// This method creates and styles a reusable title label by centering the text, applying a bold font, and returning it so I can use it in multiple frames.
 	 public static JLabel createTitleLabel(String text) {
 	  // Title styling
 	  JLabel titleLabel = new JLabel(text, JLabel.CENTER);
@@ -54,4 +55,5 @@ public class UIStyling {
 	  frame.setVisible(true);
 	  }
 	}
+
 
