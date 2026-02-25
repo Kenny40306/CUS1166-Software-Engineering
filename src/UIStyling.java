@@ -33,7 +33,8 @@ public class UIStyling {
 	 }
 	    
 	 // Creates and styles a title label
-	// This method creates and styles a reusable title label by centering the text, applying a bold font, and returning it so I can use it in multiple frames.
+	// This method creates a centered label, applies a larger bold Georgia font, sets the text color to black, 
+	//and then returns the styled label so I can reuse it across different frames.
 	 public static JLabel createTitleLabel(String text) {
 	  // Title styling
 	  JLabel titleLabel = new JLabel(text, JLabel.CENTER);
@@ -42,9 +43,9 @@ public class UIStyling {
 	  return titleLabel;
 	  }
 	 
-	// Apply styling to the frame and panel
+	// Apply styling to the frame and panel 
 	 public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel, String frameTitle) {
-	  // Frame layout
+	  // Frame layout- orangizes frames into sections, frame title front and main panel center
 	  frame.setLayout(new BorderLayout());
 	  frame.add(titleLabel, BorderLayout.NORTH);
 	  frame.add(panel, BorderLayout.CENTER);
@@ -55,5 +56,6 @@ public class UIStyling {
 	  frame.setVisible(true);
 	  }
 	}
+
 
 
