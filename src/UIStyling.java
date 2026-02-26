@@ -44,7 +44,7 @@ public class UIStyling {
 	  return titleLabel;
 	  }
 	 
-	// Apply styling to the frame and panel 
+	// Apply styling to the frame and panel - configures and displays the frames 
 	 public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel, String frameTitle) {
 	  // Frame layout- orangizes frames into sections, frame title front and main panel center
 	  frame.setLayout(new BorderLayout());
@@ -57,6 +57,7 @@ public class UIStyling {
 	  frame.setVisible(true);
 	  }
 	}
+
 
 
 
