@@ -33,10 +33,10 @@ public class UIStyling {
 	 }
 	    
 	 // Creates and styles a title label
-	// This method creates a centered label, applies a larger bold Georgia font, sets the text color to black, 
-	//and then returns the styled label so I can reuse it across different frames.
 	 public static JLabel createTitleLabel(String text) {
 	  // Title styling
+     // This method creates a centered label, applies a larger bold Georgia font, sets the text color to black, 
+	//and then returns the styled label so I can reuse it across different frames.
 	  JLabel titleLabel = new JLabel(text, JLabel.CENTER);
 	  titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
 	  titleLabel.setForeground(Color.BLACK);
@@ -56,6 +56,7 @@ public class UIStyling {
 	  frame.setVisible(true);
 	  }
 	}
+
 
 
 
