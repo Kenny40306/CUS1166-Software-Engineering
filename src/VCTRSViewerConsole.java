@@ -69,7 +69,7 @@ class DescriptionFrame extends JFrame { //inherits JFrame GUI windows for button
         continueBtn.setFont(new Font("Georgia", Font.BOLD, 18)); //new size button
         continueBtn.addActionListener(e -> {
             dispose();        // Close the description frame
-            new RoleSelectionFrame(); // Open role selection frame next
+            new UserLoginFrame(); // Open role selection frame next
         });
 
         JPanel buttonPanel = new JPanel(); //
