@@ -15,8 +15,8 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	//all private fields to prevent other classes form modifying the fields
 	private JTextField clientIDField = new JTextField(); //identify client
 	private JTextField jobNameField = new JTextField(); //identify job description
-	private JTextField durationField = new JTextField(); //identify execution time
-	private JTextField deadlineField = new JTextField(); //identify completion limit
+	private JTextField durationField = new JTextField(); //identify execution time minutes
+	private JTextField deadlineField = new JTextField(); //identify completion limit hours
 	    
 	//labels for corresponding text fields
     private JLabel clientIDLabel;
@@ -52,7 +52,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         panel.add(jobNameField);
 
         //Job Duration
-        durationLabel = new JLabel("Job Duration:");
+        durationLabel = new JLabel("Job Duration (Minutes):");
         UIStyling.styleLabel(durationLabel);
         panel.add(durationLabel);
 
@@ -61,14 +61,14 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         panel.add(durationField);
 
         //Deadline
-        deadlineLabel = new JLabel("Deadline:");
+        deadlineLabel = new JLabel("Deadline (Hours):");
         UIStyling.styleLabel(deadlineLabel);
         panel.add(deadlineLabel);
 
         deadlineField = new JTextField();
         UIStyling.styleTextField(deadlineField);
         panel.add(deadlineField);
-
+        
         //Buttons
 		JButton submit = new JButton("Submit"); //create submit action button to save data
 		JButton back= new JButton("Back"); //create back action button for navigation control
@@ -110,6 +110,26 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		return;
 		}
 
+		//Valid inputs for duration and deadline fields
+		
+		int duration;
+		int deadline;
+
+		try {
+		    duration = Integer.parseInt(durText);
+		    deadline = Integer.parseInt(ddlText);
+
+		    if (duration <= 0 || deadline <= 0) {
+		        throw new NumberFormatException();
+		    }
+
+		} catch (NumberFormatException ex) {
+		    JOptionPane.showMessageDialog(this,
+		            "Duration must be minutes and Deadline must be hours.",
+		            "Invalid Input",
+		            JOptionPane.ERROR_MESSAGE);
+		    return;
+		}
 		
 		//needs fileutil.writer and time stamp
 		//creates file reader 
@@ -117,8 +137,8 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		writer.write("Timestamp: " + LocalDateTime.now() + "\n");
 		writer.write("Client ID: " + id + "\n");
 		writer.write("Job Name: " + name + "\n");
-		writer.write("Job Duration: " + durText + "\n");
-		writer.write("Job Deadline: " + ddlText + "\n");
+		writer.write("Job Duration: " + durText + "Minutes\n");
+		writer.write("Job Deadline: " + ddlText + "Hours\n");
 		writer.write("---------------------------------\n");
 
 		JOptionPane.showMessageDialog(this, "Job saved successfully!");

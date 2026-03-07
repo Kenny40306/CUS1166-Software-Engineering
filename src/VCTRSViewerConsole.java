@@ -47,7 +47,7 @@ class DescriptionFrame extends JFrame { //inherits JFrame GUI windows for button
 
         // Description text
         JTextArea description = new JTextArea(
-                "This application allows clients to submit computational jobs to available vehicles " +
+                "\nThis application allows clients to submit computational jobs to available vehicles " +
         		"and vehicle owners to rent out their vehicles for processing tasks within the cloud.\n\n" +
                 
                 "Click Continue To Login."
@@ -58,7 +58,7 @@ class DescriptionFrame extends JFrame { //inherits JFrame GUI windows for button
         description.setFocusable(false); //prevents blinking cursor
         description.setWrapStyleWord(true); //Waits for spacing for line for readability
         description.setFont(new Font("Georgia", Font.PLAIN, 16));
-        description.setBackground(new Color(0, 0, 128)); //blue background
+        description.setBackground(new Color(0, 0, 128));
         description.setForeground(Color.WHITE); //white text against dark background
 
         panel.add(description, BorderLayout.CENTER); //center text
@@ -74,6 +74,7 @@ class DescriptionFrame extends JFrame { //inherits JFrame GUI windows for button
 
         JPanel buttonPanel = new JPanel(); //
         buttonPanel.setBackground(new Color(0, 0, 128));
+        buttonPanel.setForeground(Color.WHITE);
         buttonPanel.add(continueBtn);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 

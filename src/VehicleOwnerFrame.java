@@ -85,16 +85,24 @@ Vehicle Owner Frame - Subat + Avneet
 
 
 	        String[] residencyOptions = {
+	        		"15 minutes",
+	        		"30 minutes",
+	        		"45 minutes",
 	        		"1 hour",
 	                "2 hours",
-	                "3 hours",
+	                "4 hours",
 	                "6 hours",
 	                "12 hours",
 	                "1 day",
 	                "2 days",
-	                "3 days"	        
+	                "3 days",
+	                "5 days",
+	                "1 week",
+	                "2 weeks",
+	                "3 weeks",
+	                "1 month",
 	         };
-
+	        
 	        residencyBox = new JComboBox<>(residencyOptions);
 	        panel.add(residencyBox);
 
