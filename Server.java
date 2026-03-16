@@ -32,7 +32,7 @@ public class Server {
         this.serverID = serverID;
         this.status = ServerStatus.ONLINE;
     }
-}
+
     // Accepts a job ID and prints a message indicating the job has been received by the server.
     public void receiveJob(String jobID) {
         System.out.println("Job " + jobID + " accepted into server " + serverID);
