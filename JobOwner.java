@@ -3,26 +3,40 @@ import java.util.List;
 
 
 /*=====================
-Class JobOwner  - domain logic for client
+Class JobOwner Logic - 
 ======================*/
 
-public class JobOwner extends User{
+//Job Owner manages jobs they submit, track or cancel
+public class JobOwner{
 	
-	private List<Job> jobSubmitted = new ArrayList<>();
+	//Attributes based on user class inheritance 
+	protected String clientID;
+	protected String clientName;
+	protected List<Job> jobSubmitted;
 	
-	public JobOwner(String userID, String name, String role, String email, String password) {
-		super(userID, name, email, "JobOwner", password);
+	//Methods
+	public JobOwner(String clientID, String clientName) {
+		this.clientID = clientID;
+		this.clientName = clientName;
+		this.jobSubmitted = new ArrayList<>();
 	}
-
+	
+	//Submit client jobs
 	public void submitJob(Job j) {
 		jobSubmitted.add(j);
 		System.out.println("Job submitted: " + j.getJobName());
 	}
 	
+	//Track current jobs that are submitted
 	public void trackJobStatus(Job j) {
-		System.out.println("Job" + j.getJobName() + "Status: " + j.getProgressStatus());
+		if(jobSubmitted.contains(j)) {
+			System.out.println("Job" + j.getJobName() + "Status: " + j.getProgressStatus());
+		}else {
+			System.out.println("Job not found");
+		}
 	}
 	
+	//Cancel any jobs that client doesn't want active anymore
 	public void cancelJob(Job j) {
 		if (jobSubmitted.remove(j)) {
 			System.out.println("Job " + j.getJobName() + " canceled successfully");
