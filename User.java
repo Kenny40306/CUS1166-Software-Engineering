@@ -22,7 +22,7 @@ public class User {
 	}
 	
 	//Methods needed - Jaden
-	
+	//login(),logout(), viewsummary()
 
 }
 
