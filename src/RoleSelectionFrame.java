@@ -1,12 +1,16 @@
 import javax.swing.*;
 import java.awt.*;
 
+/*=====================
+Role Selection Frame - Jaden + Ryan
+======================*/
+
 class RoleSelectionFrame extends JFrame{
     	
     public RoleSelectionFrame() {
  
         setTitle("Vehicular Cloud Console (VCRTS)");
-        setSize(450, 250);
+        setSize(600, 400);
         setLocationRelativeTo(null); // center window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -17,10 +21,7 @@ class RoleSelectionFrame extends JFrame{
         UIStyling.stylePanel(panel);
 
         // Title
-        JLabel title = new JLabel("Select Your Role", JLabel.CENTER);
-        UIStyling.styleLabel(title);
-        title.setForeground(Color.BLACK);
-
+        JLabel title = UIStyling.createTitleLabel("Select Your Role");
         add(title, BorderLayout.NORTH);
         add(panel, BorderLayout.CENTER);
         

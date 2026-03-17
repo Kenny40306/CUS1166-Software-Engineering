@@ -5,14 +5,15 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 /*=====================
-Vehicle Owner Frame
+Vehicle Owner Frame - Subat + Avneet
 ======================*/
 
  class VehicleOwnerFrame extends JFrame{
 
 	 //Subat Wrote This
-	 //jframe creates new window frame for our vehicle owner class
-	 	
+	 //creates window frame for vehicle info
+	 
+	 //text fields for users to type in info
 	 	private JTextField ownerIDField = new JTextField(10);
 	 	private JTextField makeField = new JTextField(10);
 	    private JTextField modelField = new JTextField(10);
@@ -20,59 +21,58 @@ Vehicle Owner Frame
 	    
 	    //Avneet: a more flexible residency time field for the user
 	    private JTextField residencyTimeField = new JTextField (5);
+	 // Avneet: the dropdown for time units
+	    private JComboBox<String> residencyUnitBox;
 
-	    //Label display 
+	 //labels for each of the text fields 
 	    private JLabel ownerIDLabel;
 	    private JLabel makeLabel;
 	    private JLabel modelLabel;
 	    private JLabel vinLabel;
 	    private JLabel residencyLabel;
+
 	    
-	    // Avneet: the dropdown for time units
-	    private JComboBox<String> residencyUnitBox;
+	   public VehicleOwnerFrame() {
 
-	    public VehicleOwnerFrame() {
-
+	    	//sets title and size of window
 	        setTitle("Vehicle Owner Information");
 	        setSize(600,400);
 	        setLocationRelativeTo(null);
-	        JPanel panel = new JPanel(new GridLayout(7,2,10,10));
+	        //grid for organization purposes
+	        JPanel panel = new JPanel(new GridLayout(6,2,10,10));
+	        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 	        UIStyling.stylePanel(panel);
 	      
-	        //Owner ID
+	        //owner ID + input
 	        ownerIDLabel = new JLabel("Owner ID:");
 	        UIStyling.styleLabel(ownerIDLabel);
 	        panel.add(ownerIDLabel);
 
-	        ownerIDField = new JTextField();
 	        UIStyling.styleTextField(ownerIDField);
 	        panel.add(ownerIDField);
 	        
-	        //Make
+	        //Make label + input
 	        makeLabel = new JLabel("Make:");
 	        UIStyling.styleLabel(makeLabel);
 	        panel.add(makeLabel);
 	       
-	        makeField = new JTextField();
 	        UIStyling.styleTextField(makeField);
 	        panel.add(makeField);
 
-	        //Model
+	        //Model label + input
 	        modelLabel = new JLabel("Model:");
 	        UIStyling.styleLabel(modelLabel);
 	        panel.add(modelLabel);
 	        
-	        modelField = new JTextField();
 	        UIStyling.styleTextField(modelField);
 	        panel.add(modelField);
 
 
-	        //Vin
+	        //vehicle identifcation number label + input
 	        vinLabel = new JLabel("VIN:");
 	        UIStyling.styleLabel(vinLabel);
 	        panel.add(vinLabel);
 	       
-	        vinField = new JTextField();
 	        UIStyling.styleTextField(vinField);
 	        panel.add(vinField);
 
@@ -81,19 +81,22 @@ Vehicle Owner Frame
 	        residencyLabel = new JLabel("Residency Time:");
 	        UIStyling.styleLabel(residencyLabel);
 	        panel.add(residencyLabel);
+
 	        
-	        //number input
-	        residencyTimeField = new JTextField();
-	        UIStyling.styleTextField(residencyTimeField);
-	        panel.add(residencyTimeField);
+	        JPanel residencyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	        residencyPanel.add(residencyTimeField);
 	        
-	        //unit dropdown
+	      //unit dropdown
 	        String[] timeUnits = {"minutes", "hours", "days"};
 	        residencyUnitBox = new JComboBox<>(timeUnits);
-	        panel.add(residencyUnitBox);
+	        residencyPanel.add(residencyUnitBox);
+	        
+	        panel.add(residencyPanel);
+
 
 	        JButton submitButton = new JButton("Submit");
 	        JButton backButton = new JButton("Back");
+	        
 	        UIStyling.styleButton(submitButton);
 	        UIStyling.styleButton(backButton);
 
@@ -101,22 +104,23 @@ Vehicle Owner Frame
 	        panel.add(backButton);
 
 	        JLabel titleLabel = UIStyling.createTitleLabel("Vehicle Owner Form");
-	        UIStyling.setupFrame(this, panel, titleLabel);
+	        UIStyling.setupFrame(this, panel, titleLabel, "Vehicle Owner Information");
 
 	      //makes labels + component to enter text for all of the required information needed
 	        
 	        //subat
-	        submitButton.addActionListener(e -> saveVehicle());
 	        //creates button for submit
+	        submitButton.addActionListener(e -> saveVehicle());
+	        //when user presses back, closes frame and returns to role select page
 	        backButton.addActionListener(e -> {
 	            dispose(); //closes frame
 	            new RoleSelectionFrame();
 	        });
 
+	        //makes window visible
 	        setVisible(true);
 	    }
      
-     //adding each of the labels, buttons, and text fields to panel
      
      //Avneet- I enhanced the submit button functionality to make sure the code runs when the user clicks the "Submit" button
      //the code includes validation, VIN check, timestamp, and auto-clear
