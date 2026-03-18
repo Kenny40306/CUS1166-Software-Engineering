@@ -24,18 +24,19 @@ class RoleSelectionFrame extends JFrame{
         JLabel title = UIStyling.createTitleLabel("Select Your Role");
         add(title, BorderLayout.NORTH);
         add(panel, BorderLayout.CENTER);
-        
 
         // Button panel
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 15));
-
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        UIStyling.stylePanel(buttonPanel); // optional: style panel same color
+        
         JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
         JButton jobOwnerBtn = new JButton("Job Owner (Client)");
         UIStyling.styleButton(vehicleOwnerBtn);
         UIStyling.styleButton(jobOwnerBtn);
-       
-        panel.add(vehicleOwnerBtn);
-        panel.add(jobOwnerBtn);
+        
+        Dimension buttonSize = new Dimension(200, 200); // width 180px, height 150px
+        vehicleOwnerBtn.setPreferredSize(buttonSize);
+        jobOwnerBtn.setPreferredSize(buttonSize);
 
         vehicleOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
         jobOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -44,8 +45,8 @@ class RoleSelectionFrame extends JFrame{
         buttonPanel.add(jobOwnerBtn);
 
         panel.add(buttonPanel, BorderLayout.CENTER);
-
         add(panel);
+    
 
         // Button Actions
         vehicleOwnerBtn.addActionListener(e -> {

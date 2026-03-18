@@ -67,8 +67,8 @@ class UserLoginFrame extends JFrame {
         panel.add(forgotPasswordButton);
 
         // Window title bar text
-        JLabel titleLabel = UIStyling.createTitleLabel("Login");
-        UIStyling.setupFrame(this, panel, titleLabel, "Login - Vehicular Cloud Console");
+        JLabel titleLabel = UIStyling.createTitleLabel("User Login");
+        UIStyling.setupFrame(this, panel, titleLabel, "User Login - Vehicular Cloud Console");
 
         // Action listeners
         loginButton.addActionListener(e -> authenticateUser());
@@ -107,7 +107,7 @@ class UserLoginFrame extends JFrame {
                 writer.write("Timestamp: " + LocalDateTime.now() + "\n");
                 writer.write("Role: " + role + "\n");
                 writer.write("Username: " + username + "\n");
-                writer.write("Password: " + password + "\n"); // In real system, would encrypt
+                writer.write("Password: " + password + "\n"); // In real system, would encrypt [PROTECTED]
                 writer.write("---------------------------------\n");
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Error saving login data: " + ex.getMessage(),

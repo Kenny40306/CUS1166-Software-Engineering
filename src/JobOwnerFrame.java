@@ -2,7 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
+
 
 /*=====================
   Client Job Owner Frame - Kendra + Jaden
@@ -13,18 +15,22 @@ import java.time.LocalDateTime;
 class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extended JFrame for button, layout and open/close behaviors
 	
 	//all private fields to prevent other classes form modifying the fields
-	private JTextField clientIDField = new JTextField(); //identify client
-	private JTextField jobNameField = new JTextField(); //identify job description
-	private JTextField durationField = new JTextField(); //identify execution time minutes
-	private JTextField deadlineField = new JTextField(); //identify completion limit hours
-	    
+	private JTextField clientIDField = new JTextField(10); //identify client
+	private JTextField jobNameField = new JTextField(10); //identify job description
+	private JTextField durationField = new JTextField(10); //identify execution time minutes
+	private JTextField deadlineField = new JTextField(5); //identify completion limit hours
+	   
 	//labels for corresponding text fields
     private JLabel clientIDLabel;
     private JLabel jobNameLabel;
     private JLabel durationLabel;
     private JLabel deadlineLabel;
     
+   /* //Implementation M4: VCController reference so submitted jobs can go to the controller
+    private VCController vcController;*/
+        
 	public JobOwnerFrame(){ //Method for GUI setup
+		//this.vcController = vcController; // inject VCController dependency
 		
 		setTitle("Job Owner Information"); //text for window identification
 		setSize(600,400); //size dimension for window components to fit in and avoids resizing issues
@@ -41,7 +47,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         clientIDField = new JTextField(); //create interactive box for user to type in ID
         UIStyling.styleTextField(clientIDField); //UIStyling method called for font and color
         panel.add(clientIDField); //attach input box to JPanel
-
+        
         //Job Name
         jobNameLabel = new JLabel("Job Name:");
         UIStyling.styleLabel(jobNameLabel);
@@ -79,9 +85,11 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		panel.add(submit);
 		panel.add(back);
 		
+		//Title Label
 		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form"); //creates title label for the form
         UIStyling.setupFrame(this, panel, titleLabel, "Job Owner Information"); 
 
+        //Button Actions
 		submit.addActionListener(e -> saveJobData()); //event button runs saveJob method
 		back.addActionListener(e-> {
 			dispose(); //event button close current window for role selection
@@ -97,12 +105,12 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	private void saveJobData() {
 		// get input from user 
 		String id = clientIDField.getText();
-		String name = jobNameField.getText();
+		String jName = jobNameField.getText();
 		String durText = durationField.getText();
 		String ddlText = deadlineField.getText();
 
 		// validates that there are no empty fields
-		if (id.isEmpty() || name.isEmpty() || durText.isEmpty() || ddlText.isEmpty()) {
+		if (id.isEmpty() || jName.isEmpty() || durText.isEmpty() || ddlText.isEmpty()) {
 		JOptionPane.showMessageDialog(this,
 		"All fields must be filled out!",
 		"Input Error",
@@ -111,15 +119,14 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		}
 
 		//Valid inputs for duration and deadline fields
-		
-		int duration;
-		int deadline;
+		int durationMin;
+		int deadlineHr;
 
 		try {
-		    duration = Integer.parseInt(durText);
-		    deadline = Integer.parseInt(ddlText);
+		    durationMin = Integer.parseInt(durText);
+		    deadlineHr = Integer.parseInt(ddlText);
 
-		    if (duration <= 0 || deadline <= 0) {
+		    if (durationMin <= 0 || deadlineHr <= 0) {
 		        throw new NumberFormatException();
 		    }
 
@@ -131,12 +138,33 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		    return;
 		}
 		
+		
+		/*//Implementation M4: --- Create JobOwner and Job objects ---
+        JobOwner client = new JobOwner(id, "Client " + id); // name can be derived
+        Job job = new Job(
+                "JOB-" + System.currentTimeMillis(),      // unique jobID
+                jName,
+                Duration.ofMinutes(durationMin),     // Duration of the object
+                LocalDateTime.now().plusHours(deadlineHr), // deadline
+                1                                        // default redundancy
+        );
+        
+        client.submitJob(job); // add job to client's job list
+
+        // Send job to VCController
+        if (vcController != null) {
+            vcController.receiveJob(job, client);
+        }
+		//------------------------------------------------------------------------*/
+        
+        
+        
 		//needs fileutil.writer and time stamp
 		//creates file reader 
 		 try (FileWriter writer = new FileWriter("job_owner_data.txt", true)) {
 		writer.write("Timestamp: " + LocalDateTime.now() + "\n");
 		writer.write("Client ID: " + id + "\n");
-		writer.write("Job Name: " + name + "\n");
+		writer.write("Job Name: " + jName + "\n");
 		writer.write("Job Duration: " + durText + "Minutes\n");
 		writer.write("Job Deadline: " + ddlText + "Hours\n");
 		writer.write("---------------------------------\n");

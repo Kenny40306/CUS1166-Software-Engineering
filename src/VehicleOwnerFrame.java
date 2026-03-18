@@ -18,11 +18,6 @@ Vehicle Owner Frame - Subat + Avneet
 	 	private JTextField makeField = new JTextField(10);
 	    private JTextField modelField = new JTextField(10);
 	    private JTextField vinField = new JTextField(10);
-	    
-	    //Avneet: a more flexible residency time field for the user
-	    private JTextField residencyTimeField = new JTextField (5);
-	 // Avneet: the dropdown for time units
-	    private JComboBox<String> residencyUnitBox;
 
 	 //labels for each of the text fields 
 	    private JLabel ownerIDLabel;
@@ -31,15 +26,18 @@ Vehicle Owner Frame - Subat + Avneet
 	    private JLabel vinLabel;
 	    private JLabel residencyLabel;
 
-	    
-	   public VehicleOwnerFrame() {
+	 //dropdown menu for user
+	    private JTextField residencyField = new JTextField(5);
+	    private JComboBox<String> residencyBox;
+
+	    public VehicleOwnerFrame() {
 
 	    	//sets title and size of window
 	        setTitle("Vehicle Owner Information");
 	        setSize(600,400);
 	        setLocationRelativeTo(null);
 	        //grid for organization purposes
-	        JPanel panel = new JPanel(new GridLayout(6,2,10,10));
+	        JPanel panel = new JPanel(new GridLayout(7,2,10,10));
 	        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 	        UIStyling.stylePanel(panel);
 	      
@@ -48,58 +46,64 @@ Vehicle Owner Frame - Subat + Avneet
 	        UIStyling.styleLabel(ownerIDLabel);
 	        panel.add(ownerIDLabel);
 
+	        ownerIDField = new JTextField();
 	        UIStyling.styleTextField(ownerIDField);
 	        panel.add(ownerIDField);
 	        
 	        //Make label + input
-	        makeLabel = new JLabel("Make:");
+	        makeLabel = new JLabel("Year Made:");
 	        UIStyling.styleLabel(makeLabel);
 	        panel.add(makeLabel);
 	       
+	        makeField = new JTextField();
 	        UIStyling.styleTextField(makeField);
 	        panel.add(makeField);
 
 	        //Model label + input
-	        modelLabel = new JLabel("Model:");
+	        modelLabel = new JLabel("Car Model:");
 	        UIStyling.styleLabel(modelLabel);
 	        panel.add(modelLabel);
 	        
+	        modelField = new JTextField();
 	        UIStyling.styleTextField(modelField);
 	        panel.add(modelField);
 
 
 	        //vehicle identifcation number label + input
-	        vinLabel = new JLabel("VIN:");
+	        vinLabel = new JLabel("17 Character (VIN):");
 	        UIStyling.styleLabel(vinLabel);
 	        panel.add(vinLabel);
 	       
+	        vinField = new JTextField();
 	        UIStyling.styleTextField(vinField);
 	        panel.add(vinField);
 
 	        //Avneet
-	        //created and UPDATED Residency Time Dropdown
+	        //created the Residency Time Dropdown
 	        residencyLabel = new JLabel("Residency Time:");
 	        UIStyling.styleLabel(residencyLabel);
 	        panel.add(residencyLabel);
 
+
+	        String[] residencyUnits = {
+	        		"Minute(s)",
+	        		"Hour(s)",
+	        	    "Day(s)",
+	              	"Week(s)",
+	                "Month(s)",
+	                "Year(s)",
+	         };
 	        
+	        residencyBox = new JComboBox<>(residencyUnits);
 	        JPanel residencyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	        residencyPanel.add(residencyTimeField);
-	        
-	      //unit dropdown
-	        String[] timeUnits = {"minutes", "hours", "days"};
-	        residencyUnitBox = new JComboBox<>(timeUnits);
-	        residencyPanel.add(residencyUnitBox);
-	        
+	        residencyPanel.add(residencyField); //user input
+	        residencyPanel.add(residencyBox); // user selection
 	        panel.add(residencyPanel);
-
-
+	        
 	        JButton submitButton = new JButton("Submit");
 	        JButton backButton = new JButton("Back");
-	        
 	        UIStyling.styleButton(submitButton);
 	        UIStyling.styleButton(backButton);
-
 	        panel.add(submitButton);
 	        panel.add(backButton);
 
@@ -134,13 +138,12 @@ Vehicle Owner Frame - Subat + Avneet
    	        String make = makeField.getText();
    	        String model = modelField.getText();
    	        String vin = vinField.getText();
-   	      //New flexible residency logic
-   	        String residencyNumber = residencyTimeField.getText();
-   	        String unit = (String) residencyUnitBox.getSelectedItem();
-   	        String residency = residencyNumber + " " + unit;
+   	      //allows us to get the selected value from Residency Time dropdown
+   	        String residencyUnit = (String) residencyBox.getSelectedItem();
+   	        String residencyInput = residencyField.getText();
    	        
    	        // first i checked for empty fields
-   	        if (ownerID.isEmpty() || make.isEmpty() || model.isEmpty() || vin.isEmpty() || residencyNumber.isEmpty()) {
+   	        if (ownerID.isEmpty() || make.isEmpty() || model.isEmpty() || vin.isEmpty() || residencyInput.isEmpty()) {
    	        	JOptionPane.showMessageDialog(this,
    	        			"All fields must be filled out!",
    	        			"Input Error",
@@ -156,15 +159,19 @@ Vehicle Owner Frame - Subat + Avneet
    	                return;
    	        	
    	        }
-   	        	//new validation to make sure residency time is a number
-   	        	if (!residencyNumber.matches("\\d+")) {
-   	        		
-   	        		JOptionPane.showMessageDialog(this,
-   	        				"Residency time must be a number.",
-   	        				"Input Error",
-   	        				JOptionPane.ERROR_MESSAGE);
-   	        		return;
-   	        	}
+   	        	
+   	      // Validate residency input: must be positive number
+   	         int residencyValue;
+   	         try {
+   	             residencyValue = Integer.parseInt(residencyInput);
+   	             if (residencyValue <= 0) {
+   	                 throw new NumberFormatException();
+   	             }
+   	         } catch (NumberFormatException ex) {
+   	             JOptionPane.showMessageDialog(this, "Residency value must be a positive number!", "Input Error",
+   	                     JOptionPane.ERROR_MESSAGE);
+   	             return;
+   	         }
 
    	        try {
    	        	//allows us to create the FileWriter in append mode (if it is true then we don't have to overwrite the previous data
@@ -176,7 +183,7 @@ Vehicle Owner Frame - Subat + Avneet
    	            writer.write("Make: " + make + "\n");
    	            writer.write("Model: " + model + "\n");
    	            writer.write("VIN: " + vin + "\n");
-   	            writer.write("Residency Time: " + residency + "\n");
+   	            writer.write("Residency Time: " + residencyValue + " " + residencyUnit + "\n");
    	            writer.write("---------------------------------\n");
    	            
    	            //this closes the file to save changes
@@ -191,9 +198,8 @@ Vehicle Owner Frame - Subat + Avneet
    	            makeField.setText("");
    	            modelField.setText("");
    	            vinField.setText("");
-   	            //resetted the residency fields
-   	            residencyTimeField.setText("");
-   	            residencyUnitBox.setSelectedIndex(0);
+   	            residencyField.setText("");
+   	            residencyBox.setSelectedIndex(0);
 
    	        } catch (IOException ex) {
    	        	//if the file fails to save, then this message will pop up
