@@ -29,6 +29,22 @@ class RoleSelectionFrame extends JFrame{
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         UIStyling.stylePanel(buttonPanel); // optional: style panel same color
         
+        int buttonWidth = 120;
+        int buttonHeight = 35;
+        int margin = 20;
+
+        JButton logoutButton = new JButton("Logout");
+
+        logoutButton.setBounds(
+                500 - buttonWidth - margin,
+                350 - buttonHeight - margin,
+                buttonWidth,
+                buttonHeight
+        );
+
+        add(logoutButton);
+
+        
         JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
         JButton jobOwnerBtn = new JButton("Job Owner (Client)");
         UIStyling.styleButton(vehicleOwnerBtn);
@@ -46,7 +62,7 @@ class RoleSelectionFrame extends JFrame{
 
         panel.add(buttonPanel, BorderLayout.CENTER);
         add(panel);
-    
+            
 
         // Button Actions
         vehicleOwnerBtn.addActionListener(e -> {
@@ -58,6 +74,12 @@ class RoleSelectionFrame extends JFrame{
             dispose();          // close main menu
             new JobOwnerFrame();      // open client screen
         });
+        logoutButton.addActionListener(e -> {
+        	dispose();
+        	new UserLoginFrame();
+        	}
+        );
+        
 
         setVisible(true);
     	}
