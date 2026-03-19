@@ -59,7 +59,7 @@ public class Server {
     
     // Removes or deletes stored data related to a specific vehicle from the server.
     public void eraseData(Vehicle v) {
-        System.out.println("Vehicle data for " + v.getVin() + " erased from server " + serverID);
+        System.out.println("Vehicle data for " + v.getVehicleID() + " erased from server " + serverID);
     }
 
     // Updates the server status and prints the new status.
