@@ -50,3 +50,4 @@ public class VehicleOwner {
 		this.residencyTime = residencyTime;
 	}
 }
+//test
