@@ -1,3 +1,4 @@
+import java.time.LocalDateTime;
 
 /*=====================
 Class User Logic - Jaden
@@ -6,30 +7,29 @@ Class User Logic - Jaden
 //User class needs to inherit attributes and behavior from both JobOwner and VehicleOwner
 //*note java doesn't do extends JobOwner, VehicleOwner so we'll need composition for this part maybe
 
-public class User {
-    private String userId;
-    private String role;
-    private String email;
-    private String username;
-    private String password;
-
-    // Default constructor
-    public User() {
-    }
-
-    // Full constructor
-    public User(String userId, String role, String email,
-                String username, String password) {
-        this.userId = userId;
-        this.role = role;
-        this.email = email;
-        this.username = username;
-        this.password = password;
-    }
-
+public class User{
+	
+	//Attributes
+	private String userID;
+	private String userName;
+	private String email;
+	private String role; // describes type of user regular user or admin for jobowner or vehicleowner
+	private String password;
+	
+	public User(String userID, String userName, String email, String role, String password) {
+		this.userID = userID;
+		this.userName = userName;
+		this.email = email;
+		this.role = role;
+		this.password = password;
+	}
+	
+	//Methods needed - Jaden
+	
+	//login(),logout(), viewsummary()
     // Getters
     public String getUserId() {
-        return userId;
+        return userID;
     }
 
     public String getRole() {
@@ -41,7 +41,7 @@ public class User {
     }
 
     public String getUsername() {
-        return username;
+        return userName;
     }
 
     public String getPassword() {
@@ -49,8 +49,8 @@ public class User {
     }
 
     // Setters
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUserId(String userID) {
+        this.userID = userID;
     }
 
     public void setRole(String role) {
@@ -61,8 +61,8 @@ public class User {
         this.email = email;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUsername(String userName) {
+        this.userName = userName;
     }
 
     public void setPassword(String password) {
@@ -71,9 +71,10 @@ public class User {
 
     @Override
     public String toString() {
-        return "User ID: " + userId +
+        return "User ID: " + userID +
                "\nRole: " + role +
                "\nEmail: " + email +
-               "\nUsername: " + username;
+               "\nUsername: " + userName;
     }
 }
+

@@ -14,22 +14,30 @@ import javax.swing.SwingUtilities;
 Main Class & Description Frame - Kendra
 ==========================*/
 
-//Main class to run program for execution
+//Main class to run program for executionS
 public class VCTRSViewerConsole {
 
     public static void main(String[] args) {
     	
+    	//M4-Implementation: uses server and VCController
+    	Server server = new Server("S001");
+    	VCController vcController = new VCController("VC01", server);
+    	
     	SwingUtilities.invokeLater(() -> { //lambda implementation for new instance of Description Frame to show console information
-    		new DescriptionFrame(); //Initiates GUI frame for window to show options and reduce race conditions / shared thread data
+    		new DescriptionFrame(vcController); //Initiates GUI frame for window to show options and reduce race conditions / shared thread data
     	});
     }
 }
 
-//Description frame for the user's understanding of what VCTRSconsole is
-class DescriptionFrame extends JFrame { //inherits JFrame GUI windows for button and panel layouts
+	class DescriptionFrame extends JFrame{
 
+	//(M4) 
+	private VCController vcController;
+	
 	//method
-    public DescriptionFrame() {
+    public DescriptionFrame(VCController vcController) {
+    	this.vcController= vcController;
+    	
         setTitle("Welcome - Vehicular Cloud Console"); //main title 
         setSize(600, 400); //set window size
         setLocationRelativeTo(null); //center screen
@@ -69,7 +77,7 @@ class DescriptionFrame extends JFrame { //inherits JFrame GUI windows for button
         continueBtn.setFont(new Font("Georgia", Font.BOLD, 18)); //new size button
         continueBtn.addActionListener(e -> {
             dispose();        // Close the description frame
-            new UserLoginFrame(); // Open role selection frame next
+            new UserLoginFrame(vcController); // Open role selection frame next
         });
 
         JPanel buttonPanel = new JPanel(); //

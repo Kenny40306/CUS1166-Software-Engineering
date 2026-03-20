@@ -20,8 +20,12 @@ class UserLoginFrame extends JFrame {
     private JButton loginButton, forgotPasswordButton;
     private JComboBox<String> roleBox; // User or Admin
 
-    public UserLoginFrame() {
-        setTitle("Login - Vehicular Cloud Console");
+    private VCController vcController;
+    
+    public UserLoginFrame(VCController vcController) {
+    	this.vcController = vcController;
+        
+    	setTitle("Login - Vehicular Cloud Console");
         setSize(600, 400);
         setLocationRelativeTo(null);
 
@@ -116,7 +120,7 @@ class UserLoginFrame extends JFrame {
 
             JOptionPane.showMessageDialog(this, role + " login successful!");
             dispose(); // Close login frame
-            new RoleSelectionFrame(); // Open RoleSelectionFrame
+            new RoleSelectionFrame(vcController); // Open RoleSelectionFrame
         } else {
             JOptionPane.showMessageDialog(this,
                     "Invalid credentials for " + role,

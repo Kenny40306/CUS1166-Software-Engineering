@@ -26,6 +26,7 @@ public class Job {
 	private int redundancyLevel;	//how many vehicles are connected to one job
 	private JobStatus progressStatus; //nested enum is used shows current status
 	private List<Checkpoint> checkpoints; //stores many snapshot checkpoints one job may have
+	private List<Vehicle> assignedVehicles;
 	
 	private long completionTime; //in minutes to store computed time FIFO results
 	
@@ -38,6 +39,7 @@ public class Job {
 		this.redundancyLevel = redundancyLevel;
 		this.progressStatus = JobStatus.PENDING;
 		this.checkpoints = new ArrayList<>();
+		this.assignedVehicles = new ArrayList<>();
 		this.completionTime = 0;
 	}
 	
@@ -49,6 +51,13 @@ public class Job {
 		System.out.println("Job" + jobName + "completed");
 	}
 	
+    //Method to track which vehicles are being assigned
+    public void assignVehicles(List<Vehicle> vehicles) {
+    	if(vehicles !=null) {
+    		this.assignedVehicles.addAll(vehicles);
+    	}
+    }
+
 	//Create checkpoint for a particular job id, given vehicle ID and convert enum to string
 	public void createCheckpoint(String checkpointID, String vehicleID) {
 		Checkpoint cp = new Checkpoint(checkpointID, this.jobID, vehicleID, this.progressStatus.name());
@@ -83,6 +92,12 @@ public class Job {
 	public void setCompletionTime (long completionTime) {
 		this.completionTime = completionTime;
 	}
+	public void setProgressStatus(JobStatus status) { 
+		this.progressStatus = status; 
+	}
+	public void setRedundancyLevel(int level) { 
+		this.redundancyLevel = level; 
+	}
 	
 	//Getters
 	public String getJobID() {
@@ -105,6 +120,9 @@ public class Job {
 	}
 	public List<Checkpoint> getCheckpoints(){
 		return checkpoints;
+	}
+	public List<Vehicle> getAssignedVehicles() { 
+		return assignedVehicles; 
 	}
 	public long getCompletionTime() {
 		return completionTime;

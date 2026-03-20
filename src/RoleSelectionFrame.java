@@ -5,10 +5,14 @@ import java.awt.*;
 Role Selection Frame - Jaden + Ryan
 ======================*/
 
+
 class RoleSelectionFrame extends JFrame{
-    	
-    public RoleSelectionFrame() {
- 
+	
+	private VCController vcController;
+
+    public RoleSelectionFrame(VCController vcController) {
+    	this.vcController = vcController;
+
         setTitle("Vehicular Cloud Console (VCRTS)");
         setSize(600, 400);
         setLocationRelativeTo(null); // center window
@@ -42,8 +46,8 @@ class RoleSelectionFrame extends JFrame{
                 buttonHeight
         );
 
+        UIStyling.styleButton(logoutButton);
         add(logoutButton);
-
         
         JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
         JButton jobOwnerBtn = new JButton("Job Owner (Client)");
@@ -62,25 +66,25 @@ class RoleSelectionFrame extends JFrame{
 
         panel.add(buttonPanel, BorderLayout.CENTER);
         add(panel);
-            
+    
 
         // Button Actions
         vehicleOwnerBtn.addActionListener(e -> {
             dispose();          // close main menu
-            new VehicleOwnerFrame();  // open owner screen
+            new VehicleOwnerFrame(vcController);  // open owner screen
         });
 
         jobOwnerBtn.addActionListener(e -> {
             dispose();          // close main menu
-            new JobOwnerFrame();      // open client screen
+            new JobOwnerFrame(vcController);      // open client screen
         });
-        logoutButton.addActionListener(e -> {
-        	dispose();
-        	new UserLoginFrame();
+        
+        logoutButton.addActionListener(e -> { //close menu
+        	dispose();						//opens login screen
+        	new UserLoginFrame(vcController);
         	}
         );
         
-
         setVisible(true);
     	}
     }

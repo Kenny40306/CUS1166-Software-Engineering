@@ -25,13 +25,13 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
     private JLabel jobNameLabel;
     private JLabel durationLabel;
     private JLabel deadlineLabel;
-    
-   /* //Implementation M4: VCController reference so submitted jobs can go to the controller
-    private VCController vcController;*/
-        
-	public JobOwnerFrame(){ //Method for GUI setup
-		//this.vcController = vcController; // inject VCController dependency
-		
+            
+    //shared controller with job owner client
+    private VCController vcController;
+
+	public JobOwnerFrame(VCController vcController){ //Method for GUI setup
+		 this.vcController = vcController;
+
 		setTitle("Job Owner Information"); //text for window identification
 		setSize(600,400); //size dimension for window components to fit in and avoids resizing issues
 		setLocationRelativeTo(null); //allows for window to be centered on the screen 
@@ -78,12 +78,16 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         //Buttons
 		JButton submit = new JButton("Submit"); //create submit action button to save data
 		JButton back= new JButton("Back"); //create back action button for navigation control
+		JButton calculate= new JButton("Calculate"); //create calculate button that goes to VC MainControllerFrame
+		
 		UIStyling.styleButton(submit);
         UIStyling.styleButton(back);
+        UIStyling.styleButton(calculate);
 
         //Add buttons to panel
 		panel.add(submit);
 		panel.add(back);
+		panel.add(calculate);
 		
 		//Title Label
 		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form"); //creates title label for the form
@@ -93,9 +97,15 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		submit.addActionListener(e -> saveJobData()); //event button runs saveJob method
 		back.addActionListener(e-> {
 			dispose(); //event button close current window for role selection
-			new RoleSelectionFrame();
+			new RoleSelectionFrame(vcController);
 			
 		});//returns user to main menu
+		
+		//calculate button for controller to run back end calculations
+		calculate.addActionListener(e-> {
+			MainControllerFrame mainFrame = new MainControllerFrame(vcController,this);
+			mainFrame.displayCompletionTimes();
+		});
 		
 		setVisible(true); //always display GUI window 
 	}
@@ -139,7 +149,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		}
 		
 		
-		/*//Implementation M4: --- Create JobOwner and Job objects ---
+		//Implementation M4: --- Create JobOwner and Job objects ---
         JobOwner client = new JobOwner(id, "Client " + id); // name can be derived
         Job job = new Job(
                 "JOB-" + System.currentTimeMillis(),      // unique jobID
