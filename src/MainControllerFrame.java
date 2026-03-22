@@ -2,12 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-/*=====================
-Main Controller Frame - Moontarin + Subat
-======================*/
-
-//---- M4 Implementation: main frame for VCController to show output on dash board ----
-
 //Main Frame 
 public class MainControllerFrame extends JFrame{
   
@@ -53,73 +47,68 @@ public class MainControllerFrame extends JFrame{
         //Connects to back end code
         vcController.setOutputArea(outputArea);
 
+        //shows existing jobs immediately
+        displayCurrentJobs();
+        
+        //button panel
+        JPanel buttonPanel = new JPanel();
+
+        JButton completionButton = new JButton("Calculate FIFO Completion Times");
+        UIStyling.styleButton(completionButton);
+
+        buttonPanel.add(completionButton);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // Button action
+        completionButton.addActionListener(e -> {
+            displayCompletionTimes();
+        });
+        
+
         setVisible(true);
     }
     
     //Methods that are displayed:
     
-    public void clearOutput() {
-        outputArea.setText(""); // clears all previous logs
-    }
-        
-    //Display all Active Jobs submitted by clients
-    public void displayCurrentJobs() {
-        outputArea.append("===== Jobs Log =====\n");
+    //Display Current Active Job
+    private void displayCurrentJobs() {
+        outputArea.append("===== Current Jobs =====\n");
 
-        List<Job> currentBatch = vcController.getCurrentBatch(); //all jobs ever submitted as history log
-        if (currentBatch.isEmpty()) {
-            outputArea.append("No active jobs at the moment.\n");
-        } else {
-            for (Job j : currentBatch) {
-                if (j.getProgressStatus() != Job.JobStatus.COMPLETED) {
-                    outputArea.append("Job: " + j.getJobName() +
-                            " | Status: " + j.getProgressStatus() + "\n");
-                }
-            }
+        if(vcController.getActiveJobs().isEmpty()) {
+        	outputArea.append("No active jobs at the moment.\n");
+        }else {
+        	for (Job j : vcController.getActiveJobs()) {
+        		outputArea.append("Job: " + j.getJobName() + "\n");
         }
+    }
         outputArea.append("======================\n");
     }
-        
-    //Display estimations Actual FIFO Calculation for job completion-
-    public void displayCompletionTimes() {
-    	
-    	 List<Long> completionTimes = vcController.calculateCompletionTimes();
-
-    	 if (completionTimes.isEmpty()) {
-    	        outputArea.append("\nNo jobs to calculate completion times.\n");
-    	        return;
-    	    }
-
-    	    outputArea.append("\n=== FIFO Completion Times ===\n");
-
-    	    List<Job> batch = vcController.getCurrentBatch(); // only show the batch just calculated
-    	    for (int i = 0; i < batch.size(); i++) {
-    	        Job j = batch.get(i);
-    	        Long time = completionTimes.get(i);
-    	        outputArea.append("Job: " + j.getJobName() +
-    	                " | Completion Time: " + time + " min\n");
-    	    }
-    	    outputArea.append("============================\n\n");	    
-    }
-    
-    //More Methods Eventually:
+    //More Methods:
     
     //Current Job Submissions from client- with client Name, job name, time stamp
     
-    //Vehicle Monitoring - List of all vehicles with id, status, current job, compute power
+    //List all vehicles-
     
-    //Checkpoint activity - number of checkpoints per job, last checkpoint time, which vehicle created it
-    
-    //Redundancy Tracking - shows required vs assigned vehicles
-    
-    //Queue - List of all jobs waiting
-        
-    //Server Status - shows central status of server, jobs in storage, completed job count,
-    
-    //(Maybe) Alert - vehicle departing, job failed, checkpoint created, job reassigned
+    //Time estimations Actual FIFO Calculation-
+    public void displayCompletionTimes() {
+        List<Job> jobs = vcController.getActiveJobs();
+        if (jobs.isEmpty()) {
+            outputArea.append("\nNo jobs to calculate completion times.\n");
+            return;
+        }
 
-    //Overall System Performance - average completion time, jobs completed per minute, percentage vehicle utilization
+        List<Long> completionTimes = vcController.calculateCompletionTimes();
+        outputArea.append("\n=== FIFO Completion Times ===\n");
 
+        int size = Math.min(jobs.size(), completionTimes.size());
+        for (int i = 0; i < size; i++) {
+            Job j = jobs.get(i);
+            Long time = completionTimes.get(i);
+            outputArea.append("Job: " + j.getJobName() +
+                    " | Completion Time: " + time + " min\n");
+        }
+        outputArea.append("============================\n");
+    }
 }
 
  
