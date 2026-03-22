@@ -4,7 +4,7 @@ import java.util.List;
 Class Server Logic - Moontarin
 ======================*/
 
-// Manages and tracks job processing within the system.
+//---- M4 Implementation: Manages and tracks job processing within the system ---
 public class Server {
 	   // Nested enum representing the possible states of the server.
 	   

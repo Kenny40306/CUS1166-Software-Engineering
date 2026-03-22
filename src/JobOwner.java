@@ -6,7 +6,7 @@ import java.util.List;
 Class JobOwner Logic - Kendra + Jaden
 ======================*/
 
-//Job Owner manages jobs they submit, track or cancel
+//----M4 Implementation: Job Owner manages jobs they submit, track or cancel -----
 public class JobOwner{
 	
 	//Protected Attributes based on user class inheritance to access these fields
@@ -46,7 +46,6 @@ public class JobOwner{
 			System.out.println("Job not found");
 		}
 	}
-	
 	
 	//Getters
 	public String getClientID() {

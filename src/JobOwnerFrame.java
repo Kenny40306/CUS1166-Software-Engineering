@@ -26,8 +26,10 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
     private JLabel durationLabel;
     private JLabel deadlineLabel;
             
-    //shared controller with job owner client
+    //------M4 Implementation: shared controller with job owner client--------
     private VCController vcController;
+    private MainControllerFrame mainFrame; //single instance
+    private JButton calculate; //create calculate button
 
 	public JobOwnerFrame(VCController vcController){ //Method for GUI setup
 		 this.vcController = vcController;
@@ -78,7 +80,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         //Buttons
 		JButton submit = new JButton("Submit"); //create submit action button to save data
 		JButton back= new JButton("Back"); //create back action button for navigation control
-		JButton calculate= new JButton("Calculate"); //create calculate button that goes to VC MainControllerFrame
+		calculate= new JButton("Calculate"); //create calculate button that goes to VC MainControllerFrame
 		
 		UIStyling.styleButton(submit);
         UIStyling.styleButton(back);
@@ -101,12 +103,18 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 			
 		});//returns user to main menu
 		
+		//------- M4 Implementation ---------
 		//calculate button for controller to run back end calculations
-		calculate.addActionListener(e-> {
-			MainControllerFrame mainFrame = new MainControllerFrame(vcController,this);
-			mainFrame.displayCompletionTimes();
+		calculate.addActionListener(e-> {	
+			if (mainFrame == null) { // only create frame once
+			mainFrame = new MainControllerFrame(vcController,this);
+			}
+			mainFrame.setVisible(true);
+			mainFrame.clearOutput(); //clear previous display
+			mainFrame.displayCurrentJobs();     // shows only current batch
+			mainFrame.displayCompletionTimes();	//shows current batch
+			
 		});
-		
 		setVisible(true); //always display GUI window 
 	}
 	
@@ -149,17 +157,18 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		}
 		
 		
-		//Implementation M4: --- Create JobOwner and Job objects ---
-        JobOwner client = new JobOwner(id, "Client " + id); // name can be derived
-        Job job = new Job(
-                "JOB-" + System.currentTimeMillis(),      // unique jobID
+		//-------- M4 Implementation: Create JobOwner and Job objects-------
+		//Responsible for core logic when creating job submission and sending it to the system
+        JobOwner client = new JobOwner(id, "Client " + id); // created new name can be derived
+        Job job = new Job(									// created new job object that builds the actual job for submission
+                "JOB-" + System.currentTimeMillis(),      // generate unique jobID
                 jName,
                 Duration.ofMinutes(durationMin),     // Duration of the object
                 LocalDateTime.now().plusHours(deadlineHr), // deadline
-                1                                        // default redundancy
+                1                                        // default redundancy value
         );
         
-        client.submitJob(job); // add job to client's job list
+        client.submitJob(job); // add job to client's personal job list
 
         // Send job to VCController
         if (vcController != null) {

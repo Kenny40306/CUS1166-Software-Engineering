@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 Class Vehicle Logic - Subat
 ======================*/
 
+//----M4 Implementation:
 public class Vehicle {
 	
 	// Enums for vehicle status

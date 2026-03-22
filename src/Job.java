@@ -7,7 +7,7 @@ import java.util.List;
 Class Job Logic - Kendra
 ======================*/
 
-// Job class contain client's job data
+//----M4 Implementation: Job class contain client's job data------
 public class Job {
 	
 	//Enum 
@@ -21,6 +21,7 @@ public class Job {
 	//Attributes:
 	private String jobID; //unique identifier
 	private String jobName;	//job name description
+	//private String clientName; needs to show client info for dashboard
 	private Duration duration;	//how much time job will take to finish
 	private LocalDateTime deadline;	//precise time job will finish
 	private int redundancyLevel;	//how many vehicles are connected to one job
@@ -28,12 +29,14 @@ public class Job {
 	private List<Checkpoint> checkpoints; //stores many snapshot checkpoints one job may have
 	private List<Vehicle> assignedVehicles;
 	
+	private boolean completionTimeCalculated = false; //tracks if job has already been completed for FIFO calculation
 	private long completionTime; //in minutes to store computed time FIFO results
 	
 	//Constructor:
 	public Job(String jobID, String jobName, Duration duration, LocalDateTime deadline, int redundancyLevel) {
 		this.jobID = jobID;
 		this.jobName = jobName;
+		//this.clientName = clientName;
 		this.duration = duration;
 		this.deadline = deadline;
 		this.redundancyLevel = redundancyLevel;
@@ -88,16 +91,28 @@ public class Job {
 		}
 	}
 	
+	//Set
+	public void setProgressStatus(JobStatus status) { 
+		this.progressStatus = status; 
+	}
+	//
+	public void setRedundancyLevel(int level) { 
+		this.redundancyLevel = level; 
+	}
+	
 	//Set completion time for FIFO for VC Controller
 	public void setCompletionTime (long completionTime) {
 		this.completionTime = completionTime;
 	}
-	public void setProgressStatus(JobStatus status) { 
-		this.progressStatus = status; 
+	//Tracks true or false for 
+	public boolean isCompletionTimeCalculated() {
+		return completionTimeCalculated;
 	}
-	public void setRedundancyLevel(int level) { 
-		this.redundancyLevel = level; 
+	//
+	public void setCompletionTimeCalculated(boolean completionTimeCalculated) {
+	    this.completionTimeCalculated = completionTimeCalculated;
 	}
+
 	
 	//Getters
 	public String getJobID() {

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 Class Checkpoint Logic - Kendra
 ======================*/
 
-//Checkpoint stores job state
+//----M4 Implementation: Checkpoint stores job state------
 class Checkpoint{
 	
 	//Attributes:

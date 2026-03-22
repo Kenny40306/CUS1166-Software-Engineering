@@ -19,9 +19,9 @@ public class VCTRSViewerConsole {
 
     public static void main(String[] args) {
     	
-    	//M4-Implementation: uses server and VCController
-    	Server server = new Server("S001");
-    	VCController vcController = new VCController("VC01", server);
+    	//----M4 Implementation: uses both server and VCController for all frames to interact with each other as central source----
+    	Server server = new Server("S001"); //server is needed to store and manage jobs and results
+    	VCController vcController = new VCController("VC01", server); //main controller manages vehicle, jobs and communication with server
     	
     	SwingUtilities.invokeLater(() -> { //lambda implementation for new instance of Description Frame to show console information
     		new DescriptionFrame(vcController); //Initiates GUI frame for window to show options and reduce race conditions / shared thread data
@@ -31,7 +31,8 @@ public class VCTRSViewerConsole {
 
 	class DescriptionFrame extends JFrame{
 
-	//(M4) 
+	//----- M4 Implementations: all frames will use VCController vcConroller that shares instance of job / vehicle list and server connection
+	//Ensures all parts of GUI see the same data and back end logic from one existing controller
 	private VCController vcController;
 	
 	//method

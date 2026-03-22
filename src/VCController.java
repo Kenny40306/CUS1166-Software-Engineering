@@ -1,67 +1,95 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 import javax.swing.JTextArea;
 
 /*=====================
 Class VC Controller Logic - Ryan
 ======================*/
 
+//----M4 Implementation: 
 public class VCController {
 	 // Attributes
     private String controllerID;
     private List<Vehicle> connectedVehicles;
-    private List<Job> activeJobs;
+    private List<Job> activeJobs; //for all job submission history
+    private List<Job> currentBatch; //for FIFO calculation
+    private Set<String> jobIDs; //for FIFO calculation
     private Server serverConnection;
     private JTextArea outputArea;
     
     // Constructor
     public VCController(String controllerID, Server serverConnection) {
         this.controllerID    = controllerID;
+        this.serverConnection = serverConnection;
         this.connectedVehicles = new ArrayList<>();
         this.activeJobs        = new ArrayList<>();
-        this.serverConnection = serverConnection;
+        this.currentBatch = new ArrayList<>();
+        this.jobIDs = new HashSet<>();
     }
 
     //Methods
-
-    //Core FIFO Method
+    
+    //(M4 Implementation:) ===========Core FIFO Method===================================
     public List<Long> calculateCompletionTimes() {
-        List<Long> completionTimes = new ArrayList<>();
- 
-        if (activeJobs.isEmpty()) {
-            System.out.println("[VCController] No active jobs to calculate completion times for.");
-            return completionTimes;
+    	
+        if (currentBatch == null) currentBatch = new ArrayList<>();
+        else currentBatch.clear(); //reset for next batch
+
+        for (Job j : activeJobs) { //Add only active jobs that haven’t been calculated yet
+            if (!j.isCompletionTimeCalculated()) {
+                currentBatch.add(j);
+            }
         }
- 
-        long cumulativeTime = 0;
+
+    	
+    	List<Long> completionTimes = new ArrayList<>();
+    	
+    	if (currentBatch.isEmpty()) {
+            System.out.println("[VCController] No active jobs to calculate completion times for.");
+            return new ArrayList<>();
+        }
+    	
+    	long cumulativeTime = 0;
         
-        for (Job j : activeJobs) {
+        for (Job j : currentBatch) {
             long durationMinutes = j.getDuration().toMinutes();
             cumulativeTime += durationMinutes;
+            j.setCompletionTime(cumulativeTime);
+            j.setCompletionTimeCalculated(true); // mark as processed true for completion
             completionTimes.add(cumulativeTime);
  
             System.out.println("[VCController] Job " + j.getJobID()
                     + " | Duration: " + durationMinutes
                     + " min | Completion Time: " + cumulativeTime + " min");
         }
- 
+        System.out.println("============================");
         return completionTimes;
     }
-    
+    //=========================================================================================
+        
     //(Method uses (Job j) and (Jobowner client) that calls from Job and JobOwner Classes)
     
     //Receive active job from Client to send to server
     public void receiveJob(Job j, JobOwner client) {
     	if(j == null || client == null) {
-    		return;
+    		 System.out.println("[VCController] Cannot receive a null job or null client.");
+    	        return;
+    	    }
+    	 if (!jobIDs.contains(j.getJobID())) { // prevent duplicate submissions
+    		 activeJobs.add(j);	//shows history of active jobs
+    		 currentBatch.add(j); //what FIFO uses to track current batch
+             jobIDs.add(j.getJobID());
+    		 serverConnection.receiveJob(j); //sends job to server
+    		 System.out.println("[VCController] Job received from client " + client.getClientID()+ ": "+ j.getJobName());
+    	 }else {
+    		 System.out.println("[VCController] Job " + j.getJobName() + " already submitted.");
     	}
-    	activeJobs.add(j);
-    	serverConnection.receiveJob(j);
-    	System.out.println("[VCController] Job received from client " + client.getClientID()+ ": "+ j.getJobName());
     }
 
-    //Give jobs to calculate for server 
+    
+    //Give jobs completed to server 
     public void distributeJob(Job j) {
         if (j == null) {
             System.out.println("[VCController] Cannot distribute a null job.");
@@ -237,7 +265,10 @@ public class VCController {
     public List<Job> getActiveJobs() {
         return activeJobs;
     }
- 
+    public List<Job> getCurrentBatch() { 
+    	return currentBatch; 
+    }
+
     public Server getServerConnection() {
         return serverConnection;
     }

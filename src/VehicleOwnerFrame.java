@@ -34,6 +34,7 @@ Vehicle Owner Frame - Subat + Avneet
 
 	    public VehicleOwnerFrame(VCController vcController) {
 	    	this.vcController = vcController;
+	    	
 	    	//sets title and size of window
 	        setTitle("Vehicle Owner Information");
 	        setSize(600,400);
