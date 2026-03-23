@@ -18,7 +18,7 @@ public class MainControllerFrame extends JFrame{
     public MainControllerFrame(VCController vcController, JFrame jobOwnerFrame) {
     	this.vcController = vcController;
     	
-        setTitle("VCRTS - Main Controller Unit");
+        setTitle("MC Dashboard");
         setSize(300, 300);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
