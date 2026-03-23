@@ -10,63 +10,63 @@ Class User Logic - Jaden
 public class User{
 	
 	//Attributes
-	private String userID;
-	private String userName;
-	private String email;
-	private String role; // describes type of user regular user or admin for jobowner or vehicleowner
-	private String password;
+	protected String userID;
+    protected String userName;
+    protected String email;
+    protected String role;
+    protected String password;
+    protected boolean isLoggedIn;
 	
-	public User(String userID, String userName, String email, String role, String password) {
-		this.userID = userID;
-		this.userName = userName;
-		this.email = email;
-		this.role = role;
-		this.password = password;
-	}
-	
-	//Methods needed - Jaden
-	
-	//login(),logout(), viewsummary()
-    // Getters
-    public String getUserId() {
-        return userID;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getUsername() {
-        return userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    // Setters
-    public void setUserId(String userID) {
+    public User(String userID, String userName, String email, String role, String password) {
         this.userID = userID;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setUsername(String userName) {
         this.userName = userName;
+        this.email = email;
+        this.role = role;
+        this.password = password;
+        this.isLoggedIn = false;
+    }
+	//login method - Jaden
+    public boolean login(String inputEmail, String inputPassword) {
+        if (this.email.equals(inputEmail) && this.password.equals(inputPassword)) {
+            isLoggedIn = true;
+            System.out.println(userName + " logged in successfully at " + LocalDateTime.now());
+            return true;
+        } else {
+            System.out.println("Login failed for " + userName);
+            return false;
+        }
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+   //logout
+    public void logout() {
+        if (isLoggedIn) {
+            isLoggedIn = false;
+            System.out.println(userName + " logged out.");
+        } else {
+            System.out.println("User is not logged in.");
+        }
+    }
+	
+    // Getters
+    public String getUserId()
+    { 
+    	return userID; 
+    }
+    public String getUsername() 
+    { 
+    	return userName; 
+    }
+    public String getEmail() 
+    { 
+    	return email; 
+    }
+    public String getRole()
+    { 
+    	return role; 
+    }
+    public boolean isLoggedIn()
+    { 
+    	return isLoggedIn; 
     }
 
     @Override
@@ -74,7 +74,7 @@ public class User{
         return "User ID: " + userID +
                "\nRole: " + role +
                "\nEmail: " + email +
-               "\nUsername: " + userName;
+               "\nUsername: " + userName +
+               "\nLogged In: " + isLoggedIn;
     }
 }
-
