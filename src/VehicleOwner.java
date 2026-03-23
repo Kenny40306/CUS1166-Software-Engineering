@@ -2,7 +2,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /*=====================
-Class Vehicle Owner Logic - Avneet
+Class Vehicle Owner Logic - Avneet + Jaden
+class represents a vehicle owner in the system
+stores owner info and the list of vehicles submitted by the owner
 ======================*/
 
 //----M4 Implementation: 
@@ -13,6 +15,7 @@ public class VehicleOwner extends User{
     private List<Vehicle> vehicleSubmitted;
 	
 	//Contructor:
+    
     public VehicleOwner(String userID, String userName, String email, String password, String residencyTime) {
         super(userID, userName, email, "VehicleOwner", password);
         this.residencyTime = residencyTime;
