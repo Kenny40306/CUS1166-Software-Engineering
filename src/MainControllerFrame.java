@@ -63,7 +63,7 @@ public class MainControllerFrame extends JFrame{
         
     //Display all Active Jobs submitted by clients
     public void displayCurrentJobs() {
-        outputArea.append("===== Jobs Log =====\n");
+        outputArea.append("===== Jobs Log =============\n");
 
         List<Job> currentBatch = vcController.getCurrentBatch(); //all jobs ever submitted as history log
         if (currentBatch.isEmpty()) {
@@ -76,33 +76,71 @@ public class MainControllerFrame extends JFrame{
                 }
             }
         }
-        outputArea.append("======================\n");
+        outputArea.append("================================\n\n");
     }
         
     //Display estimations Actual FIFO Calculation for job completion-
     public void displayCompletionTimes() {
+    	 outputArea.append("===== FIFO Completion Times ===================\n");
     	
     	 List<Long> completionTimes = vcController.calculateCompletionTimes();
 
     	 if (completionTimes.isEmpty()) {
-    	        outputArea.append("\nNo jobs to calculate completion times.\n");
+    	        outputArea.append("No jobs to calculate completion times.\n");
+    	        outputArea.append("===============================================\n\n");
     	        return;
     	    }
-
-    	    outputArea.append("\n=== FIFO Completion Times ===\n");
 
     	    List<Job> batch = vcController.getCurrentBatch(); // only show the batch just calculated
     	    for (int i = 0; i < batch.size(); i++) {
     	        Job j = batch.get(i);
     	        Long time = completionTimes.get(i);
+    	        long durationMin = j.getDuration().toMinutes();
     	        outputArea.append("Job: " + j.getJobName() + 
     	        		" | JobID: " + j.getJobID() +
+    	        		" | Duration: " + durationMin + " min" +
     	                " | Completion Time: " + time + " min\n");
     	    }
-    	    outputArea.append("============================\n\n");	    
+    	    outputArea.append("===============================================\n\n");	    
     }
     
-    //More Methods Eventually:
+    //Queue - List of all jobs waiting
+    public void displayQueue() {
+        outputArea.append("===== Job Queue =====\n");
+ 
+        List<Job> currentBatch = vcController.getCurrentBatch();
+        if (currentBatch.isEmpty()) {
+            outputArea.append("No jobs in queue.\n");
+        } else {
+            int position = 1;
+            for (Job j : currentBatch) {
+                if (j.getProgressStatus() != Job.JobStatus.COMPLETED) {
+                    outputArea.append(position + ". " + j.getJobName() +
+                            " | ID: " + j.getJobID() + "\n");
+                    position++;
+                }
+            }
+        }
+        outputArea.append("=====================\n\n");
+    }
+    
+    //Server Status - shows central status of server, jobs in storage, completed job count,
+    public void displayServerStatus() {
+        outputArea.append("===== Server Status =====\n");
+ 
+        Server server = vcController.getServerConnection(); // TODO: make sure getServerConnection() exists in VCController
+        if (server == null) {
+            outputArea.append("No server connected.\n");
+        } else {
+            outputArea.append("Server ID: " + server.getServerID() + "\n");
+            outputArea.append("Status: " + server.getStatus() + "\n");
+            outputArea.append("Jobs in Storage: " + server.getStorage().size() + "\n");
+            outputArea.append("Completed Jobs : " + server.getCompletedJobs().size() + "\n");
+        }
+        outputArea.append("=========================\n\n");
+    }
+    
+//More Methods Eventually:
     
     //Current Job Submissions from client- with client Name, job name, time stamp
     
@@ -112,11 +150,7 @@ public class MainControllerFrame extends JFrame{
     
     //Redundancy Tracking - shows required vs assigned vehicles
     
-    //Queue - List of all jobs waiting
-        
-    //Server Status - shows central status of server, jobs in storage, completed job count,
-    
-    //(Maybe) Alert - vehicle departing, job failed, checkpoint created, job reassigned
+    //Alert - vehicle departing, job failed, checkpoint created, job reassigned
 
     //Overall System Performance - average completion time, jobs completed per minute, percentage vehicle utilization
 

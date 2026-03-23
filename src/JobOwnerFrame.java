@@ -114,6 +114,8 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 			mainFrame.clearOutput(); //clear previous display
 			mainFrame.displayCurrentJobs();     // shows only current batch
 			mainFrame.displayCompletionTimes();	//shows current batch
+			mainFrame.displayQueue();
+			mainFrame.displayServerStatus();
 			
 		});
 		setVisible(true); //always display GUI window 

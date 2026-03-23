@@ -69,12 +69,12 @@ public class Server {
     }
 
     // Returns the list of jobs that have been completed or stored on the server.
-    public List<Job> getCompletedJobs(List<Job> j) {
+    public List<Job> getCompletedJobs() {
         return completedJobs;
     }
 
     // Returns the current status of the server.
-    public ServerStatus getStatus(ServerStatus s) {
+    public ServerStatus getStatus() {
         return status;
     }
 
