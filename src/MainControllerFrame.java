@@ -82,6 +82,34 @@ public class MainControllerFrame extends JFrame{
         // Connect text area to backend controller so it can print output
         vcController.setOutputArea(outputArea);
         
+        //button panel
+ 
+     JPanel buttonPanel = new JPanel(new GridLayout(1, 5, 5, 5));
+
+     // Buttons
+     JButton jobsButton = new JButton("Jobs");
+     JButton fifoButton = new JButton("FIFO Times");
+     JButton queueButton = new JButton("Queue");
+     JButton serverButton = new JButton("Server");
+     JButton clearButton = new JButton("Clear");
+
+     // Button actions
+     jobsButton.addActionListener(e -> displayCurrentJobs());
+     fifoButton.addActionListener(e -> displayCompletionTimes());
+     queueButton.addActionListener(e -> displayQueue());
+     serverButton.addActionListener(e -> displayServerStatus());
+     clearButton.addActionListener(e -> clearOutput());
+
+     // Add buttons to panel
+     buttonPanel.add(jobsButton);
+     buttonPanel.add(fifoButton);
+     buttonPanel.add(queueButton);
+     buttonPanel.add(serverButton);
+     buttonPanel.add(clearButton);
+
+     // Add panel to bottom of frame
+     add(buttonPanel, BorderLayout.SOUTH);
+        
         // Make frame visible
         setVisible(true);
     }
