@@ -103,7 +103,8 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 			
 		});//returns user to main menu
 		
-		//------- M4 Implementation ---------
+		//Jaden 
+		//------- M4 Implementation --------- 
 		//calculate button for controller to run back end calculations
 		calculate.addActionListener(e-> {	
 			if (mainFrame == null) { // only create frame once
@@ -156,12 +157,15 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		    return;
 		}
 		
-		
-		//-------- M4 Implementation: Create JobOwner and Job objects-------
+		//Kendra worked on this-
+		//-------- M4 Implementation: Create JobOwner and Job objects------- 
 		//Responsible for core logic when creating job submission and sending it to the system
-        JobOwner client = new JobOwner(id, "Client " + id); // created new name can be derived
-        Job job = new Job(									// created new job object that builds the actual job for submission
-                "JOB-" + System.currentTimeMillis(),      // generate unique jobID
+        JobOwner client = new JobOwner(id, "Client " + id); // created new client id to be derived
+        
+        String jobID = String.format("JOB-%08d", (int)(Math.random()* 100_000_000)); // generate unique jobID 8 digit
+        
+        Job job = new Job(									// created new job object that builds the actual job for submission    
+        		jobID,
                 jName,
                 Duration.ofMinutes(durationMin),     // Duration of the object
                 LocalDateTime.now().plusHours(deadlineHr), // deadline
@@ -170,7 +174,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         
         client.submitJob(job); // add job to client's personal job list
 
-        // Send job to VCController
+        // Send job and client to VCController if it exists so it can process information
         if (vcController != null) {
             vcController.receiveJob(job, client);
         }
