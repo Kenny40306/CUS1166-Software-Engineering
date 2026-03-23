@@ -66,6 +66,17 @@ public class MainControllerFrame extends JFrame{
         // Add title to top of frame
         add(title, BorderLayout.NORTH);
         mainPanel.add(title, BorderLayout.NORTH);
+
+
+        outputArea = new JTextArea(15,50); // Create text area for output display
+        outputArea.setEditable(false); // Make text area read-only (user cannot edit)
+
+        JScrollPane scrollPane = new JScrollPane(outputArea); // Add scroll functionality to text area
+        add(scrollPane, BorderLayout.CENTER); // Add scroll pane to center of frame
+
+     // Connect text area to backend controller so it can print output
+        vcController.setOutputArea(outputArea);
+
         
         // Create text area for output display
         outputArea = new JTextArea(15,50);
@@ -86,6 +97,7 @@ public class MainControllerFrame extends JFrame{
         // Make frame visible
         setVisible(true);
     }
+
     
     //=====================
     // METHODS FOR DISPLAYING DATA
