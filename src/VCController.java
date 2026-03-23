@@ -31,11 +31,11 @@ public class VCController {
 
     //Methods
     
-    //(M4 Implementation: =========== Core FIFO Method ===================================
+    //(M4 Implementation:) ===========Core FIFO Method===================================
     public List<Long> calculateCompletionTimes() {
     	
-        if (currentBatch == null) currentBatch = new ArrayList<>(); //avoids FIFO time being backed up on each other (not a continued queue)
-        else currentBatch.clear(); //reset for every new batch to avoid misleading calculation results and UI confusion
+        if (currentBatch == null) currentBatch = new ArrayList<>();
+        else currentBatch.clear(); //reset for next batch
 
         for (Job j : activeJobs) { //Add only active jobs that haven’t been calculated yet
             if (!j.isCompletionTimeCalculated()) {
