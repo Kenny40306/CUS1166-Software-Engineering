@@ -103,7 +103,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 			
 		});//returns user to main menu
 		
-		//Jaden 
+		//Jaden Wrote This
 		//------- M4 Implementation --------- 
 		//calculate button for controller to run back end calculations
 		calculate.addActionListener(e-> {	
@@ -159,16 +159,18 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		    return;
 		}
 		
-		//Kendra worked on this-
-		//-------- M4 Implementation: Create JobOwner and Job objects------- 
+		//Kendra Wrote This-
+		//-------- M4 Implementation: Create JobOwner and Job objects ------- 
 		//Responsible for core logic when creating job submission and sending it to the system
+        
+		//created new client id to be derived (Overloaded for GUI use)
 		JobOwner client = new JobOwner(
 			    id,
 			    "Client " + id,
 			    "client@email.com",
 			    "password123"
-			); // created new client id to be derived
-        
+			);
+		
         String jobID = String.format("JOB-%08d", (int)(Math.random()* 100_000_000)); // generate unique jobID 8 digit
         
         Job job = new Job(									// created new job object that builds the actual job for submission    

@@ -3,54 +3,47 @@ import java.util.List;
 
 /*=====================
 Class Vehicle Owner Logic - Avneet
-class represents a vehicle owner in the system
-stores owner info and the list of vehicles submitted by the owner
 ======================*/
 
 //----M4 Implementation: 
-public class VehicleOwner {
+public class VehicleOwner extends User{
 
-	//Protected Attributes based on user class inheritance to access these fields
-	protected String ownerID;//unique ID for the vehicle owner
-	protected String ownerName;//name of the vehicle owner
-	protected String residencyTime;//how long the vehicle will stay
-	protected List<Vehicle> vehicleSubmitted;// list of vehicles submitted
+	//Attributes based on user class inheritance to access these fields
+	private String residencyTime;
+    private List<Vehicle> vehicleSubmitted;
 	
 	//Contructor:
-	//initializes the vehicle owner object with ID, name, and residency time
-	//also creates an empty list to store vehicles
-	public VehicleOwner(String ownerID, String ownerName, String residencyTime) {
-		this.ownerID = ownerID;
-		this.ownerName = ownerName;
-		this.residencyTime = residencyTime;
-		this.vehicleSubmitted = new ArrayList<>();
-	}
+    public VehicleOwner(String userID, String userName, String email, String password, String residencyTime) {
+        super(userID, userName, email, "VehicleOwner", password);
+        this.residencyTime = residencyTime;
+        this.vehicleSubmitted = new ArrayList<>();
+    }
 	
 	//method to add the vehicle
 		public void addVehicle(Vehicle vehicle) {
 			vehicleSubmitted.add(vehicle);	
 		}
-		//method to view vehicles from the list submitted by the owner
-		public List<Vehicle> getVehicles() {
+		//method to view vehicles
+		public List<Vehicle> getVehciles() {
 			return vehicleSubmitted;
 		}
 		//method to show the owner info
 		public String displayOwnerInfo() {
-			return "Owner ID: " + ownerID +
-					", Name: " +ownerName +
+			return "Owner ID: " + userID +
+					", Name: " + userName +
 					", Residency: " + residencyTime;
 		}
 		//getters
 		public String getOwnerID() {
-			return ownerID;
+			return userID;
 		}
 		public String getOwnerName() {
-			return ownerName;
+			return userName;
 		}
 		public String getResidencyTime() {
 			return residencyTime;
 		}
-		//setter method to update residency time if needed
+		//setter
 		public void setResidencyTime(String residencyTime) {
 			this.residencyTime = residencyTime;
 		}

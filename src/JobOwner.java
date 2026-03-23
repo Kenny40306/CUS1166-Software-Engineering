@@ -9,8 +9,7 @@ Class JobOwner Logic - Kendra + Jaden
 //----M4 Implementation: Job Owner manages jobs they submit, track or cancel -----
 public class JobOwner extends User{
 	
-	
-	private List<Job> jobSubmitted;
+private List<Job> jobSubmitted;
 	
 	//Constructor:
 	public JobOwner(String userID, String userName, String email, String password) {
@@ -20,37 +19,36 @@ public class JobOwner extends User{
 	
 	//(Methods uses (Job j) that calls to Job class)
 
-	//Submit client jobs
+	//Submit client jobs to list
 	public void submitJob(Job j) {
-        jobSubmitted.add(j);
-        System.out.println("Job submitted: " + j.getJobName());
-    }
-
+		jobSubmitted.add(j);
+		System.out.println("Job submitted: " + j.getJobName());
+	}
 	
-	//Track current jobs that are submitted
+	//Track current jobs that are submitted and verify if job belongs to this user
 	public void trackJobStatus(Job j) {
-        if (jobSubmitted.contains(j)) {
-            System.out.println("Job " + j.getJobName() + " Status: " + j.getProgressStatus());
-        } else {
-            System.out.println("Job not found");
-        }
-    }
+		if(jobSubmitted.contains(j)) {
+			System.out.println("Job" + j.getJobName() + "Status: " + j.getProgressStatus());
+		}else {
+			System.out.println("Job not found");
+		}
+	}
 	
+	//Cancel any jobs that client doesn't want active anymore
 	public void cancelJob(Job j) {
-        if (jobSubmitted.remove(j)) {
-            System.out.println("Job " + j.getJobName() + " canceled successfully");
-        } else {
-            System.out.println("Job not found");
-        }
-    }
-
+		if (jobSubmitted.remove(j)) {
+			System.out.println("Job " + j.getJobName() + " canceled successfully");
+		}else {
+			System.out.println("Job not found");
+		}
+	}
 	
-	//Getters
+	//Getters return to external class to access data
 	public String getClientID() {
-		return userID;
+		return super.userID;
 	}
 	public String getClientName() {
-		return userName;
+		return super.userName;
 	}
 	public List<Job> getJobSubmitted(){
 		return jobSubmitted;

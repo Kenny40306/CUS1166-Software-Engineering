@@ -17,10 +17,11 @@ class Checkpoint{
 	
 	//Constructor:
 	public Checkpoint(String checkpointID, String jobID, String vehicleID, String progressState) {
+		//Assigns correct data to objects (initialize properties)
 		this.checkpointID = checkpointID;
 		this.jobID = jobID;
 		this.vehicleID = vehicleID;
-		this.timeStamp = LocalDateTime.now();
+		this.timeStamp = LocalDateTime.now(); //auto record real-time tracking
 		this.progressState = progressState;
 	}
 	
