@@ -6,154 +6,237 @@ import java.util.List;
 Main Controller Frame - Moontarin + Subat
 ======================*/
 
-//---- M4 Implementation: main frame for VCController to show output on dash board ----
+//---- M4 Implementation: main frame for VCController to show output on dashboard ----
 
-//Main Frame 
+// Main Frame (GUI window for displaying system output)
 public class MainControllerFrame extends JFrame{
   
-    //Output area for back end code and VCController reference
+    // Text area used to display backend output/logs
     private JTextArea outputArea;
+    
+    // Reference to VCController (connects GUI to backend logic)
     private VCController vcController;
     
+    //initializes the frame and connects it to controller
     public MainControllerFrame(VCController vcController, JFrame jobOwnerFrame) {
-    	this.vcController = vcController;
-    	
-        setTitle("MC Dashboard");
+        
+        // Store controller reference
+        this.vcController = vcController;
+        
+        // Set window title
+        setTitle("VCRTS - Main Controller Unit");
+        
+        // Set window size
         setSize(300, 300);
+        
+        // Close only this window when user exits
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        
+        // Use BorderLayout for organizing components
         setLayout(new BorderLayout());
-
-        //position next to job owner frame 
+        
+        // Position this window next to the Job Owner frame (if available)
         if(jobOwnerFrame !=null) {
-            Point loc = jobOwnerFrame.getLocation();
-            int x = loc.x + jobOwnerFrame.getWidth() + 10; // 10px gap to the right
+            Point loc = jobOwnerFrame.getLocation(); // get location of other frame
+            int x = loc.x + jobOwnerFrame.getWidth() + 10; // place to the right with 10px gap
             int y = loc.y;
-            setLocation(x, y);
+            setLocation(x, y); // set new position
         }else {
-        	setLocationRelativeTo(null); //sets it to center
+            setLocationRelativeTo(null); // center on screen if no reference frame
         }
         
+        // Create main panel with spacing
         JPanel mainPanel = new JPanel(new BorderLayout(10,10));
+        
+        // Add padding inside panel
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        
+        // Apply custom styling
         UIStyling.stylePanel(mainPanel);
         
+        // Create title label
         JLabel title = new JLabel("Main Controller Output", SwingConstants.CENTER);
+        
+        // Apply styling to label
         UIStyling.styleLabel(title);
+        
+        // Set font style
         title.setFont(new Font("Georgia", Font.BOLD,22));
+        
+        // Add title to top of frame
         add(title, BorderLayout.NORTH);
         mainPanel.add(title, BorderLayout.NORTH);
-
+        
+        // Create text area for output display
         outputArea = new JTextArea(15,50);
+        
+        // Make text area read-only (user cannot edit)
         outputArea.setEditable(false);
-
+        
+        // Add scroll functionality to text area
         JScrollPane scrollPane = new JScrollPane(outputArea);
+        
+        // Add scroll pane to center of frame
         add(scrollPane, BorderLayout.CENTER);
-
-        //Connects to back end code
+        
+        // Connect text area to backend controller so it can print output
         vcController.setOutputArea(outputArea);
-
+        
+        // Make frame visible
         setVisible(true);
     }
     
-    //Methods that are displayed:
+    //=====================
+    // METHODS FOR DISPLAYING DATA
+    //=====================
     
+    // Clears all text from output area
     public void clearOutput() {
-        outputArea.setText(""); // clears all previous logs
+        outputArea.setText(""); // removes previous logs
     }
         
-    //Display all Active Jobs submitted by clients
+    // Displays all active (not completed) jobs
     public void displayCurrentJobs() {
-        outputArea.append("===== Jobs Log =============\n");
-
-        List<Job> currentBatch = vcController.getCurrentBatch(); //all jobs ever submitted as history log
+        
+        // Print section header
+        outputArea.append("===== Jobs Log =====\n");
+        
+        // Get all jobs from controller (history list)
+        List<Job> currentBatch = vcController.getCurrentBatch();
+        
+        // If no jobs exist
         if (currentBatch.isEmpty()) {
             outputArea.append("No active jobs at the moment.\n");
         } else {
-            for (Job j : currentBatch) {
-                if (j.getProgressStatus() != Job.JobStatus.COMPLETED) {
-                    outputArea.append("Job: " + j.getJobName() + 
-                    		" | Status: " + j.getProgressStatus() + "\n");
-                }
+            
+          // Loop through each job
+           for (Job j : currentBatch) {
+                
+          // Only display jobs that are NOT completed
+          if (j.getProgressStatus() != Job.JobStatus.COMPLETED) {
+                    
+          // Print job name and current status
+          outputArea.append("Job: " + j.getJobName() + 
+         " | Status: " + j.getProgressStatus() + "\n");
+              
+          }
             }
         }
-        outputArea.append("================================\n\n");
+        
+        // Print closing divider
+        outputArea.append("======================\n");
     }
         
-    //Display estimations Actual FIFO Calculation for job completion-
+    // Displays FIFO-based completion time calculations
     public void displayCompletionTimes() {
-    	 outputArea.append("===== FIFO Completion Times ===================\n");
-    	
-    	 List<Long> completionTimes = vcController.calculateCompletionTimes();
-
-    	 if (completionTimes.isEmpty()) {
-    	        outputArea.append("No jobs to calculate completion times.\n");
-    	        outputArea.append("===============================================\n\n");
-    	        return;
-    	    }
-
-    	    List<Job> batch = vcController.getCurrentBatch(); // only show the batch just calculated
-    	    for (int i = 0; i < batch.size(); i++) {
-    	        Job j = batch.get(i);
-    	        Long time = completionTimes.get(i);
-    	        long durationMin = j.getDuration().toMinutes();
-    	        outputArea.append("Job: " + j.getJobName() + 
-    	        		" | JobID: " + j.getJobID() +
-    	        		" | Duration: " + durationMin + " min" +
-    	                " | Completion Time: " + time + " min\n");
-    	    }
-    	    outputArea.append("===============================================\n\n");	    
+        
+         // Get calculated completion times from controller
+         List<Long> completionTimes = vcController.calculateCompletionTimes();
+         
+         // If no jobs exist
+         if (completionTimes.isEmpty()) {
+                outputArea.append("\nNo jobs to calculate completion times.\n");
+                return; // stop method
+            }
+            
+            // Print section header
+            outputArea.append("\n=== FIFO Completion Times ===\n");
+            
+            // Get job list to match with completion times
+            List<Job> batch = vcController.getCurrentBatch();
+            
+            // Loop through jobs and corresponding times
+            for (int i = 0; i < batch.size(); i++) {
+                
+                Job j = batch.get(i); // get job
+                Long time = completionTimes.get(i); // get its completion time
+                
+                // Display job name, ID, and computed time
+                outputArea.append("Job: " + j.getJobName() + 
+                        " | JobID: " + j.getJobID() +
+                        " | Completion Time: " + time + " min\n");
+            }
+            
+         
+            outputArea.append("============================\n\n");      
     }
     
-    //Queue - List of all jobs waiting
+    //=====================
+    // FUTURE METHODS (NOT IMPLEMENTED YET)
+    //=====================
+    
+    // Current Job Submissions → will show client name + timestamp
+    
+    // Vehicle Monitoring → track vehicle ID, status, job, compute power
+    
+    // Checkpoint Activity → track progress checkpoints per job
+    
+    // Redundancy Tracking → ensure enough vehicles are assigned
+    
+    // Queue → manage waiting jobs
+   
+    // Displays jobs in queue order (FIFO)
     public void displayQueue() {
+        
+        // Print header
         outputArea.append("===== Job Queue =====\n");
  
+        // Get job list
         List<Job> currentBatch = vcController.getCurrentBatch();
+        
+        // If no jobs exist
         if (currentBatch.isEmpty()) {
             outputArea.append("No jobs in queue.\n");
         } else {
-            int position = 1;
+            
+            int position = 1; // queue position counter
+            
+            // Loop through jobs
             for (Job j : currentBatch) {
-                if (j.getProgressStatus() != Job.JobStatus.COMPLETED) {
-                    outputArea.append(position + ". " + j.getJobName() +
-                            " | ID: " + j.getJobID() + "\n");
-                    position++;
+                
+        // Only show jobs not completed
+         if (j.getProgressStatus() != Job.JobStatus.COMPLETED) {
+                    
+        // Display position, job name, and ID
+         outputArea.append(position + ". " + j.getJobName() +
+         " | ID: " + j.getJobID() + "\n");
+                    
+         position++; // increment position
                 }
             }
         }
-        outputArea.append("=====================\n\n");
-    }
+        
     
-    //Server Status - shows central status of server, jobs in storage, completed job count,
+        outputArea.append("=====================\n");
+    }
+        
+    // Displays server status and statistics
     public void displayServerStatus() {
+        
+        // Print header
         outputArea.append("===== Server Status =====\n");
  
-        Server server = vcController.getServerConnection(); // TODO: make sure getServerConnection() exists in VCController
+        // Get server object from controller
+        Server server = vcController.getServerConnection();
+        
+        // If no server connected
         if (server == null) {
             outputArea.append("No server connected.\n");
         } else {
-            outputArea.append("Server ID: " + server.getServerID() + "\n");
-            outputArea.append("Status: " + server.getStatus() + "\n");
-            outputArea.append("Jobs in Storage: " + server.getStorage().size() + "\n");
+            
+            // Display server details
+            outputArea.append("Server ID      : " + server.getServerID() + "\n");
+            outputArea.append("Status         : " + server.getStatus() + "\n");
+            outputArea.append("Jobs in Storage: " + server.getStorage() + "\n");
             outputArea.append("Completed Jobs : " + server.getCompletedJobs().size() + "\n");
         }
-        outputArea.append("=========================\n\n");
+        
+       
+        outputArea.append("=========================\n");
     }
     
-//More Methods Eventually:
     
-    //Current Job Submissions from client- with client Name, job name, time stamp
+    //(Maybe) Alert system → vehicle departure, job failure, checkpoints, reassignment
     
-    //Vehicle Monitoring - List of all vehicles with id, status, current job, compute power
-    
-    //Checkpoint activity - number of checkpoints per job, last checkpoint time, which vehicle created it
-    
-    //Redundancy Tracking - shows required vs assigned vehicles
-    
-    //Alert - vehicle departing, job failed, checkpoint created, job reassigned
-
-    //Overall System Performance - average completion time, jobs completed per minute, percentage vehicle utilization
-
+    //Overall System Performance → avg completion time, jobs/min, vehicle utilization
 }
-
- 
