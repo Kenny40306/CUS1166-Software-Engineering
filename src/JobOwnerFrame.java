@@ -162,7 +162,12 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		//Kendra worked on this-
 		//-------- M4 Implementation: Create JobOwner and Job objects------- 
 		//Responsible for core logic when creating job submission and sending it to the system
-        JobOwner client = new JobOwner(id, "Client " + id); // created new client id to be derived
+		JobOwner client = new JobOwner(
+			    id,
+			    "Client " + id,
+			    "client@email.com",
+			    "password123"
+			); // created new client id to be derived
         
         String jobID = String.format("JOB-%08d", (int)(Math.random()* 100_000_000)); // generate unique jobID 8 digit
         
