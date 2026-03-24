@@ -18,7 +18,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	private JTextField clientIDField = new JTextField(10); //identify client
 	private JTextField jobNameField = new JTextField(10); //identify job description
 	private JTextField durationField = new JTextField(10); //identify execution time minutes
-	private JTextField deadlineField = new JTextField(5); //identify completion limit hours
+	private JTextField deadlineField = new JTextField(5); //identify completion limit minutes
 	   
 	//labels for corresponding text fields
     private JLabel clientIDLabel;
@@ -27,12 +27,12 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
     private JLabel deadlineLabel;
             
     //------M4 Implementation: shared controller with job owner client--------
-    private VCController vcController;
-    private MainControllerFrame mainFrame; //single instance
-    private JButton calculate; //create calculate button
-
-	public JobOwnerFrame(VCController vcController){ //Method for GUI setup
+    private VCController vcController; //back end sever handles jobs
+    private RoleSelectionFrame roleFrame; //reference to RoleSelectionFrame to return to it
+    
+	public JobOwnerFrame(VCController vcController, RoleSelectionFrame roleFrame){ //Method for GUI setup
 		 this.vcController = vcController;
+		 this.roleFrame = roleFrame;
 
 		setTitle("Job Owner Information"); //text for window identification
 		setSize(600,400); //size dimension for window components to fit in and avoids resizing issues
@@ -69,7 +69,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         panel.add(durationField);
 
         //Deadline
-        deadlineLabel = new JLabel("Deadline (Hours):");
+        deadlineLabel = new JLabel("Deadline (Minutes):");
         UIStyling.styleLabel(deadlineLabel);
         panel.add(deadlineLabel);
 
@@ -80,16 +80,16 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         //Buttons
 		JButton submit = new JButton("Submit"); //create submit action button to save data
 		JButton back= new JButton("Back"); //create back action button for navigation control
-		calculate= new JButton("Calculate"); //create calculate button that goes to VC MainControllerFrame
+
 		
 		UIStyling.styleButton(submit);
         UIStyling.styleButton(back);
-        UIStyling.styleButton(calculate);
+       
 
         //Add buttons to panel
 		panel.add(submit);
 		panel.add(back);
-		panel.add(calculate);
+	
 		
 		//Title Label
 		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form"); //creates title label for the form
@@ -99,25 +99,13 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		submit.addActionListener(e -> saveJobData()); //event button runs saveJob method
 		back.addActionListener(e-> {
 			dispose(); //event button close current window for role selection
-			new RoleSelectionFrame(vcController);
-			
+			  if (roleFrame != null) {
+	                roleFrame.setVisible(true); // show existing RoleSelectionFrame
+	            } else {
+	                new RoleSelectionFrame(vcController, "User");
+	            }			
 		});//returns user to main menu
 		
-		//Jaden Wrote This
-		//------- M4 Implementation --------- 
-		//calculate button for controller to run back end calculations
-		calculate.addActionListener(e-> {	
-			if (mainFrame == null) { // only create frame once
-			mainFrame = new MainControllerFrame(vcController,this);
-			}
-			mainFrame.setVisible(true);
-			mainFrame.clearOutput(); //clear previous display
-			mainFrame.displayCurrentJobs();     // shows only current batch
-			mainFrame.displayCompletionTimes();	//shows current batch
-			mainFrame.displayQueue();
-			mainFrame.displayServerStatus();
-			
-		});
 		setVisible(true); //always display GUI window 
 	}
 	
@@ -141,19 +129,19 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 
 		//Valid inputs for duration and deadline fields
 		int durationMin;
-		int deadlineHr;
+		int deadlineMin;
 
 		try {
 		    durationMin = Integer.parseInt(durText);
-		    deadlineHr = Integer.parseInt(ddlText);
+		    deadlineMin = Integer.parseInt(ddlText);
 
-		    if (durationMin <= 0 || deadlineHr <= 0) {
+		    if (durationMin <= 0 || deadlineMin <= 0) {
 		        throw new NumberFormatException();
 		    }
 
 		} catch (NumberFormatException ex) {
 		    JOptionPane.showMessageDialog(this,
-		            "Duration must be minutes and Deadline must be hours.",
+		            "Duration and Deadline must be minutes.",
 		            "Invalid Input",
 		            JOptionPane.ERROR_MESSAGE);
 		    return;
@@ -162,8 +150,10 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		//Kendra Wrote This-
 		//-------- M4 Implementation: Create JobOwner and Job objects ------- 
 		//Responsible for core logic when creating job submission and sending it to the system
+		//Gets 
         
 		//created new client id to be derived (Overloaded for GUI use)
+		//gets data from user input from jobownerframe textfield boxes
 		JobOwner client = new JobOwner(
 			    id,
 			    "Client " + id,
@@ -177,18 +167,21 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         		jobID,
                 jName,
                 Duration.ofMinutes(durationMin),     // Duration of the object
-                LocalDateTime.now().plusHours(deadlineHr), // deadline
+                LocalDateTime.now().plusMinutes(deadlineMin), // deadline
                 1                                        // default redundancy value
         );
         
-        client.submitJob(job); // add job to client's personal job list
-
-        // Send job and client to VCController if it exists so it can process information
-        if (vcController != null) {
-            vcController.receiveJob(job, client);
-        }
-		//------------------------------------------------------------------------*/
+        client.submitJob(job); // add job to client's personal job list (client holds job locally)
         
+       
+       
+        // Send job and client to VCController if it exists so it can process information
+        //(Enhance this eventually)
+        if (vcController != null) {
+            vcController.receiveJob(job, client); //receive job method and send it to VCController for processing
+        }
+        
+		//------------------------------------------------------------------------*/
         
         
 		//needs fileutil.writer and time stamp
@@ -198,7 +191,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		writer.write("Client ID: " + id + "\n");
 		writer.write("Job Name: " + jName + "\n");
 		writer.write("Job Duration: " + durText + "Minutes\n");
-		writer.write("Job Deadline: " + ddlText + "Hours\n");
+		writer.write("Job Deadline: " + ddlText + "Minutes\n");
 		writer.write("---------------------------------\n");
 
 		JOptionPane.showMessageDialog(this, "Job saved successfully!");

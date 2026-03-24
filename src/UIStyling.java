@@ -30,6 +30,13 @@ public class UIStyling {
 		button.setFont(new Font("Georgia", Font.BOLD, 14));
 		button.setForeground(BLACK);
 		button.setBackground(WHITE);
+		
+		//New: MacOS -----
+		button.setOpaque(true);              // REQUIRED 
+	    button.setContentAreaFilled(true);   // REQUIRED 
+	    button.setBorderPainted(true); //keep border visible
+		//----------------------------------
+	    
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createLineBorder(BLACK,2)); //light brown borders
 	}

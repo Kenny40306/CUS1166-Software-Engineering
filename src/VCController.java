@@ -1,3 +1,5 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -5,7 +7,7 @@ import java.util.Set;
 import javax.swing.JTextArea;
 
 /*=====================
-Class VC Controller Logic - Ryan
+Class VC Controller Logic (aka the Brain)- Ryan
 ======================*/
 
 //----M4 Implementation: 
@@ -13,18 +15,22 @@ public class VCController {
 	 // Attributes
     private String controllerID;
     private List<Vehicle> connectedVehicles;
-    private List<Job> activeJobs; //for all job submission history
-    private List<Job> currentBatch; //for FIFO calculation
-    private Set<String> jobIDs; //for FIFO calculation
+    private Set<String> jobIDs; //prevent duplicate job submissions
     private Server serverConnection;
     private JTextArea outputArea;
+    
+    private List<Job> activeJobs; //for all job submission history called in FIFO method and reciveJob method
+    private List<Job> currentBatch; //for FIFO calculation method
+    
+    
+ //---M5 maybe queue here and threadPool attributes
     
     // Constructor
     public VCController(String controllerID, Server serverConnection) {
         this.controllerID    = controllerID;
         this.serverConnection = serverConnection;
         this.connectedVehicles = new ArrayList<>();
-        this.activeJobs        = new ArrayList<>();
+        this.activeJobs = new ArrayList<>();
         this.currentBatch = new ArrayList<>();
         this.jobIDs = new HashSet<>();
     }
@@ -42,8 +48,6 @@ public class VCController {
                 currentBatch.add(j);
             }
         }
-
-    	
     	List<Long> completionTimes = new ArrayList<>();
     	
     	if (currentBatch.isEmpty()) {
@@ -53,7 +57,8 @@ public class VCController {
     	
     	long cumulativeTime = 0;
         
-        for (Job j : currentBatch) {
+    	//Loops FIFO order
+        for (Job j : currentBatch) { 
             long durationMinutes = j.getDuration().toMinutes();
             cumulativeTime += durationMinutes;
             j.setCompletionTime(cumulativeTime);
@@ -67,11 +72,10 @@ public class VCController {
         System.out.println("============================");
         return completionTimes;
     }
-    //=========================================================================================
         
     //(Method uses (Job j) and (Jobowner client) that calls from Job and JobOwner Classes)
     
-    //Receive active job from Client to send to server
+    //Receive active jobs from Client to send to vccontroller
     public void receiveJob(Job j, JobOwner client) {
     	if(j == null || client == null) {
     		 System.out.println("[VCController] Cannot receive a null job or null client.");
@@ -80,7 +84,7 @@ public class VCController {
     	 if (!jobIDs.contains(j.getJobID())) { // prevent duplicate submissions
     		 activeJobs.add(j);	//shows history of active jobs
     		 currentBatch.add(j); //what FIFO uses to track current batch
-             jobIDs.add(j.getJobID());
+             jobIDs.add(j.getJobID()); //checks duplicate id and add job id
     		 serverConnection.receiveJob(j); //sends job to server
     		 System.out.println("[VCController] Job received from client " + client.getClientID()+ ": "+ j.getJobName());
     	 }else {
@@ -88,7 +92,18 @@ public class VCController {
     	}
     }
 
+    //=======================================================================================================
     
+    
+    
+    
+    //M5: have a notification box that output if request is accepted or denied
+    
+    
+    
+    
+    
+
     //Give jobs completed to server 
     public void distributeJob(Job j) {
         if (j == null) {
@@ -247,7 +262,6 @@ public class VCController {
         this.outputArea = outputArea;
     }
     
-
     // Getters & Setters
  
     public String getControllerID() {
@@ -276,6 +290,8 @@ public class VCController {
     public void setServerConnection(Server serverConnection) {
         this.serverConnection = serverConnection;
     }
+    
+    
  
     @Override
     public String toString() {

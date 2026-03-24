@@ -20,6 +20,7 @@ Vehicle Owner Frame - Subat + Avneet
 	    private JTextField vinField = new JTextField(10);
 
 	    private VCController vcController;
+	    private RoleSelectionFrame roleFrame; //reference to RoleSelectionFrame
 	    
 	 //labels for each of the text fields 
 	    private JLabel ownerIDLabel;
@@ -31,9 +32,10 @@ Vehicle Owner Frame - Subat + Avneet
 	 //dropdown menu for user
 	    private JTextField residencyField = new JTextField(5);
 	    private JComboBox<String> residencyBox;
-
-	    public VehicleOwnerFrame(VCController vcController) {
+	    
+	    public VehicleOwnerFrame(VCController vcController, RoleSelectionFrame roleFrame) {
 	    	this.vcController = vcController;
+	    	this.roleFrame = roleFrame;
 	    	
 	    	//sets title and size of window
 	        setTitle("Vehicle Owner Information");
@@ -121,8 +123,12 @@ Vehicle Owner Frame - Subat + Avneet
 	        //when user presses back, closes frame and returns to role select page
 	        backButton.addActionListener(e -> {
 	            dispose(); //closes frame
-	            new RoleSelectionFrame(vcController);
-	        });
+	            if (roleFrame != null) {
+	                roleFrame.setVisible(true); // show existing RoleSelectionFrame
+	            } else {
+	                new RoleSelectionFrame(vcController, "User");
+	            }
+	    	});
 
 	        //makes window visible
 	        setVisible(true);

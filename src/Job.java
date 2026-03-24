@@ -104,11 +104,11 @@ public class Job {
 	public void setCompletionTime (long completionTime) {
 		this.completionTime = completionTime;
 	}
-	//Tracks true or false for 
+	//Tracks true or false 
 	public boolean isCompletionTimeCalculated() {
 		return completionTimeCalculated;
 	}
-	//
+	//Set
 	public void setCompletionTimeCalculated(boolean completionTimeCalculated) {
 	    this.completionTimeCalculated = completionTimeCalculated;
 	}
