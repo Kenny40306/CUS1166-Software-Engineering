@@ -27,9 +27,19 @@ public class MainControllerFrame extends JFrame{
         setLayout(new BorderLayout(10,10));  // Use BorderLayout for organizing components
         
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton calcButton = new JButton("Calculate & Show Results");
+                       
+        JButton acceptButton = new JButton("Accept");
+        JButton rejectButton = new JButton("Reject");
+        JButton calcButton = new JButton("Calculate");
+
+        UIStyling.styleButton(acceptButton);
+        UIStyling.styleButton(rejectButton);
         UIStyling.styleButton(calcButton);
+
+        topPanel.add(acceptButton);
+        topPanel.add(rejectButton);
         topPanel.add(calcButton);
+        
         add(topPanel, BorderLayout.NORTH);
 
         //Text Area For Output
@@ -37,6 +47,32 @@ public class MainControllerFrame extends JFrame{
         outputArea.setEditable(false); // Make text area read-only (user cannot edit)
         JScrollPane scrollPane = new JScrollPane(outputArea); // Add scroll functionality to text area
         add(scrollPane, BorderLayout.CENTER); // Add scroll pane to center of frame
+        
+       
+      //====================================================================================
+        //M5 Implementation: Buttons for Accept and Reject
+        //==================================================================================
+        acceptButton.addActionListener(e -> {
+            if (!vcController.getPendingJobRequests().isEmpty()) {
+                VCController.JobRequest req = vcController.getPendingJobRequests().get(0);
+                vcController.approveJob(req.job); //method passed here
+                outputArea.append("[VCController] Approved job: " + req.job.getJobName() + "\n");
+            } else {
+                outputArea.append("[VCController] No pending jobs to approve.\n");
+            }
+        });
+
+        rejectButton.addActionListener(e -> {
+            if (!vcController.getPendingJobRequests().isEmpty()) {
+                VCController.JobRequest req = vcController.getPendingJobRequests().get(0);
+                vcController.rejectJob(req.job); //method passed here
+                outputArea.append("[VCController] Rejected job: " + req.job.getJobName() + "\n");
+            } else {
+                outputArea.append("[VCController] No pending jobs to reject.\n");
+            }
+        });
+
+        //==========================================================================================
         
         //Calculate button action
         calcButton.addActionListener(e -> {
@@ -49,11 +85,12 @@ public class MainControllerFrame extends JFrame{
         
         setVisible(true); // Make frame visible
     }
+       
     
     
-    //=====================
+    //============================
     // METHODS FOR DISPLAYING DATA
-    //=====================
+    //============================
     
     // Clears all text from output area
     public void clearOutput() {
@@ -66,11 +103,11 @@ public class MainControllerFrame extends JFrame{
         outputArea.append("===== Jobs Log =============\n");
 
         // Get all jobs from controller (history list)
-        List<Job> currentBatch = vcController.getCurrentBatch(); //all jobs ever submitted as history log
-        if (currentBatch.isEmpty()) { // If no jobs exist
+        List<Job> allJobs = vcController.getActiveJobs(); //all jobs ever submitted as history log
+        if (allJobs.isEmpty()) { // If no jobs exist
             outputArea.append("No active jobs at the moment.\n");
         } else {
-            for (Job j : currentBatch) { // Loop through each job
+            for (Job j : allJobs) { // Loop through each job
                 if (j.getProgressStatus() != Job.JobStatus.COMPLETED) { // Only display jobs that are NOT completed
                     // Print job name and current status
                     outputArea.append("Job: " + j.getJobName() + 

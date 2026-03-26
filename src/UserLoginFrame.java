@@ -100,13 +100,21 @@ class UserLoginFrame extends JFrame {
         if (role.equals("Admin")) {
             // Hardcoded admin credentials for demo testing
             loginSuccess = username.equalsIgnoreCase("admin") && password.equals("admin123");
+            if (loginSuccess) {
+                vcController.setCurrentUserId("ADMIN");
+            }
+
         } else {
             // Regular User: in real system, validate against file/database
             loginSuccess = true; // accept any non-empty for demo
+            if (loginSuccess) {
+                vcController.setCurrentUserId(username);
+            }
         }
 
         if (loginSuccess) {
             // Logs login
+       
             try (FileWriter writer = new FileWriter("user_login_data.txt", true)) {
                 writer.write("Timestamp: " + LocalDateTime.now() + "\n");
                 writer.write("Role: " + role + "\n");
@@ -122,6 +130,7 @@ class UserLoginFrame extends JFrame {
             dispose(); // Close login frame
            
             	new RoleSelectionFrame(vcController,role); // Open RoleSelectionFrame
+
             }else {	
             	JOptionPane.showMessageDialog(this,
                     "Invalid credentials for " + role,

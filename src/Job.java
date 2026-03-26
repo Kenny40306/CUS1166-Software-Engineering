@@ -21,6 +21,7 @@ public class Job {
 	//Attributes:
 	private String jobID; //unique identifier
 	private String jobName;	//job name description
+	private String clientID; //gets clients id
 	private Duration duration;	//how much time job will take to finish
 	private LocalDateTime deadline;	//precise time job will finish
 	private int redundancyLevel;	//how many vehicles are connected to one job
@@ -33,10 +34,11 @@ public class Job {
 	private long completionTime; //in minutes to store computed time FIFO results
 	
 	//Constructor:
-	public Job(String jobID, String jobName, Duration duration, LocalDateTime deadline, int redundancyLevel) {
+	public Job(String jobID, String jobName, String clientID, Duration duration, LocalDateTime deadline, int redundancyLevel) {
 		//Assigns correct data to objects (initialize properties)
 		this.jobID = jobID;
 		this.jobName = jobName;
+		this.clientID = clientID;
 		this.duration = duration;
 		this.deadline = deadline;
 		this.redundancyLevel = redundancyLevel;
@@ -113,10 +115,17 @@ public class Job {
 	    this.completionTimeCalculated = completionTimeCalculated;
 	}
 
-	
+	//optional Setter
+	public void setClientId(String clientId) { // optional setter
+	       this.clientID = clientId;
+	}
+	 
 	//Getters
 	public String getJobID() {
 		return jobID;
+	}
+	public String getClientID() {
+		return clientID;
 	}
 	public String getJobName() {
 		return jobName;
