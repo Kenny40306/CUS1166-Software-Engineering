@@ -159,9 +159,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		
 		//Gets data from user input from jobownerframe textfield boxes
 		//created new client id to be derived (Overloaded for GUI use)
-		
-		
-		
+	
 		JobOwner client = new JobOwner(
 			    systemID,
 			    "Client " + systemID,
@@ -174,7 +172,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         Job job = new Job(		// created new job object that builds the actual job for submission    
         		jobID,
                 jName,
-                systemID,				//M5 change matches login user
+                systemID,				//M5 change matches login user job knows which client submitted it via systemID
                 Duration.ofMinutes(durationMin),     // Duration of the object
                 LocalDateTime.now().plusMinutes(deadlineMin), // deadline
                 1     // default redundancy value

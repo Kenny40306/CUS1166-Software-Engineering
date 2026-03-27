@@ -68,7 +68,7 @@ class RoleSelectionFrame extends JFrame{
         add(panel);
     
 
-        // M5: Bottom panel for Admin dashboard button and logout ======================= 
+        // M5: Bottom panel for Admin dashboard buttons to logout, also refresh and clear notifications ======================= 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         UIStyling.stylePanel(bottomPanel);
         	
@@ -80,7 +80,7 @@ class RoleSelectionFrame extends JFrame{
         		
         		JScrollPane scroll = new JScrollPane(notificationArea);
         		scroll.setBorder(BorderFactory.createTitledBorder("Notifications"));
-        		scroll.setPreferredSize(new Dimension(400, 60));
+        		scroll.setPreferredSize(new Dimension(250, 55));
         
         		//Buttons
         		JButton refreshBtn = new JButton("Refresh");
@@ -96,8 +96,7 @@ class RoleSelectionFrame extends JFrame{
                 notifPanel.add(scroll, BorderLayout.CENTER);
                 notifPanel.add(notifBtnPanel, BorderLayout.SOUTH);
 
-                bottomPanel.add(notifPanel, BorderLayout.WEST);
-
+                panel.add(notifPanel, BorderLayout.WEST);
                 refreshNotifications();  //load notifications for current user*/
 
                 refreshBtn.addActionListener(e -> {
@@ -125,7 +124,7 @@ class RoleSelectionFrame extends JFrame{
         panel.add(bottomPanel, BorderLayout.SOUTH);
         add(panel, BorderLayout.CENTER);
         
-        //Changed for user and admin to have same button behavior
+        //NEW Changed for user and admin to have same button behavior
         vehicleOwnerBtn.addActionListener(e -> 
         	openRoleChildFrame(new VehicleOwnerFrame(vcController, this)));
         jobOwnerBtn.addActionListener(e -> 
@@ -151,7 +150,10 @@ class RoleSelectionFrame extends JFrame{
         setVisible(true);
         
         }
+    
+    
     //New M5 =================================================================================================
+ 
     // Unified method to open JobOwner or VehicleOwner frames
     private void openRoleChildFrame(JFrame childFrame) {
         childFrame.setVisible(true);
@@ -164,15 +166,15 @@ class RoleSelectionFrame extends JFrame{
     	 
         JFrame dashboardFrame;
         if (role.equalsIgnoreCase("Admin")) {
-            if (adminDashboardFrame == null) adminDashboardFrame = new MainControllerFrame(vcController);
+            if (adminDashboardFrame == null) 
+            adminDashboardFrame = new MainControllerFrame(vcController);
             dashboardFrame = adminDashboardFrame;
         } else {
-            if (userDashboardFrame == null) userDashboardFrame = new UserDashboardFrame(vcController);
-            dashboardFrame = userDashboardFrame;
+            if (userDashboardFrame == null) 
+            userDashboardFrame = new UserDashboardFrame(vcController);
+            dashboardFrame = userDashboardFrame; 
         }
-
-        dashboardFrame.setVisible(true);
-        dashboardFrame.toFront();
+        
         
         // Position next to RoleSelectionFrame
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -194,8 +196,10 @@ class RoleSelectionFrame extends JFrame{
         }
 
         dashboardFrame.setLocation(x, y);
-    }
+        dashboardFrame.setVisible(true);
         
+    }
+    
     public void appendNotification(String message) {
     	SwingUtilities.invokeLater(() -> {
     		notificationArea.append(message + "\n");
@@ -218,4 +222,4 @@ class RoleSelectionFrame extends JFrame{
             }
          }
     }
-    
+    //==============================================================================================================

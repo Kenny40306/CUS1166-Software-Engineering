@@ -101,14 +101,14 @@ class UserLoginFrame extends JFrame {
             // Hardcoded admin credentials for demo testing
             loginSuccess = username.equalsIgnoreCase("admin") && password.equals("admin123");
             if (loginSuccess) {
-                vcController.setCurrentUserId("ADMIN");
+                vcController.setCurrentUserId("ADMIN"); //M5 gets user name upon login
             }
 
         } else {
             // Regular User: in real system, validate against file/database
             loginSuccess = true; // accept any non-empty for demo
             if (loginSuccess) {
-                vcController.setCurrentUserId(username);
+                vcController.setCurrentUserId(username); //M5 gets user name upon login
             }
         }
 

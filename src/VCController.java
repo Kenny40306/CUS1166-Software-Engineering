@@ -48,7 +48,9 @@ public class VCController {
         this.activeJobs = new ArrayList<>();
         this.currentBatch = new ArrayList<>();
         this.jobIDs = new HashSet<>();
+        
         this.pendingJobRequests = new ArrayList<>();
+
         loadNotificationsFromFile();   // Load persisted notifications
 
     }
@@ -188,6 +190,9 @@ public class VCController {
 //========================================================================================
     
       
+    
+    
+    
  //(M5 Implementation: =========== Core Job Methods ==================================
     
     // Request wrappers static inner class
@@ -243,9 +248,8 @@ public class VCController {
     
     
     //(M5 Implementation: =========== Core Vehicle Methods ===================================
-    //...
-    //...
-    //...
+    	//...
+    	//...
     //===================================================================================
     
     

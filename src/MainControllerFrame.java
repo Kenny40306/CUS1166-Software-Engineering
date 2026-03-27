@@ -11,10 +11,10 @@ Main Controller Frame - Moontarin + Subat
 //Main Frame (GUI window for displaying system output)
 public class MainControllerFrame extends JFrame{
   
-	 // Text area used to display backend output/logs
-    private JTextArea outputArea;
-    // Reference to VCController (connects GUI to backend logic)
-    private VCController vcController;
+	  
+    private VCController vcController;  // Reference to VCController (connects GUI to backend logic)
+    private JTextArea outputArea;	// Text area used to display backend output/logs
+    private JPanel topPanel;	
     
     //initializes the frame and connects it to controller
     public MainControllerFrame(VCController vcController) {
@@ -22,37 +22,53 @@ public class MainControllerFrame extends JFrame{
     	this.vcController = vcController;
     	
         setTitle("VC Dashboard"); // Set window title
-        setSize(300, 300); // Set window size
+        setSize(300, 400); // Set window size
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window when user exits
         setLayout(new BorderLayout(10,10));  // Use BorderLayout for organizing components
         
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-                       
+     // Title
+        JLabel title = UIStyling.createDashboardTitle("VC Controller Dashboard");
+        
         JButton acceptButton = new JButton("Accept");
         JButton rejectButton = new JButton("Reject");
         JButton calcButton = new JButton("Calculate");
 
-        UIStyling.styleButton(acceptButton);
-        UIStyling.styleButton(rejectButton);
-        UIStyling.styleButton(calcButton);
+        UIStyling.styleDashboardButton(acceptButton); /* CHANGED */
+        UIStyling.styleDashboardButton(rejectButton); /* CHANGED */
+        UIStyling.styleDashboardButton(calcButton);   /* CHANGED */
 
-        topPanel.add(acceptButton);
-        topPanel.add(rejectButton);
-        topPanel.add(calcButton);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(acceptButton);
+        buttonPanel.add(rejectButton);
+        buttonPanel.add(calcButton);
+        UIStyling.styleDashboardPanel(buttonPanel);
+
+        // Combine into header
+        topPanel = new JPanel(new BorderLayout());
+        topPanel.add(title, BorderLayout.NORTH);
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+        UIStyling.styleDashboardPanel(topPanel);
         
         add(topPanel, BorderLayout.NORTH);
 
         //Text Area For Output
         outputArea = new JTextArea(15,50); // Create text area for output display
         outputArea.setEditable(false); // Make text area read-only (user cannot edit)
-        JScrollPane scrollPane = new JScrollPane(outputArea); // Add scroll functionality to text area
-        add(scrollPane, BorderLayout.CENTER); // Add scroll pane to center of frame
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        UIStyling.styleScrollPaneDark(scrollPane);
+
+        JPanel centerWrapper = new JPanel(new BorderLayout());
+        UIStyling.styleDashboardPanel(centerWrapper);
+        centerWrapper.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        centerWrapper.add(scrollPane, BorderLayout.CENTER);
+        
+        add(centerWrapper, BorderLayout.CENTER); // Add scroll pane to center of frame
         
        
       //====================================================================================
-        //M5 Implementation: Buttons for Accept and Reject
+        //!!!M5 Implementation: Buttons for Accept and Reject!!!
         //==================================================================================
-        acceptButton.addActionListener(e -> {
+       acceptButton.addActionListener(e -> {
             if (!vcController.getPendingJobRequests().isEmpty()) {
                 VCController.JobRequest req = vcController.getPendingJobRequests().get(0);
                 vcController.approveJob(req.job); //method passed here
@@ -74,19 +90,22 @@ public class MainControllerFrame extends JFrame{
 
         //==========================================================================================
         
+   
         //Calculate button action
         calcButton.addActionListener(e -> {
             clearOutput();               // Clear previous logs
             displayCurrentJobs();        // Display active jobs
             displayCompletionTimes();    // Display FIFO completion times
             displayQueue();              // Display job queue
-            displayServerStatus();       // Display server status
+            displayServerStatus();		// Display server status
+            displayVehicleMonitor();
+            displayCheckpointActivity();
+            
         });
         
+        applyDecorations(); // keep method, but modified
         setVisible(true); // Make frame visible
     }
-       
-    
     
     //============================
     // METHODS FOR DISPLAYING DATA
@@ -190,15 +209,90 @@ public class MainControllerFrame extends JFrame{
         outputArea.append("=========================\n\n");
     }
     
+    
+    
+    //NEW========================================================================================================================
+    //Moon Worked 
+    //Vehicle Monitoring - List of all vehicles with id, status, current job, compute power
+    public void displayVehicleMonitor() {
+        // Print header
+        outputArea.append("===== Vehicle Monitor =====\n");
+
+
+        List<Vehicle> vehicles = vcController.getConnectedVehicles();
+        // vcController.getConnectedVehicles() returns all Vehicle objects registered in the system
+
+
+        if (vehicles == null || vehicles.isEmpty()) { // If no vehicles registered
+            outputArea.append("No vehicles currently registered.\n");
+        } else {
+            for (Vehicle v : vehicles) { // Loop through each vehicle
+                String assignedJob = (v.getCurrentJob() != null)
+                        ? v.getCurrentJob().getJobName()
+                        : "idle";
+                // Display vehicle ID, status, assigned job, and compute power
+                outputArea.append("Vehicle ID: " + v.getVehicleID() +
+                        " | Status: " + v.getStatus() +
+                        " | Job: " + assignedJob +
+                        " | Power: " + v.getComputePower() + " GHz\n");
+            }
+
+
+            long available = vehicles.stream()
+                    .filter(v -> v.getStatus() == Vehicle.VehicleStatus.AVAILABLE)
+                    .count();
+            outputArea.append("Available: " + available + " / " + vehicles.size() + " vehicles\n");
+            // summary: how many vehicles are currently available out of total registered
+        }
+        outputArea.append("===========================\n\n");
+    }
+
+
+    //Checkpoint activity - number of checkpoints per job, last checkpoint time, which vehicle created it
+    public void displayCheckpointActivity() {
+        // Print header
+        outputArea.append("===== Checkpoint Activity =====\n");
+
+
+        List<Job> currentBatch = vcController.getCurrentBatch();
+        // loops through all jobs that are not yet completed
+
+
+        if (currentBatch.isEmpty()) { // If no jobs exist
+            outputArea.append("No active jobs to track.\n");
+        } else {
+            for (Job j : currentBatch) {
+
+
+                if (j.getProgressStatus() == Job.JobStatus.COMPLETED) continue;
+                // skip jobs that are already done
+
+
+                List<Checkpoint> checkpoints = j.getCheckpoints();
+                int reached = (checkpoints != null) ? checkpoints.size() : 0;
+                // getCheckpoints() returns a List<Checkpoint> of checkpoint objects for this job
+
+
+                // Display job name and checkpoint count
+                outputArea.append("Job: " + j.getJobName() +
+                        " | Checkpoints reached: " + reached + "\n");
+
+
+                String lastCP = (checkpoints != null && !checkpoints.isEmpty())
+                        ? checkpoints.get(checkpoints.size() - 1).getCheckpointID()
+                        : "none yet";
+                outputArea.append("  Latest: " + lastCP + "\n");
+                // prints the most recent checkpoint ID for this job
+            }
+        }
+        outputArea.append("===============================\n\n");
+    }
+    
     //=====================
     // FUTURE METHODS (NOT IMPLEMENTED YET)
     //=====================
     
     //Current Job Submissions from client- with client Name, job name, time stamp
-    
-    //Vehicle Monitoring - List of all vehicles with id, status, current job, compute power
-    
-    //Checkpoint activity - number of checkpoints per job, last checkpoint time, which vehicle created it
     
     //Redundancy Tracking - shows required vs assigned vehicles
     
@@ -206,6 +300,24 @@ public class MainControllerFrame extends JFrame{
 
     //Overall System Performance → avg completion time, jobs/min, vehicle utilization
 
-}
+    private void applyDecorations() {
+    	UIStyling.styleFrameDark(this);
+    	UIStyling.styleTextAreaDark(outputArea);
 
- 
+    	// Wrap outputArea scroll pane
+    	JScrollPane scrollPane = new JScrollPane(outputArea);
+    	UIStyling.styleScrollPaneDark(scrollPane);
+
+    	JPanel centerWrapper = new JPanel(new BorderLayout());
+    	UIStyling.styleDashboardPanel(centerWrapper);
+    	centerWrapper.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+    	centerWrapper.add(scrollPane, BorderLayout.CENTER);
+
+    	add(centerWrapper, BorderLayout.CENTER);
+
+    	// Keep buttons visible by re-adding topPanel if needed
+    	if (topPanel != null) {
+    		add(topPanel, BorderLayout.NORTH); // ensure topPanel with buttons stays
+    	}
+	}
+}
