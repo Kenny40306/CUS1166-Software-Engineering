@@ -130,7 +130,7 @@ class UserLoginFrame extends JFrame {
             dispose(); // Close login frame
            
             	new RoleSelectionFrame(vcController,role); // Open RoleSelectionFrame
-
+            	
             }else {	
             	JOptionPane.showMessageDialog(this,
                     "Invalid credentials for " + role,

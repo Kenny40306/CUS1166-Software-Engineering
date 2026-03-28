@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
-
+import java.io.Serializable;
 /*=====================
 Class Vehicle Owner Logic - Avneet + Jaden
 class represents a vehicle owner in the system
@@ -8,7 +8,8 @@ stores owner info and the list of vehicles submitted by the owner
 ======================*/
 
 //----M4 Implementation: 
-public class VehicleOwner extends User{
+public class VehicleOwner extends User implements Serializable {
+	private static final long serialVersionUID = 1L;
 
 	//Attributes based on user class inheritance to access these fields
 	private String residencyTime;

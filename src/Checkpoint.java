@@ -1,12 +1,14 @@
 
 import java.time.LocalDateTime;
+import java.io.Serializable;
 
 /*=====================
 Class Checkpoint Logic - Kendra
 ======================*/
 
 //----M4 Implementation: Checkpoint stores job state------
-class Checkpoint{
+class Checkpoint implements Serializable {
+	private static final long serialVersionUID =1L;
 	
 	//Attributes:
 	private String checkpointID; //unique identifier

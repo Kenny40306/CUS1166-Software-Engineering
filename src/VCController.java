@@ -223,12 +223,27 @@ public class VCController {
     			pendingJobRequests.remove(req);
     			activeJobs.add(req.job); //active job gets passed here
     			jobIDs.add(req.job.getJobID()); 
+    			
     			serverConnection.receiveJob(req.job);
     			req.client.notify("Job approved: " + req.job.getJobName());
     			System.out.println("[VCController] Job approved: " + req.job.getJobName());
     			
+    			 // DEBUG
+    	        System.out.println("Job client ID: " + j.getClientID());
+    	        System.out.println("Current logged user: " + currentUserId);
+    			
     			// Notify Client Job Accepted
     			addNotification(j.getClientID(),"Your job \"" + j.getJobName() + "\" was APPROVED");
+    			// AVNEET- M5 MULTITHREADING PART
+    			//this assigns the vehicles and starts the processing
+    			
+    			assignVehicles(j);
+    			
+    			//starts the vehicles processing the job
+    			for (Vehicle v : j.getAssignedVehicles()) {
+    				System.out.println("[VCController] Starting vehicle thread for " + v.getVehicleID());
+    				v.processJob();//starts the thread
+    			}
     		}
     	}
     
@@ -355,6 +370,10 @@ public class VCController {
             j.assignVehicles(selected);
             System.out.println("[VCController] Assigned " + selected.size()
                     + " vehicle(s) to job " + j.getJobID());
+            //debug
+            for (Vehicle v : selected) {
+            	System.out.println("[VCController] Vehicle assigned: " + v.getVehicleID());
+            }
         } else {
             System.out.println("[VCController] No available vehicles for job " + j.getJobID());
         }

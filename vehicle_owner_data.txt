@@ -11,3 +11,59 @@ Model: CRV
 VIN: 12345678912345678
 Residency Time: 3 hours
 ---------------------------------
+Timestamp: 2026-03-26T15:46:02.451248
+Owner ID: avneet
+Make: 2007
+Model: honda
+VIN: 12345678910192837
+Residency Time: 7 Hour(s)
+---------------------------------
+Timestamp: 2026-03-26T16:27:02.326354
+Owner ID: avneet
+Make: 2009
+Model: honda
+VIN: 12345678910192837
+Residency Time: 10 Minute(s)
+---------------------------------
+Timestamp: 2026-03-26T16:27:52.241368
+Owner ID: avneeg
+Make: 2017
+Model: honda
+VIN: 12345678910192837
+Residency Time: 10 Minute(s)
+---------------------------------
+Timestamp: 2026-03-27T22:53:06.047131
+Owner ID: avneet
+Make: 2005
+Model: hond
+VIN: 12345678910192837
+Residency Time: 10 Minute(s)
+---------------------------------
+Timestamp: 2026-03-28T00:02:01.624332
+Owner ID: avneet
+Make: 2005
+Model: honda
+VIN: 12345678910293847
+Residency Time: 15 Minute(s)
+---------------------------------
+Timestamp: 2026-03-28T00:38:41.703500
+Owner ID: avneet
+Make: 2007
+Model: honda
+VIN: 12345678910192837
+Residency Time: 10 Minute(s)
+---------------------------------
+Timestamp: 2026-03-28T00:39:38.309795
+Owner ID: avneet
+Make: 2007
+Model: honda
+VIN: 12345678910192837
+Residency Time: 20 Minute(s)
+---------------------------------
+Timestamp: 2026-03-28T00:52:06.672380
+Owner ID: avneet
+Make: 2007
+Model: honda
+VIN: 12345678910192837
+Residency Time: 20 Minute(s)
+---------------------------------

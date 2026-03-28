@@ -2,13 +2,16 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
 /*=====================
 Class Job Logic - Kendra
 ======================*/
 
 //----M4 Implementation: Job class contain client's submitted job data------
-public class Job {
+public class Job implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	
 	//Enum : define possible job states
 	public enum JobStatus {

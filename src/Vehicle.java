@@ -1,13 +1,15 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
+import java.io.Serializable;
 
 /*=====================
 Class Vehicle Logic - Subat
 ======================*/
 
 //----M4 Implementation:
-public class Vehicle {
+public class Vehicle extends Thread implements Serializable {
+	private static final long serialVersionUID =1L;
 	
 	// Enums for vehicle status
 	public enum VehicleStatus {
@@ -53,14 +55,49 @@ public class Vehicle {
         this.status = VehicleStatus.BUSY;
     }
 
-    // runs the computation for the current job
+    //Avneet
+    //this starts processing the job (multithreading)
     public void processJob() {
         if (currentJob != null) {
-        	System.out.println("Vehicle " + vehicleID + " is processing job: " + currentJob.getJobID());
-        	}
-    }
+        	System.out.println("Vehicle " + vehicleID + 
+                    " starting thread for job: " + currentJob.getJobID());
+                this.start(); // starts the thread
+            }
+        }
+    
+    //Avneet
+    //Thread method (this runs when start() is called)
+    @Override
+    public void run() {
+        if (currentJob != null) {
+            try {
+                System.out.println("Vehicle " + vehicleID +
+                        " started processing job: " + currentJob.getJobName());
 
-    // sends the completed job results to the server
+                // simulate job processing time
+                long sleepTime = currentJob.getDuration().toMinutes() * 1000;
+                Thread.sleep(sleepTime);
+
+                System.out.println("Vehicle " + vehicleID +
+                        " completed job: " + currentJob.getJobName());
+
+                // mark job completed
+                currentJob.markCompleted();
+
+                // send results to server
+                sendResults(null);
+
+                // reset vehicle
+                eraseData();
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }	
+
+    // subat
+    //sends the completed job results to the server
     public void sendResults(Server server) {
         System.out.println("Vehicle " + vehicleID + " sending results to server.");
     }
