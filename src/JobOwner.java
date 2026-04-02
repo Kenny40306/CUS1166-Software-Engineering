@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.SwingUtilities;
 
 
@@ -9,7 +8,8 @@ Class JobOwner Logic - Kendra + Jaden
 ======================*/
 
 //----M4 Implementation: Job Owner manages jobs they submit, track or cancel -----
-public class JobOwner extends User implements ClientInterface{
+//(ENTITY ONE)
+public class JobOwner extends User{ //implements ClientInterface{
 	
 private List<Job> jobSubmitted;
 
@@ -22,30 +22,31 @@ private List<Job> jobSubmitted;
 	//(Methods uses (Job j) that calls to Job class)
 
 	//==================================================================================================
-	//Kendra Wrote this-
-	//M5 Implementation: ====== Send job to VCController (asynchronous) ========
+	//Kendra Wrote This-
+	//M5 Implementation: ====== Send Job to VCController (asynchronous) ========
 
-	//This method goes to JobOwnerFrame M4 Implementation uses threading
-	public void submitJobToController(Job j, VCController vc) { 
-        System.out.println("[JobOwner] Sending job request: " + j.getJobName());
-        j.setClientId(super.userID); //ensure clientID matches current userID for notification system
-        jobSubmitted.add(j);//track job
-        new Thread(() -> vc.receiveJobRequest(j, this)).start(); // async
+    //: Now uses socket instead of direct VCController call
+    public void submitJobToServer(Job job) {
+        new Thread(() -> {
+            try {
+                ClientConnection connection = new ClientConnection("localhost", 5000);
+                MessageServer message = new MessageServer( MessageServer.Type.JOB_REQUEST,job,this.userID);
+                String response = connection.send(message); // Send job and receive server response
+
+                //Notify user with server decision locally
+                notify("Server Response: " + response);
+
+            } catch (Exception e) {
+                notify("Error sending job: " + e.getMessage());
+            }
+        }).start();
     }
-	
-   // Notification from GUI and VCController
-    @Override
+
+    //Local called notification for server responds
     public void notify(String message) {
-        System.out.println("[JobOwner Notification] " + message);
-    
+        System.out.println("Notification for " + userID + ": " + message);
     }
-    @Override
-    public void sendDataToServer(VCController controller, Object data) {
-        if (data instanceof Job) {
-            System.out.println("[JobOwner] Sending job " + ((Job) data).getJobName() + " to server...");
-            controller.receiveJobRequest((Job) data, this);
-        }
-    }
+
     //=====================================================================================================
 	
     

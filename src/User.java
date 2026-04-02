@@ -8,8 +8,8 @@ Class User Logic - Jaden
 //----M4 Implementation: User class needs to inherit attributes and behavior from both JobOwner and VehicleOwner ---
 //*note java doesn't do extends JobOwner, VehicleOwner so we'll need composition for this part maybe
 
-public class User implements Serializable {
-	private static final long serialVersionUID = 1L;
+public class User implements Serializable{
+	private static final long serialVersionUID = 1L; //Avneet: M5 Checkpoint Serializable for Socket 
 	
 	//Attributes
 		protected String userID;

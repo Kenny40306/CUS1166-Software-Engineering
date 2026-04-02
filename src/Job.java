@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.Serializable;
 
+
 /*=====================
 Class Job Logic - Kendra
 ======================*/
 
 //----M4 Implementation: Job class contain client's submitted job data------
-public class Job implements Serializable {
-	
-	private static final long serialVersionUID = 1L;
+public class Job implements Serializable{
+	private static final long serialVersionUID = 1L; //Avneet: M5 Serializable for Socket 
 	
 	//Enum : define possible job states
 	public enum JobStatus {
@@ -95,30 +95,50 @@ public class Job implements Serializable {
 			System.out.println("Checkpoint " + cp.getCheckpointID()+ "not found in Job: " + jobID);
 		}
 	}
+	// For job queue display
+    public String getJobQueueInfo(int position) {
+        return position + ". " + jobName + " | ID: " + jobID;
+    }
 	
-	//Set
+    // For checkpoint activity display
+    public List<String> getCheckpointInfo() {
+        List<String> data = new ArrayList<>();
+        if (progressStatus == JobStatus.COMPLETED) return data;
+
+        int reached = (checkpoints != null) ? checkpoints.size() : 0;
+        data.add("Job: " + jobName + " | Checkpoints reached: " + reached);
+
+        String lastCP = (checkpoints != null && !checkpoints.isEmpty())
+                        ? checkpoints.get(checkpoints.size() - 1).getCheckpointID()
+                        : "none yet";
+        data.add("  Latest: " + lastCP);
+        return data;
+    }
+    
+    
+	//Set updates current state o job
 	public void setProgressStatus(JobStatus status) { 
 		this.progressStatus = status; 
 	}
-	//Set 
+	//Set shows how many duplicated executions job has for vehicle
 	public void setRedundancyLevel(int level) { 
 		this.redundancyLevel = level; 
 	}
 	
-	//Set completion time for FIFO for VC Controller
+	//Set completion time for FIFO for VC Controller (how long job takes to finish)
 	public void setCompletionTime (long completionTime) {
 		this.completionTime = completionTime;
 	}
-	//Tracks true or false 
+	//Tracks true or false if job has been calculated or not
 	public boolean isCompletionTimeCalculated() {
 		return completionTimeCalculated;
 	}
-	//Set
+	//Set marks if completion time has been computed yet
 	public void setCompletionTimeCalculated(boolean completionTimeCalculated) {
 	    this.completionTimeCalculated = completionTimeCalculated;
 	}
 
-	//optional Setter
+	//optional Setter links job to user
 	public void setClientId(String clientId) { // optional setter
 	       this.clientID = clientId;
 	}

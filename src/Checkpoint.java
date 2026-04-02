@@ -7,8 +7,8 @@ Class Checkpoint Logic - Kendra
 ======================*/
 
 //----M4 Implementation: Checkpoint stores job state------
-class Checkpoint implements Serializable {
-	private static final long serialVersionUID =1L;
+class Checkpoint implements Serializable{ 
+	private static final long serialVersionUID =1L; //Avneet: M5 Checkpoint Serializable for Socket 
 	
 	//Attributes:
 	private String checkpointID; //unique identifier

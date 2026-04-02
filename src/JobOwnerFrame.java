@@ -81,17 +81,13 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         //Buttons
 		JButton submit = new JButton("Submit"); //create submit action button to save data
 		JButton back= new JButton("Back"); //create back action button for navigation control
-
-		
 		UIStyling.styleButton(submit);
         UIStyling.styleButton(back);
        
-
         //Add buttons to panel
 		panel.add(submit);
 		panel.add(back);
 	
-		
 		//Title Label
 		JLabel titleLabel = UIStyling.createTitleLabel("Job Owner Form"); //creates title label for the form
         UIStyling.setupFrame(this, panel, titleLabel, "Job Owner Information"); 
@@ -172,16 +168,15 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         Job job = new Job(		// created new job object that builds the actual job for submission    
         		jobID,
                 jName,
-                vcController.getCurrentUserId(),				//M5 change matches login user job knows which client submitted it via systemID
+                systemID,				//M5 change matches login user job knows which client submitted it via systemID
                 Duration.ofMinutes(durationMin),     // Duration of the object
                 LocalDateTime.now().plusMinutes(deadlineMin), // deadline
                 1     // default redundancy value
                 
         );
         
-        // Submit job asynchronously to VCController
         //M5 change here that calls JobOwner Class
-        client.submitJobToController(job, this.vcController); // send to dashboard/controller
+        client.submitJobToServer(job); // Socket Call
        //------------------------------------------------------------------------*/
         
         

@@ -5,6 +5,7 @@ Class Server Logic - Moontarin
 ======================*/
 
 //---- M4 Implementation: Manages and tracks job processing within the system ---
+//Acts as data layer that handles storage
 public class Server {
 	   // Nested enum representing the possible states of the server.
 	   
@@ -57,6 +58,7 @@ public class Server {
     	}
     }
     
+      
     // Removes or deletes stored data related to a specific vehicle from the server.
     public void eraseData(Vehicle v) {
         System.out.println("Vehicle data for " + v.getVehicleID() + " erased from server " + serverID);
@@ -67,7 +69,17 @@ public class Server {
         this.status = s;
         System.out.println("Server " + serverID + " status updated to: " + s);
     }
-
+    
+    public List<String> getServerStatusData() {
+        List<String> data = new ArrayList<>();
+        data.add("Server ID: " + serverID);
+        data.add("Status: " + status);
+        data.add("Jobs Stored: " + storage.size());
+        data.add("Completed Jobs: " + completedJobs.size());
+        return data;
+    }
+    
+    
     // Returns the list of jobs that have been completed or stored on the server.
     public List<Job> getCompletedJobs() {
         return completedJobs;

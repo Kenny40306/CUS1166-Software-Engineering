@@ -21,7 +21,7 @@ public class MainControllerFrame extends JFrame{
     	// Store controller reference
     	this.vcController = vcController;
     	
-        setTitle("VC Dashboard"); // Set window title
+        setTitle("VC Dashboard Frame"); // Set window title
         setSize(300, 400); // Set window size
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window when user exits
         setLayout(new BorderLayout(10,10));  // Use BorderLayout for organizing components
@@ -68,6 +68,7 @@ public class MainControllerFrame extends JFrame{
       //====================================================================================
         //!!!M5 Implementation: Buttons for Accept and Reject!!!
         //==================================================================================
+        //Kendra Wrote This-
        acceptButton.addActionListener(e -> {
             if (!vcController.getPendingJobRequests().isEmpty()) {
                 VCController.JobRequest req = vcController.getPendingJobRequests().get(0);
@@ -96,14 +97,12 @@ public class MainControllerFrame extends JFrame{
             clearOutput();               // Clear previous logs
             displayCurrentJobs();        // Display active jobs
             displayCompletionTimes();    // Display FIFO completion times
-            displayQueue();              // Display job queue
-            displayServerStatus();		// Display server status
-            displayVehicleMonitor();
-            displayCheckpointActivity();
+            //displayVehicleMonitor();	//Display Vehicle thats being monitored
+            //displayCheckpointActivity(); //Displays checkpoints 
             
         });
         
-        applyDecorations(); // keep method, but modified
+        applyDecorations(); // decorates buttons and dash board
         setVisible(true); // Make frame visible
     }
     
@@ -167,8 +166,32 @@ public class MainControllerFrame extends JFrame{
     	    outputArea.append("===============================================\n\n");	    
     }
     
+    
+    private void applyDecorations() {
+    	UIStyling.styleFrameDark(this);
+    	UIStyling.styleTextAreaDark(outputArea);
+
+    	// Wrap outputArea scroll pane
+    	JScrollPane scrollPane = new JScrollPane(outputArea);
+    	UIStyling.styleScrollPaneDark(scrollPane);
+
+    	JPanel centerWrapper = new JPanel(new BorderLayout());
+    	UIStyling.styleDashboardPanel(centerWrapper);
+    	centerWrapper.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+    	centerWrapper.add(scrollPane, BorderLayout.CENTER);
+
+    	add(centerWrapper, BorderLayout.CENTER);
+
+    	// Keep buttons visible by re-adding topPanel if needed
+    	if (topPanel != null) {
+    		add(topPanel, BorderLayout.NORTH); // ensure topPanel with buttons stays
+    	}
+	}
+
+    
+    
     //Queue - List of all jobs waiting for completion
-    public void displayQueue() {
+    /*public void displayQueue() {
     	// Print header
         outputArea.append("===== Job Queue =====\n");
  
@@ -286,7 +309,7 @@ public class MainControllerFrame extends JFrame{
             }
         }
         outputArea.append("===============================\n\n");
-    }
+    }*/
     
     //=====================
     // FUTURE METHODS (NOT IMPLEMENTED YET)
@@ -299,25 +322,4 @@ public class MainControllerFrame extends JFrame{
     //(Maybe) Alert system → vehicle departure, job failure, checkpoints, reassignment
 
     //Overall System Performance → avg completion time, jobs/min, vehicle utilization
-
-    private void applyDecorations() {
-    	UIStyling.styleFrameDark(this);
-    	UIStyling.styleTextAreaDark(outputArea);
-
-    	// Wrap outputArea scroll pane
-    	JScrollPane scrollPane = new JScrollPane(outputArea);
-    	UIStyling.styleScrollPaneDark(scrollPane);
-
-    	JPanel centerWrapper = new JPanel(new BorderLayout());
-    	UIStyling.styleDashboardPanel(centerWrapper);
-    	centerWrapper.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-    	centerWrapper.add(scrollPane, BorderLayout.CENTER);
-
-    	add(centerWrapper, BorderLayout.CENTER);
-
-    	// Keep buttons visible by re-adding topPanel if needed
-    	if (topPanel != null) {
-    		add(topPanel, BorderLayout.NORTH); // ensure topPanel with buttons stays
-    	}
-	}
 }

@@ -96,22 +96,43 @@ class UserLoginFrame extends JFrame {
         }
 
         boolean loginSuccess = false;
+        VCController.UserRole roleEnum;
 
+        // ================= ADMIN LOGIN =================
         if (role.equals("Admin")) {
-            // Hardcoded admin credentials for demo testing
-            loginSuccess = username.equalsIgnoreCase("admin") && password.equals("admin123");
-            if (loginSuccess) {
-                vcController.setCurrentUserId("ADMIN"); //M5 gets user name upon login
+
+            if (username.equalsIgnoreCase("admin") && password.equals("admin123")) {
+                loginSuccess = true;
+                roleEnum = VCController.UserRole.ADMIN;
+
+                // use correct method
+                vcController.setCurrentUserId("admin", roleEnum);
+
+            } else {
+                roleEnum = VCController.UserRole.ADMIN;
             }
 
-        } else {
-            // Regular User: in real system, validate against file/database
-            loginSuccess = true; // accept any non-empty for demo
-            if (loginSuccess) {
-                vcController.setCurrentUserId(username); //M5 gets user name upon login
+        } 
+        // ================= USER LOGIN =================
+        else {
+
+            //block fake admin username
+            if (username.equalsIgnoreCase("admin")) {
+                JOptionPane.showMessageDialog(this,
+                        "Username 'admin' is reserved.",
+                        "Login Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
             }
+
+            loginSuccess = true; // demo system
+            roleEnum = VCController.UserRole.USER;
+
+            vcController.setCurrentUserId(username, roleEnum);
         }
-
+        
+        
+        //-----------------------UPON SUCCESS-----------------------------------------------
         if (loginSuccess) {
             // Logs login
        
@@ -129,8 +150,13 @@ class UserLoginFrame extends JFrame {
             JOptionPane.showMessageDialog(this, role + " login successful!");
             dispose(); // Close login frame
            
-            	new RoleSelectionFrame(vcController,role); // Open RoleSelectionFrame
-            	
+            RoleSelectionFrame roleFrame = new RoleSelectionFrame(vcController,role); // Open RoleSelectionFrame
+
+            	// **M5: Open server frame automatically for admin from VCCOntroller**
+            	if (role.equals("Admin")) {
+                	vcController.openServerFrame(roleFrame);
+                }
+                
             }else {	
             	JOptionPane.showMessageDialog(this,
                     "Invalid credentials for " + role,

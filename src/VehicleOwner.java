@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.io.Serializable;
+
 /*=====================
 Class Vehicle Owner Logic - Avneet + Jaden
 class represents a vehicle owner in the system
@@ -8,8 +8,7 @@ stores owner info and the list of vehicles submitted by the owner
 ======================*/
 
 //----M4 Implementation: 
-public class VehicleOwner extends User implements Serializable {
-	private static final long serialVersionUID = 1L;
+public class VehicleOwner extends User{ //implements ClientInterface{
 
 	//Attributes based on user class inheritance to access these fields
 	private String residencyTime;
@@ -23,6 +22,24 @@ public class VehicleOwner extends User implements Serializable {
         this.vehicleSubmitted = new ArrayList<>();
     }
 	
+    
+    
+  //==================================================================================================
+  	//-
+  	//M5 Implementation: ====== Send vehicle to VCController (asynchronous) ========
+    public void submitVehicleToController(Vehicle v, VCController vc) {
+        System.out.println("[VehicleOwner] Sending vehicle request: " + v.getVehicleID());
+        //vc.receiveVehicleRequest(v, this);
+    }
+
+    
+    public void notify(String message) {
+        System.out.println("[VehicleOwner Notification] " + message);
+    }
+    
+  //=====================================================================================================
+	
+    
 	//method to add the vehicle
 		public void addVehicle(Vehicle vehicle) {
 			vehicleSubmitted.add(vehicle);	

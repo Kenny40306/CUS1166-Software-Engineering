@@ -87,103 +87,62 @@ public class UIStyling {
 	 
 	
 
-/* =====================================================
-   NEW: DASHBOARD STYLING METHODS (FROM UIDashboardStyling)
-   These methods apply a consistent dark theme across the UI
-   ===================================================== */
+	 /* =====================================================
+	NEW: DASHBOARD STYLING METHODS (UIDashboardStyling)
+	===================================================== */
 
-// Styles the entire JFrame with a dark background color
-public static void styleFrameDark(JFrame frame) {
-    // Access the content pane and set background color
-    frame.getContentPane().setBackground(BG_DARK);
-}
+	// Styles a JPanel with dark background
+	 public static void styleFrameDark(JFrame frame) {
+		 frame.getContentPane().setBackground(BG_DARK);
+	 }
 
-// Styles a JTextArea with dark theme settings
-public static void styleTextAreaDark(JTextArea area) {
-    // Prevent crash if JTextArea is not initialized
-    if (area == null) return; 
+	// Styles a JTextArea with dark theme
+	 public static void styleTextAreaDark(JTextArea area) {
+		 if (area == null) return; /* FIX: prevents NullPointerException */
+		 area.setBackground(BG_PANEL);
+		 area.setForeground(TEXT);
+		 area.setFont(FONT_BODY);
+		 area.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+	 }
 
-    // Set background color of text area
-    area.setBackground(BG_PANEL);
+	 // Styles a JScrollPane with dark border
+	 public static void styleScrollPaneDark(JScrollPane scrollPane) {
+		 scrollPane.setBorder(BorderFactory.createLineBorder(BORDER, 1));
+		 scrollPane.setBackground(BG_DARK);
+	 }
 
-    // Set text color for readability on dark background
-    area.setForeground(TEXT);
+	// Creates and returns a styled dashboard title label
+	 public static JLabel createDashboardTitle(String text) {
+		 JLabel title = new JLabel(text, SwingConstants.CENTER);
+		 title.setFont(FONT_TITLE);
+		 title.setForeground(ACCENT);
+		 title.setBorder(BorderFactory.createEmptyBorder(10, 0, 6, 0));
+		 return title;
+	 }
 
-    // Apply consistent font style for body text
-    area.setFont(FONT_BODY);
+	 // Styles a button with dark dashboard theme
+	 public static void styleDashboardButton(JButton btn) {
+		 btn.setBackground(new Color(34, 42, 68));
+		 btn.setForeground(TEXT);
+		 btn.setFont(FONT_BUTTON);
+		 btn.setFocusPainted(false);
+		 btn.setBorder(BorderFactory.createCompoundBorder(
+         BorderFactory.createLineBorder(BORDER, 1),
+         BorderFactory.createEmptyBorder(4, 10, 4, 10)
+				 ));
+		 btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	 }
 
-    // Add padding inside the text area (top, left, bottom, right)
-    area.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-}
+	 public static void styleDashboardPanel(JPanel panel) {
+		 panel.setBackground(BG_DARK);
+	 }
 
-// Styles a JScrollPane to match dark theme
-public static void styleScrollPaneDark(JScrollPane scrollPane) {
-    // Add a subtle border around the scroll pane
-    scrollPane.setBorder(BorderFactory.createLineBorder(BORDER, 1));
-
-    // Set background color to match main frame
-    scrollPane.setBackground(BG_DARK);
-}
-
-// Creates and returns a styled title label for dashboard headings
-public static JLabel createDashboardTitle(String text) {
-    // Center-align the title text
-    JLabel title = new JLabel(text, SwingConstants.CENTER);
-
-    // Apply larger, bold font for titles
-    title.setFont(FONT_TITLE);
-
-    // Set accent color (used for highlighting important UI elements)
-    title.setForeground(ACCENT);
-
-    // Add spacing above and below the title
-    title.setBorder(BorderFactory.createEmptyBorder(10, 0, 6, 0));
-
-    return title;
-}
-
-// Styles a JButton with dark dashboard theme
-public static void styleDashboardButton(JButton btn) {
-    // Set button background color
-    btn.setBackground(new Color(34, 42, 68));
-
-    // Set text color
-    btn.setForeground(TEXT);
-
-    // Apply consistent button font
-    btn.setFont(FONT_BUTTON);
-
-    // Remove default focus border (cleaner look)
-    btn.setFocusPainted(false);
-
-    // Create a compound border:
-    // outer = line border, inner = padding
-    btn.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(BORDER, 1),
-        BorderFactory.createEmptyBorder(4, 10, 4, 10)
-    ));
-
-    // Change cursor to hand when hovering (improves UX)
-    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-}
-
-// Styles a single JPanel with dark background
-public static void styleDashboardPanel(JPanel panel) {
-    // Set panel background color
-    panel.setBackground(BG_DARK);
-}
-
-// Recursively styles a panel and ALL nested panels inside it
-public static void stylePanelDeep(JPanel panel) {
-    // Apply background color to current panel
-    panel.setBackground(BG_DARK);
-
-    // Loop through all child components inside the panel
-    for (Component c : panel.getComponents()) {
-
-        // If the component is also a JPanel, apply styling recursively
-        if (c instanceof JPanel) {
-            stylePanelDeep((JPanel) c);
-        }
-    }
+	 public static void stylePanelDeep(JPanel panel) {
+		 panel.setBackground(BG_DARK);
+		 for (Component c : panel.getComponents()) {
+			 if (c instanceof JPanel) {
+				 stylePanelDeep((JPanel) c);
+			 }
+		 }
+	 }
 }

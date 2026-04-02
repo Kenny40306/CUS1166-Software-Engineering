@@ -8,8 +8,8 @@ Class Vehicle Logic - Subat
 ======================*/
 
 //----M4 Implementation:
-public class Vehicle extends Thread implements Serializable {
-	private static final long serialVersionUID =1L;
+public class Vehicle implements Serializable {
+	private static final long serialVersionUID =1L; //Avneet: M5 Serializable for Socket
 	
 	// Enums for vehicle status
 	public enum VehicleStatus {
@@ -22,8 +22,9 @@ public class Vehicle extends Thread implements Serializable {
 
     // attributes for each vehicle in the system
     protected String vehicleID;
+    protected String vehicleName;
     protected VehicleStatus status; // Uses enums: can be AVAILABLE, BUSY, DEPARTING, or OFFLINE
-    protected double computePower;
+    protected double computePower; //GHz
     protected Job currentJob; // the job this vehicle is currently running
     protected boolean availability = true; // true = free, false = busy
     protected LocalDateTime arrivalTime;
@@ -54,10 +55,11 @@ public class Vehicle extends Thread implements Serializable {
         this.availability = false;
         this.status = VehicleStatus.BUSY;
     }
-
+    
+    // runs the computation for the current job
     //Avneet
     //this starts processing the job (multithreading)
-    public void processJob() {
+   /* public void processJob() {
         if (currentJob != null) {
         	System.out.println("Vehicle " + vehicleID + 
                     " starting thread for job: " + currentJob.getJobID());
@@ -67,6 +69,7 @@ public class Vehicle extends Thread implements Serializable {
     
     //Avneet
     //Thread method (this runs when start() is called)
+    
     @Override
     public void run() {
         if (currentJob != null) {
@@ -77,27 +80,20 @@ public class Vehicle extends Thread implements Serializable {
                 // simulate job processing time
                 long sleepTime = currentJob.getDuration().toMinutes() * 1000;
                 Thread.sleep(sleepTime);
-
-                System.out.println("Vehicle " + vehicleID +
-                        " completed job: " + currentJob.getJobName());
-
-                // mark job completed
-                currentJob.markCompleted();
-
-                // send results to server
-                sendResults(null);
-
-                // reset vehicle
-                eraseData();
+                System.out.println("Vehicle " + vehicleID + " completed job: " + currentJob.getJobName());
+                currentJob.markCompleted();  // mark job completed
+                sendResults(null);  // send results to server
+                eraseData(); // reset vehicle
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-    }	
+    }	    */
 
+    
     // subat
-    //sends the completed job results to the server
+    // sends the completed job results to the server
     public void sendResults(Server server) {
         System.out.println("Vehicle " + vehicleID + " sending results to server.");
     }
@@ -109,10 +105,22 @@ public class Vehicle extends Thread implements Serializable {
         this.status = VehicleStatus.AVAILABLE;
         System.out.println("Vehicle " + vehicleID + " data erased.");
     }
+    
+    public String getVehicleStatusInfo() {
+        String assignedJob = (currentJob != null) ? currentJob.getJobName() : "idle";
+        return "Vehicle ID: " + vehicleID +
+               " | Status: " + status +
+               " | Job: " + assignedJob +
+               " | Power: " + computePower + " GHz";
+    }
+
 
     // getters
     public String getVehicleID() { 
     	return vehicleID; 
+    }
+    public String getVehicleName() { 
+    	return vehicleName; 
     }
     public Job getCurrentJob() {
     	return currentJob;

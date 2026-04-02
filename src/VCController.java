@@ -3,14 +3,18 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+
 
 /*=====================
 Class VC Controller Logic (aka the Brain)- Ryan
@@ -19,26 +23,47 @@ Class VC Controller Logic (aka the Brain)- Ryan
 //----M4 Implementation: 
 public class VCController {
 	
+	//Enums to identify user upon login 
+	public enum UserRole {
+        ADMIN,
+        USER
+    }
 	
-	 // Attributes
+	// Attributes
     private String controllerID;
-    private List<Vehicle> connectedVehicles;
+    private List<Vehicle> connectedVehicles; //declared field:
     private Server serverConnection;
     private JTextArea outputArea;
-    //M4
-    private List<Job> activeJobs; //for all job submission history called in FIFO method and reciveJob method
-    private List<Job> currentBatch; //for FIFO calculation method
-    private Set<String> jobIDs; //prevent duplicate job submissions
-   
-    //Notify System
-    private String currentUserId; // Track logged-in user
-    private RoleSelectionFrame roleFrame; //user dash board frame reference
-    private Map<String, List<String>> notifications = new HashMap<>(); //stores notification in memory per user
-    private final String NOTIF_FILE = "notifications.txt"; // persistent storage for user
+    //M4 Main Attributes
+    private List<Job> activeJobs; ////declared field: for all job submission history called in FIFO method and reciveJob method
+    private List<Job> currentBatch; ////declared field: for FIFO calculation method
+    private Set<String> jobIDs; ////declared field: prevent duplicate job submissions
     
-    //---M5 maybe queue here and threadPool attributes
-    private List<JobRequest> pendingJobRequests; //pending jobs for admin
-    //need one for VehicleRequest
+    
+    
+    //---M5 Attributes for Job and Vehicle> --------------------------------------------------------------------------------------------
+    private List<JobRequest> pendingJobRequests; //declared field: pending jobs for admin to view (accept or reject)
+    private Map<String, String> decisions = new HashMap<>(); //admin's decisions to approve or reject for each client request
+    //need one for vehicle
+    
+    
+    //Role Tracking
+    private String currentUserId; // Tracks logged-in user either admin of regular user
+    private UserRole currentRole;
+    private RoleSelectionFrame roleFrame; //user dash board frame reference
+    
+    //Notify System
+    private Map<String, List<String>> notifications = new HashMap<>(); ////declared field: stores notification in memory per user
+    private final String NOTIF_FILE = "notifications.txt"; // persistent file storage for user
+  
+    //Server Frame & persistent server data
+    private ServerFrame serverFrame;
+    private List<String> serverLogs = new ArrayList<>();
+    private List<String> jobDisplay = new ArrayList<>();
+    private List<String> userDisplay = new ArrayList<>();
+    //------------------------------------------------------------------------------------------------------------------------------------
+    
+    
     
     // Constructor
     public VCController(String controllerID, Server serverConnection) {
@@ -49,18 +74,222 @@ public class VCController {
         this.currentBatch = new ArrayList<>();
         this.jobIDs = new HashSet<>();
         
+        //----------------------------------------------------------
         this.pendingJobRequests = new ArrayList<>();
-
-        loadNotificationsFromFile();   // Load persisted notifications
-
+        resetNotificationFile(); //clear old notification files
+        loadNotificationsFromFile();   // Load persisted notifications is now empty at program startup
+        //-----------------------------------------------------------
     }
+       
+   
+    
+    //(M5 Implementation) : =========== Core Job Methods ==================================
+       //Kendra Wrote This -
+       // wrapper static inner class for controller to know which job is being worked on and which client to notify
+       	public static class JobRequest { 
+       	public Job job;  
+       	String client; 
+       	
+       	//(Method: attributes passed to approveJob() and rejectJob()
+       	public JobRequest(Job job, String client){
+       		this.job=job; 
+       		this.client=client;} 
+       	}
+       	
+       	//--- Job Request Handling ---
+       	public synchronized void receiveJobRequest(Job job, String client) { //input validation
+       
+       		// Prevent duplicate job submissions
+       	    if (jobIDs.contains(job.getJobID())) {
+       	        addNotification(client, "Duplicate job submission rejected: " + job.getJobName());
+       	        return;
+       	    }
 
-   //Methods
+       	    jobIDs.add(job.getJobID()); // Track unique job
+       		pendingJobRequests.add(new JobRequest(job, client));
+       	    addNotification("ADMIN", "Job request from " + client);
+       	    
+       	    //UPDATE SERVER FRAME
+       	    logServerMessage("New job request from " + client);
+       	    updateJobDisplay(job.getJobID(),client,job.getJobName(),"PENDING");
+       	}
+       	
+       	public synchronized void approveJob(Job job) {
+            for (JobRequest req : pendingJobRequests) {
+                if (req.job.equals(job)) {
+                    activeJobs.add(job);
+                    saveJobToFile(job);
+                    decisions.put(req.client, "APPROVED");
+                    notifyAll();
+                    addNotification(req.client, "Your job \"" + job.getJobName() + "\" was APPROVED");
+                    
+                    //UPDATE SERVER FRAME
+                    logServerMessage("Job " + job.getJobID() + " APPROVED");
+                    updateJobDisplay(job.getJobID(),req.client,job.getJobName(),"APPROVED");
+                    updateSystemTab();
+                    
+                    break;
+                }
+            }
+        }
+       	
+       	public synchronized void rejectJob(Job job) {
+            for (JobRequest req : pendingJobRequests) {
+                if (req.job.equals(job)) {
+                    decisions.put(req.client, "REJECTED");
+                    
+                    jobIDs.remove(job.getJobID()); // allow resubmission
+                    
+                    notifyAll();
+                    addNotification(req.client, "Your job \"" + job.getJobName() + "\" was REJECTED");
+                    
+                    //UPDATE SERVER FRAME
+                    logServerMessage("Job " + job.getJobID() + " REJECTED");
+                    updateJobDisplay(job.getJobID(),req.client,job.getJobName(),"REJECTED");                    
+                    updateSystemTab();
+                    break;
+                }
+            }
+        }       	
+       	
+       	public synchronized String waitForDecision(String client) {
+       	    while (!decisions.containsKey(client)) {
+       	        try {
+       	            wait();
+       	        } catch (InterruptedException e) {
+       	            e.printStackTrace();
+       	        }
+       	    }
+       	    return decisions.remove(client);
+       	}
+       	
+       	//Save file only on Approval
+       	private void saveJobToFile(Job job) {
+       	    try (FileWriter fw = new FileWriter("jobsApproved.txt", true)) {
+       	        fw.write(job.toString() + "\n");
+       	    } catch (IOException e) {
+       	        e.printStackTrace();
+       	    }
+       	}
+   
+       //===========================================================================================
+       
+
+       	
+    //(M4 Implementation: =========== Core FIFO Method ===================================
+    //FIFO uses active jobs for current batch that's passed to approvedJob() method that's in -- Core Job Methods -- : JobRequest
     
-  //M5: Notifications for Admin and User ==============================================================
+    public List<Long> calculateCompletionTimes() { //ArrayList store job submissions
+    	
+        if (currentBatch == null) currentBatch = new ArrayList<>(); //avoids FIFO time being backed up on each other (not a continued queue)
+        else currentBatch.clear(); //reset for every next batch
+
+        for (Job j : activeJobs) { //Adds only active jobs that haven’t been calculated yet
+            if (!j.isCompletionTimeCalculated()) { //gets in Job class public boolean isCompletionTimeCalculated()
+                currentBatch.add(j); //adds current batch
+            }
+        }
+        
+    	List<Long> completionTimes = new ArrayList<>();
+    	
+    	if (currentBatch.isEmpty()) {
+            System.out.println("[VCController] No active jobs to calculate completion times for.");
+            return new ArrayList<>();
+        }
+    	
+    	long cumulativeTime = 0;
+        
+    	//Loops FIFO order
+        for (Job j : currentBatch) { 
+            long durationMinutes = j.getDuration().toMinutes();  //called form Job Class and set to minutes
+            cumulativeTime += durationMinutes;
+            j.setCompletionTime(cumulativeTime); // gets in Job Class public void setCompletionTime (long completionTime)
+            j.setCompletionTimeCalculated(true); // mark as processed true for completion, gets in Job Class 
+            completionTimes.add(cumulativeTime);
+ 
+            System.out.println("[\nVCController] -> Calculations");
+            System.out.println("[VCController] Job " + j.getJobID()
+                    + " | Duration: " + durationMinutes
+                    + " min | Completion Time: " + cumulativeTime + " min");
+        }
+        System.out.println("============================");
+        return completionTimes;
+    }
+    //=======================================================================================================
     
-    //note: Admin is able to see jobs in notification when logging in and out 
-    //Users don't see approve or reject in notification!!! Needs a way to fix this
+    
+    
+    
+  //Methods
+    //(M5 Implementation: =========== Core Vehicle Methods ===================================
+    
+    //private List<VehicleRequest> pendingVehicleRequests; ////declared field: pending vehicles for admin to view (accept or reject)
+    //this.pendingVehicleRequests = new ArrayList<>();
+
+    	// Vehicle request wrapper
+    	/*private static class VehicleRequest {
+            Vehicle vehicle;
+            public ClientInterface client; 
+            
+            public VehicleRequest(Vehicle vehicle, ClientInterface client) { 
+            	this.vehicle = vehicle; 
+            	this.client = client; 
+            	}
+            
+            // Client sends vehicle
+            public void receiveVehicleRequest(Vehicle v, ClientInterface client) {
+            	
+            }
+            // Approve vehicle
+            public void approveVehicle(Vehicle v) {
+            	
+            }
+            // Reject vehicle
+            public void rejectVehicle(Vehicle v) {
+        }*/
+    //---------------------------------------------------------------------------------------------------------------------
+   
+    
+    
+    
+    
+    //-----------------Set Current User Context-----------------------------
+    public void setCurrentUserId(String userId, UserRole role) {
+        this.currentUserId = normalize(userId);
+        // Refresh notifications for this user if role frame exist
+
+        //Prevent fake admin login
+        if (role == UserRole.USER && userId.equals("admin")) {
+            throw new IllegalArgumentException("Username 'admin' is reserved.");
+        }
+
+        this.currentUserId = userId;
+        this.currentRole = role;
+      
+        // Open server frame if admin   
+        if (roleFrame != null) {
+            roleFrame.refreshNotifications();
+        }
+        //Update Server
+        updateUserDisplay(userId, role.toString(), "ONLINE");
+        System.out.println("LOGIN -> " + userId + " (" + role + ")"); // DEBUG (keep this while testing) 
+    }
+    
+    public String getCurrentUserId() {
+        return currentUserId;
+    }
+    //Set frame for notifications on RoleselectionFrame 
+    public void setRoleFrame(RoleSelectionFrame roleFrame) {
+        this.roleFrame = roleFrame;
+    }
+    
+    //--------------------------------------------------------------------------------------------------------------
+    
+    
+    
+ //============= M5: Notifications for Admin and User ==============================================================
+    //Still need notifications for message history, GUI updates, offline message tracking and dash board visibility
+    //Socket is short lived where connection opens, sends message, then closes
     
     //--------------Normalize IDs-----------------
     private String normalize(String id) {
@@ -81,23 +310,17 @@ public class VCController {
         
         //update if same user is active for real time admin update only        
         if (roleFrame != null && currentUserId != null) {
-            // If current user is admin and notification is for admin, show it
-            if (currentUserId.equals("admin") && userId.equals("admin")) {
+            
+        	// If current user is admin and notification is for admin, show it
+        	if (currentRole == UserRole.ADMIN && userId.equals("admin")) {
                 roleFrame.appendNotification(message);
             } 
             // If current user is a regular user and notification is for them, show it
-            else if (!currentUserId.equals("admin") && userId.equals(currentUserId)) {
+        	else if (currentRole == UserRole.USER && userId.equals(currentUserId)) {
                 roleFrame.appendNotification(message);
             }
-            // Otherwise, do not show notification in this frame
+            // Otherwise, do not show notifications in notifications box
         }
-        
-        //Optional: Admin can see all notifications for both user and other admins
-        /*if (roleFrame != null && currentUserId != null) {
-            if (userId.equals(currentUserId) || currentUserId.equals("admin")) {
-                roleFrame.appendNotification(message);
-            }
-        }*/ 
     }
     
     //loads notifications from file writer
@@ -152,7 +375,7 @@ public class VCController {
         tempFile.renameTo(inputFile);
     }
     
-  //refresh
+    //refresh notification from file
     public void refreshNotificationsFromFile() {
         loadNotificationsFromFile();
         if (roleFrame != null) {
@@ -167,146 +390,155 @@ public class VCController {
         return notifications.getOrDefault(userId, new ArrayList<>());
     }
     
-    //-----------------Set Current User-----------------------------
-    public void setCurrentUserId(String userId) {
-        this.currentUserId = normalize(userId);
-        // Refresh notifications for this user if role frame exist
-
-        if (roleFrame != null) {
-            roleFrame.refreshNotifications();
+    private void resetNotificationFile() {
+        try (FileWriter fw = new FileWriter(NOTIF_FILE, false)) {
+            // overwrite file (clear contents)
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        // DEBUG (keep this while testing)
-        System.out.println("\nLOGIN USER -> " + this.currentUserId);
+    }
+    //-----------------------------------------------------------------------------------------------------------------
+   
+
+    
+    
+    //----------------- Server Management-----------------------------
+    // Store ServerFrame
+    public ServerFrame openServerFrame (JFrame referenceFrame) {
+    	if (serverFrame == null || !serverFrame.isDisplayable()) {
+            serverFrame = new ServerFrame(referenceFrame);
+            
+            //RESTORE DATA WHEN REOPENED
+            serverFrame.updateLogs(serverLogs);
+            serverFrame.updateJobs(jobDisplay);
+            serverFrame.updateUsers(userDisplay);
+            
+         // Immediately populate SYSTEM tab
+            updateSystemTab();
+        } else {
+            // bring existing window to front
+            serverFrame.toFront();
+            serverFrame.requestFocus();
+        }
+        return serverFrame;
+    }
+
+    // Close ServerFrame on logout
+    public void closeServerFrame() {
+        if (serverFrame != null) {
+            serverFrame.dispose(); //data isn't cleared
+            serverFrame = null;
+        }
     }
     
-    public String getCurrentUserId() {
-        return currentUserId;
-    }
-    //Set frame for notifications on RoleselectionFrame 
-    public void setRoleFrame(RoleSelectionFrame roleFrame) {
-        this.roleFrame = roleFrame;
-    }
-
-//========================================================================================
-    
-      
-    
-    
-    
- //(M5 Implementation: =========== Core Job Methods ==================================
-    
-    // Request wrappers static inner class
-    public static class JobRequest { 
-    	public Job job;  
-    	public ClientInterface client; 
-    	
-    	//(Method: passed to 
-    	public JobRequest(Job job, ClientInterface client){
-    		this.job=job; 
-    		this.client=client;} 
-    	}
-
-    	// Receive job request from Client (Method: passed to JobOwner Class (submitJobToController() and sendDataToServer() ) ) 
-    	public synchronized void receiveJobRequest(Job j, ClientInterface client) {
-    		System.out.println("[VCController] Received job request: " + j.getJobName());
-    		client.notify("Request received for job: " + j.getJobName());
-    		pendingJobRequests.add(new JobRequest(j, client));
-    		
-    		//Admin view update only
-            addNotification("ADMIN","New Job Submitted By Client " + j.getClientID() + ": " + j.getJobName());
-    	}
-    
-    	// Approve jobs moves it to active jobs (Method: passed to MainControllerFrame (acceptButton.addActionListener) )
-    	public synchronized void approveJob(Job j) {
-    		JobRequest req = pendingJobRequests.stream().filter(r -> r.job.equals(j)).findFirst().orElse(null);
-    		if (req != null) {
-    			pendingJobRequests.remove(req);
-    			activeJobs.add(req.job); //active job gets passed here
-    			jobIDs.add(req.job.getJobID()); 
-    			
-    			serverConnection.receiveJob(req.job);
-    			req.client.notify("Job approved: " + req.job.getJobName());
-    			System.out.println("[VCController] Job approved: " + req.job.getJobName());
-    			
-    			 // DEBUG
-    	        System.out.println("Job client ID: " + j.getClientID());
-    	        System.out.println("Current logged user: " + currentUserId);
-    			
-    			// Notify Client Job Accepted
-    			addNotification(j.getClientID(),"Your job \"" + j.getJobName() + "\" was APPROVED");
-    			// AVNEET- M5 MULTITHREADING PART
-    			//this assigns the vehicles and starts the processing
-    			
-    			assignVehicles(j);
-    			
-    			//starts the vehicles processing the job
-    			for (Vehicle v : j.getAssignedVehicles()) {
-    				System.out.println("[VCController] Starting vehicle thread for " + v.getVehicleID());
-    				v.processJob();//starts the thread
-    			}
-    		}
-    	}
-    
-    	//reject jobs (Method passed to (Method: passed to MainControllerFrame (rejectButton.addActionListener) )
-    	public synchronized void rejectJob(Job j) {
-    		JobRequest req = pendingJobRequests.stream().filter(r -> r.job.equals(j)).findFirst().orElse(null);
-    		if (req != null) {
-    			pendingJobRequests.remove(req);
-    			req.client.notify("Job rejected: " + req.job.getJobName());
-    			System.out.println("[VCController] Job rejected: " + req.job.getJobName());
-    			
-    			// Notify Client Job Rejected
-    	        addNotification(j.getClientID(),"Your job \"" + j.getJobName() + "\" was REJECTED");
-    		}
-    	}
-    //===========================================================================================
-    
-    
-    //(M5 Implementation: =========== Core Vehicle Methods ===================================
-    	//...
-    	//...
-    //===================================================================================
-    
-    
-    //(M4 Implementation: =========== Core FIFO Method ===================================
-    //FIFO uses active jobs, and jobIDs that's passed to approved Job method that's called in MainControllerFrame
-    //ArrayList store job submissions
-    public List<Long> calculateCompletionTimes() {
-    	
-        if (currentBatch == null) currentBatch = new ArrayList<>(); //avoids FIFO time being backed up on each other (not a continued queue)
-        else currentBatch.clear(); //reset for every next batch
-
-        for (Job j : activeJobs) { //Add only active jobs that haven’t been calculated yet
-            if (!j.isCompletionTimeCalculated()) {
-                currentBatch.add(j);
-            }
-        }
-    	List<Long> completionTimes = new ArrayList<>();
-    	
-    	if (currentBatch.isEmpty()) {
-            System.out.println("[VCController] No active jobs to calculate completion times for.");
-            return new ArrayList<>();
-        }
-    	
-    	long cumulativeTime = 0;
+    public void logServerMessage(String message) {
+        String timestamp = "[" + LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("HH:mm:ss"))+ "] ";
         
-    	//Loops FIFO order
-        for (Job j : currentBatch) { 
-            long durationMinutes = j.getDuration().toMinutes();
-            cumulativeTime += durationMinutes;
-            j.setCompletionTime(cumulativeTime);
-            j.setCompletionTimeCalculated(true); // mark as processed true for completion
-            completionTimes.add(cumulativeTime);
- 
-            System.out.println("[\nVCController] -> Calculations");
-            System.out.println("[VCController] Job " + j.getJobID()
-                    + " | Duration: " + durationMinutes
-                    + " min | Completion Time: " + cumulativeTime + " min");
+        String fullMessage = timestamp + message;
+        // Add to internal log
+        serverLogs.add(fullMessage);
+        
+        if (serverFrame != null) {
+            serverFrame.updateLogs(serverLogs); // append instead of reset
         }
-        System.out.println("============================");
-        return completionTimes;
+        // Print to console as well
+        System.out.println(fullMessage);
+
     }
-    //=======================================================================================================
+
+    // --- Append log in ServerFrame ---
+    public void appendServerLog(String log) {
+        if (serverFrame != null) {
+            serverFrame.appendLog(log);
+        }
+    }
+
+    public void updateJobDisplay(String jobId, String owner, String type, String status) {
+        String entry = jobId + " | " + owner + " | " + type + " | " + status;
+
+        jobDisplay.removeIf(j -> j.startsWith(jobId + " "));
+        jobDisplay.add(entry);
+
+        if (serverFrame != null) {
+            serverFrame.updateJobs(jobDisplay);
+        }
+    }
+
+    
+    public void updateUserDisplay(String userId, String role, String status) {
+        String entry = userId + " | " + role + " | " + status;
+
+        userDisplay.removeIf(u -> u.startsWith(userId + " "));
+        userDisplay.add(entry);
+
+        if (serverFrame != null) {
+            serverFrame.updateUsers(userDisplay);
+        }
+    }
+
+    
+    
+  //--------------------- Data For Server System Panel -----------------------
+    
+    public void updateSystemTab() {
+        if (serverFrame == null) return;
+
+        // Server info
+        List<String> systemData = new ArrayList<>();
+
+        // Server info
+        if (serverConnection != null) {
+            systemData.addAll(serverConnection.getServerStatusData());
+        } else {
+            systemData.add("No server connected");
+        }
+        
+        // --- Vehicles ---
+        systemData.add("----- Vehicles -----");
+        List<Vehicle> vehicles = getConnectedVehicles();
+        if (vehicles == null || vehicles.isEmpty()) {
+            systemData.add("No vehicles registered.");
+        } else {
+            for (Vehicle v : vehicles) {
+                systemData.add(v.getVehicleStatusInfo());
+            }
+            long available = vehicles.stream().filter(Vehicle::isAvailable).count();
+            systemData.add("Available: " + available + " / " + vehicles.size() + " vehicles");
+        }
+        systemData.add("-----------------------------");
+
+        // --- Checkpoints ---
+        systemData.add("----- Checkpoints -----");
+        List<Job> batch = getCurrentBatch(); // ensure we get the active jobs
+        if (batch != null && !batch.isEmpty()) {
+            for (Job j : batch) {
+                systemData.addAll(j.getCheckpointInfo());
+            }
+        } else {
+            systemData.add("No active jobs.");
+        }
+        systemData.add("-----------------------------");
+   
+        //return systemData;
+        serverFrame.updateSystem(systemData);
+    }
+ //=================================================================================================================
+ //=================================================================================================================
+    
+    
+    
+    
+  //THESE ARE REFRENCE METHODS PAST THIS POINT!!!------------------------
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -370,10 +602,6 @@ public class VCController {
             j.assignVehicles(selected);
             System.out.println("[VCController] Assigned " + selected.size()
                     + " vehicle(s) to job " + j.getJobID());
-            //debug
-            for (Vehicle v : selected) {
-            	System.out.println("[VCController] Vehicle assigned: " + v.getVehicleID());
-            }
         } else {
             System.out.println("[VCController] No available vehicles for job " + j.getJobID());
         }
@@ -475,6 +703,7 @@ public class VCController {
     public void setOutputArea(JTextArea outputArea) {
         this.outputArea = outputArea;
     }
+    
     
     // Getters & Setters
  

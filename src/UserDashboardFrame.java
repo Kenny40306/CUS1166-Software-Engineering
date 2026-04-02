@@ -3,6 +3,11 @@ import java.util.List;
 import java.awt.*;
 
 //All New For M5 =================================================================
+
+/*=====================
+UserDashboardFrame - Kendra + Moontarin
+======================*/
+
 public class UserDashboardFrame extends JFrame {
 
 	private VCController vcController;
@@ -13,7 +18,7 @@ public class UserDashboardFrame extends JFrame {
     	// Store controller reference
     	this.vcController = vcController;
 
-        setTitle("User Dashboard");
+        setTitle("User Dashboard Frame");
         setSize(300, 400);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -103,7 +108,7 @@ public class UserDashboardFrame extends JFrame {
             for (String m : msgs) {
                 notificationArea.append(m + "\n");
            
-                //  KEY LOGIC: trigger dashboard updates
+                //trigger dashboard updates
                 if (m.toLowerCase().contains("approved")) {
                     displaySubmitJob();
                     displaySubmitVehicle();
@@ -118,21 +123,9 @@ public class UserDashboardFrame extends JFrame {
         notificationArea.setCaretPosition(0); //scroll up
     }
       
-
-    
-    
     
     
  //Moon worked on this: PLACEHOLDER TEXTS
-//==================================
-//FUTURE METHODS (NOT IMPLEMENTED YET)
-//===================================
-  //Submit Vehicle: type of vehicle
-	//Track Job Progress (status:pending/processing/completed/failed)
-	//Type job
-	//refresh dashboard
-    //Submit Job: type of job submitted, connected vehicles
-    
     public void displaySubmitJob() {
     	String userId = vcController.getCurrentUserId();
     	if (userId == null) {
@@ -177,23 +170,6 @@ public class UserDashboardFrame extends JFrame {
     	infoArea.append("Status: ----\n");
     }
     
-    //refresh dashboard
-    /*public void refreshDashboard() {
-    	refreshNotifications();
-    	trackJobProgress();
-    	infoArea.append("\nDashboard refreshed at " + java.time.LocalTime.now());
-    }
-        
-    //Notification update: job completed
-    /*public void updateNotification(String message) {
-    	String userId = vcController.getCurrentUserId();
-    	if (userId != null) {
-    		vcController.addNotification(userId, message);
-    		refreshNotifications();
-    	}
-    }*/
-
-    
 //========================
 // Designing the Dashboard
 //========================
@@ -212,3 +188,28 @@ public class UserDashboardFrame extends JFrame {
         }
     }
 }
+
+
+
+//==================================
+//FUTURE METHODS (NOT IMPLEMENTED YET)
+//===================================
+  		
+	//refresh dashboard
+   //Submit Job: type of job submitted, connected vehicles
+  
+  //refresh dashboard
+  /*public void refreshDashboard() {
+  	refreshNotifications();
+  	trackJobProgress();
+  	infoArea.append("\nDashboard refreshed at " + java.time.LocalTime.now());
+  }
+      
+  //Notification update: job completed
+  /*public void updateNotification(String message) {
+  	String userId = vcController.getCurrentUserId();
+  	if (userId != null) {
+  		vcController.addNotification(userId, message);
+  		refreshNotifications();
+  	}
+  }*/

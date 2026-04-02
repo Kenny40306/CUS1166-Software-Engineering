@@ -3,7 +3,7 @@ import java.awt.*;
 import java.util.List;
 
 /*=====================
-Role Selection Frame - Jaden + Ryan
+Role Selection Frame - Jaden + Ryan + Kendra
 ======================*/
 
 
@@ -11,8 +11,8 @@ class RoleSelectionFrame extends JFrame{
 	
 	private VCController vcController;
 	private String role;
-	private MainControllerFrame adminDashboardFrame; //single instance
-	private UserDashboardFrame userDashboardFrame; //single instance
+	private MainControllerFrame adminDashboardFrame; //single instance for mainControllerFrame (Admin)
+	private UserDashboardFrame userDashboardFrame; //single instance for UserDashbordFrame (User) 
 	
 	//M5 notification area for accept or rejected job
     private JTextArea notificationArea = new JTextArea(5, 20);
@@ -47,12 +47,13 @@ class RoleSelectionFrame extends JFrame{
         //Job and VehicleOwner Buttons
         JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
         JButton jobOwnerBtn = new JButton("Job Owner (Client)");
-        JButton dashboardBtn = new JButton("Dashboard");
+        JButton dashboardBtn = new JButton("Dashboard"); //New: always shown (admin & user)
         
         UIStyling.styleButton(vehicleOwnerBtn);
         UIStyling.styleButton(jobOwnerBtn);
-        UIStyling.styleButton(dashboardBtn); //always shown (admin & user)
-      
+        UIStyling.styleButton(dashboardBtn); 
+              
+        
         Dimension buttonSize = new Dimension(200, 200); // width 180px, height 150px
         vehicleOwnerBtn.setPreferredSize(buttonSize);
         jobOwnerBtn.setPreferredSize(buttonSize);
@@ -63,77 +64,112 @@ class RoleSelectionFrame extends JFrame{
         buttonPanel.add(vehicleOwnerBtn);
         buttonPanel.add(jobOwnerBtn);
         buttonPanel.add(dashboardBtn); 
-        
+                
         panel.add(buttonPanel, BorderLayout.CENTER);
         add(panel);
     
 
-        // M5: Bottom panel for Admin dashboard buttons to logout, also refresh and clear notifications ======================= 
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        UIStyling.stylePanel(bottomPanel);
-        	
+        // M5: Notification Area Panel: bottom panel for Admin dashboard buttons to logout, also refresh and clear notifications ======================= 
+        // Admin notification area + buttons
+   
         if (role.equalsIgnoreCase("Admin")) {
-        		notificationArea = new JTextArea(5,25);
-        		notificationArea.setEditable(false);
-        		notificationArea.setLineWrap(true);
-                notificationArea.setWrapStyleWord(true);
-        		
-        		JScrollPane scroll = new JScrollPane(notificationArea);
-        		scroll.setBorder(BorderFactory.createTitledBorder("Notifications"));
-        		scroll.setPreferredSize(new Dimension(250, 55));
-        
-        		//Buttons
-        		JButton refreshBtn = new JButton("Refresh");
-                JButton clearBtn = new JButton("Clear");
-                UIStyling.styleButton(refreshBtn);
-                UIStyling.styleButton(clearBtn);
-               
-                JPanel notifBtnPanel = new JPanel();
-                notifBtnPanel.add(refreshBtn);
-                notifBtnPanel.add(clearBtn);
+            // Left-side panel to hold notification + server button
+            JPanel leftPanel = new JPanel();
+            leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+            leftPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // minimal padding
+            UIStyling.stylePanel(leftPanel);
 
-                JPanel notifPanel = new JPanel(new BorderLayout());
-                notifPanel.add(scroll, BorderLayout.CENTER);
-                notifPanel.add(notifBtnPanel, BorderLayout.SOUTH);
+            // ----- Notification Panel (includes Refresh/Clear buttons) -----
+            JPanel notifPanel = new JPanel();
+            notifPanel.setLayout(new BoxLayout(notifPanel, BoxLayout.Y_AXIS));
+            notifPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); // remove extra border
+            UIStyling.stylePanel(notifPanel);
 
-                panel.add(notifPanel, BorderLayout.WEST);
-                refreshNotifications();  //load notifications for current user*/
+            // Notification area
+            notificationArea = new JTextArea(7, 25); // slightly taller
+            notificationArea.setEditable(false);
+            notificationArea.setLineWrap(true);
+            notificationArea.setWrapStyleWord(true);
+            notificationArea.setMargin(new Insets(5,5,5,5)); // reduce padding inside text
+            JScrollPane scroll = new JScrollPane(notificationArea);
+            scroll.setBorder(BorderFactory.createTitledBorder("User Notifications"));
+            scroll.setAlignmentX(Component.CENTER_ALIGNMENT);
+            scroll.setPreferredSize(new Dimension(250, 150)); // bigger area
+            scroll.setMaximumSize(new Dimension(250, 150));
+            notifPanel.add(scroll);
 
-                refreshBtn.addActionListener(e -> {
-                    vcController.refreshNotificationsFromFile();
-                    refreshNotifications();
-                });
+            // Refresh / Clear buttons centered
+            JPanel notifBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // tighter spacing
+            JButton refreshBtn = new JButton("Refresh");
+            JButton clearBtn = new JButton("Clear");
+            refreshBtn.setPreferredSize(new Dimension(90, 25));
+            clearBtn.setPreferredSize(new Dimension(90, 25));
+            UIStyling.styleButton(refreshBtn);
+            UIStyling.styleButton(clearBtn);
+            notifBtnPanel.add(refreshBtn);
+            notifBtnPanel.add(clearBtn);
+            notifBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            notifPanel.add(notifBtnPanel);
 
-                clearBtn.addActionListener(e -> {
-                    vcController.clearNotifications("ADMIN");
-                    refreshNotifications();
-                });
-            }    
+            notifPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            leftPanel.add(notifPanel);
+
+            leftPanel.add(Box.createVerticalStrut(10)); // small spacing before server button
+
+            // ----- Server Console Button (Independent) -----
+            JButton serverBtn = new JButton("Server Console");
+            serverBtn.setPreferredSize(new Dimension(200, 30));
+            UIStyling.styleButton(serverBtn);
+            JPanel serverBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            serverBtnPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+            serverBtnPanel.add(serverBtn);
+            serverBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            leftPanel.add(serverBtnPanel);
+
+            // Add left panel to main panel
+            panel.add(leftPanel, BorderLayout.WEST);
+
+            // Button actions
+            refreshBtn.addActionListener(e -> {
+                vcController.refreshNotificationsFromFile();
+                refreshNotifications();
+            });
+            clearBtn.addActionListener(e -> {
+                vcController.clearNotifications("ADMIN");
+                refreshNotifications();
+            });
+            serverBtn.addActionListener(e -> vcController.openServerFrame(RoleSelectionFrame.this));
+
+            refreshNotifications(); // initial load
+        }
         //===============================================================================
         
-        // Logout button at bottom-right
+        // NEW Logout button at bottom-right -----------------------------------------------
         JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         UIStyling.stylePanel(logoutPanel);
         
         JButton logoutButton = new JButton("Logout");
         UIStyling.styleButton(logoutButton);
-       
         logoutPanel.add(logoutButton);
         
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        UIStyling.stylePanel(bottomPanel);
         bottomPanel.add(logoutPanel, BorderLayout.EAST);
         panel.add(bottomPanel, BorderLayout.SOUTH);
         add(panel, BorderLayout.CENTER);
         
-        //NEW Changed for user and admin to have same button behavior
+        //Changed for user and admin to have same button behavior
         vehicleOwnerBtn.addActionListener(e -> 
         	openRoleChildFrame(new VehicleOwnerFrame(vcController, this)));
         jobOwnerBtn.addActionListener(e -> 
         	openRoleChildFrame(new JobOwnerFrame(vcController, this)));
         dashboardBtn.addActionListener(e -> openDashboard());
         
-        
         //logout button
         logoutButton.addActionListener(e -> {
+
+        	//Close admin server frame
+        	//vcController.closeServerFrame();
 
         	// Close all open dashboards
             if (adminDashboardFrame != null && adminDashboardFrame.isDisplayable()) {
@@ -142,15 +178,18 @@ class RoleSelectionFrame extends JFrame{
             if (userDashboardFrame != null && userDashboardFrame.isDisplayable()) {
                 userDashboardFrame.dispose();
             }
+            // Close server frame if admin
+            if (role.equalsIgnoreCase("Admin")) {
+                vcController.closeServerFrame();
+            }
             dispose(); // close role selection
-        	
             new UserLoginFrame(vcController);
         });
 
         setVisible(true);
         
         }
-    
+    //---------------------------------------------------------------------------------------------------------------
     
     //New M5 =================================================================================================
  
@@ -200,13 +239,14 @@ class RoleSelectionFrame extends JFrame{
         
     }
     
+    //get notification message to show up
     public void appendNotification(String message) {
     	SwingUtilities.invokeLater(() -> {
     		notificationArea.append(message + "\n");
     	});
     }
     	
-    	// Refresh all notifications for current role/user
+    // Refresh all notifications for current role/user
     public void refreshNotifications() {
     	if (!role.equalsIgnoreCase("Admin")) return;
 
