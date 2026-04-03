@@ -20,10 +20,11 @@ public class ClientConnection {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
         ) {
-
+        	System.out.println("Connected to server...");
             //Send request to server
             out.writeObject(message);
             out.flush();
+            System.out.println("Message sent: " + message.getType());
             
             //Receive ACK
             MessageServer ack = (MessageServer) in.readObject();

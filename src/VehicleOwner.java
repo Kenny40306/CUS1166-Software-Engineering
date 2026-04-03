@@ -27,9 +27,25 @@ public class VehicleOwner extends User{ //implements ClientInterface{
   //==================================================================================================
   	//-
   	//M5 Implementation: ====== Send vehicle to VCController (asynchronous) ========
-    public void submitVehicleToController(Vehicle v, VCController vc) {
-        System.out.println("[VehicleOwner] Sending vehicle request: " + v.getVehicleID());
-        //vc.receiveVehicleRequest(v, this);
+    public void submitVehicleToServer(Vehicle vehicle) {
+        new Thread(() -> {
+            try {
+                ClientConnection connection = new ClientConnection("localhost", 5001);
+
+                MessageServer message = new MessageServer(
+                        MessageServer.Type.VEHICLE_REQUEST,
+                        vehicle,
+                        this.userID
+                );
+
+                String response = connection.send(message);
+
+                notify("Server Response: " + response);
+
+            } catch (Exception e) {
+                notify("Error sending vehicle: " + e.getMessage());
+            }
+        }).start();
     }
 
     

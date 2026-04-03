@@ -20,20 +20,38 @@ public class ClientHandler implements Runnable {
         ) {
 
             MessageServer msg = (MessageServer) in.readObject();
-
+            System.out.println("Server received:" + msg.getType());
             //Send ACK immediately
             out.writeObject(new MessageServer(MessageServer.Type.ACK, "Request received", "SERVER"));
-
+            out.flush();
+        
+            
             switch (msg.getType()) {
 
-                case JOB_REQUEST: //First user type
-                    controller.receiveJobRequest((Job) msg.getData(), msg.getSenderId());
-                    break;
+            case JOB_REQUEST:
+                controller.receiveJobRequest((Job) msg.getData(), msg.getSenderId());
 
-                /*case VEHICLE_REQUEST: //Second user type
-                    controller.receiveVehicleRequest((Vehicle) msg.getData(), msg.getSenderId());
-                    break;*/
-            }
+                String result = controller.waitForDecision(msg.getSenderId());
+
+                try {
+                    out.writeObject(new MessageServer(MessageServer.Type.RESPONSE, result, "SERVER"));
+                    out.flush();
+                } catch (IOException e) {
+                    controller.logServerMessage("Client disconnected before job response.");
+                }
+                break;
+
+            case VEHICLE_REQUEST:
+                controller.receiveVehicleRequest((Vehicle) msg.getData(), msg.getSenderId());
+
+                try {
+                    out.writeObject(new MessageServer(MessageServer.Type.RESPONSE, "Vehicle Registered", "SERVER"));
+                    out.flush();
+                } catch (IOException e) {
+                    controller.logServerMessage("Client disconnected before vehicle response.");
+                }
+                break;
+        }
 
             // Wait for admin decision
             String result = controller.waitForDecision(msg.getSenderId());

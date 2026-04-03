@@ -202,6 +202,13 @@ Vehicle Owner Frame - Subat + Avneet
    	            JOptionPane.showMessageDialog(this,
    	                    "Information saved successfully!");
    	            
+   	            //avneet
+   	            //====== SENDS VEHICLE TO SERVER ======
+   	            
+   	            Vehicle vehicle = new Vehicle(ownerID, make, model, vin, residencyValue + " " + residencyUnit);
+   	            VehicleOwner owner = new VehicleOwner(ownerID, ownerID, "", "", residencyValue + " " + residencyUnit);
+   	            owner.submitVehicleToServer(vehicle);
+   	            
    	            //this will clear the fields after the submission if it is successful
    	            ownerIDField.setText("");
    	            makeField.setText("");

@@ -8,49 +8,51 @@ import java.util.concurrent.Executors;
 //Server listens for incoming client request from the port.
 public class VCControllerServer {
 
-    private int port; 
-    private VCController controller; //reference VCController for job/decision logic
-    private ExecutorService pool;
+	private int port;
+	private VCController controller; // reference VCController for job/decision logic
+	private ExecutorService pool;
 
-    public VCControllerServer(int port, VCController controller) {
-        this.port = port;
-        this.controller = controller;
-        this.pool = Executors.newCachedThreadPool();
-    }
+	
 
-    //For each client, accept the connection and start ClientHandler class using thread ExectorService
-    public void start() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-           
-        	/*String msg= "Server started on port " + port;
-            System.out.println(msg);*/
-        	
-        	// Log server start including port to Global Notifs
-            if (controller != null) {
-                controller.logServerMessage("Server started on port " + port);
-            } else {
-                System.out.println("Server started on port " + port);
-            }
-            
-            
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                if (controller != null) {
-                    controller.logServerMessage("Client connected: " + clientSocket.getInetAddress());
-                }
-                // Handle client in a separate thread
-                pool.execute(new ClientHandler(clientSocket, controller));
-            }
-             
+	public VCControllerServer(int port, VCController controller) {
+		this.port = port;
+		this.controller = controller;
+		this.pool = Executors.newCachedThreadPool();
+	}
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            
-            //Log error to ServerFrame
-            if (controller != null) {
-            	controller.openServerFrame(null); // null if no reference JFrame
-                controller.logServerMessage("Server ERROR: " + e.getMessage());
-            }
-        }
-    }
+	// For each client, accept the connection and start ClientHandler class using
+	// thread ExectorService
+	public void start() {
+		try (ServerSocket serverSocket = new ServerSocket(port)) {
+			
+
+			/*
+			 * String msg= "Server started on port " + port; System.out.println(msg);
+			 */
+
+			// Log server start including port to Global Notifs
+			if (controller != null) {
+				controller.logServerMessage("Server started on port " + port);
+			} else {
+				System.out.println("Server started on port " + port);
+			}
+
+			while (true) {
+				Socket clientSocket = serverSocket.accept();
+				if (controller != null) {
+					controller.logServerMessage("Client connected: " + clientSocket.getInetAddress());
+				}
+				// Handle client in a separate thread
+				pool.execute(new ClientHandler(clientSocket, controller));
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+
+			// Log error to ServerFrame
+			if (controller != null) {
+				controller.logServerMessage("Server ERROR: " + e.getMessage());
+			}
+		}
+	}
 }

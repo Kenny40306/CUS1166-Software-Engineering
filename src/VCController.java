@@ -32,8 +32,6 @@ public class VCController {
 	// Attributes
     private String controllerID;
     private List<Vehicle> connectedVehicles; //declared field:
-    private Server serverConnection;
-    private JTextArea outputArea;
     //M4 Main Attributes
     private List<Job> activeJobs; ////declared field: for all job submission history called in FIFO method and reciveJob method
     private List<Job> currentBatch; ////declared field: for FIFO calculation method
@@ -42,10 +40,13 @@ public class VCController {
     
     
     //---M5 Attributes for Job and Vehicle> --------------------------------------------------------------------------------------------
-    private List<JobRequest> pendingJobRequests; //declared field: pending jobs for admin to view (accept or reject)
+    private List<JobRequest> pendingJobRequests;//declared field: pending jobs for admin to view (accept or reject)
+    private List<VehicleRequest> pendingVehicleRequests;
     private Map<String, String> decisions = new HashMap<>(); //admin's decisions to approve or reject for each client request
     //need one for vehicle
     
+    private Server serverConnection;
+   
     
     //Role Tracking
     private String currentUserId; // Tracks logged-in user either admin of regular user
@@ -58,6 +59,7 @@ public class VCController {
   
     //Server Frame & persistent server data
     private ServerFrame serverFrame;
+    private JTextArea outputArea;
     private List<String> serverLogs = new ArrayList<>();
     private List<String> jobDisplay = new ArrayList<>();
     private List<String> userDisplay = new ArrayList<>();
@@ -66,9 +68,11 @@ public class VCController {
     
     
     // Constructor
-    public VCController(String controllerID, Server serverConnection) {
-        this.controllerID    = controllerID;
-        this.serverConnection = serverConnection;
+    public VCController(String controllerID) {
+    	
+    	System.out.println("VCController instance created");
+        
+    	this.controllerID    = controllerID;
         this.connectedVehicles = new ArrayList<>();
         this.activeJobs = new ArrayList<>();
         this.currentBatch = new ArrayList<>();
@@ -76,6 +80,9 @@ public class VCController {
         
         //----------------------------------------------------------
         this.pendingJobRequests = new ArrayList<>();
+        this.pendingVehicleRequests = new ArrayList<>();
+        
+        
         resetNotificationFile(); //clear old notification files
         loadNotificationsFromFile();   // Load persisted notifications is now empty at program startup
         //-----------------------------------------------------------
@@ -96,6 +103,16 @@ public class VCController {
        		this.client=client;} 
        	}
        	
+       	public static class VehicleRequest {
+       		public Vehicle vehicle;
+       		public String client;
+       		
+       		public VehicleRequest(Vehicle vehicle, String client) {
+       			this.vehicle = vehicle;
+       			this.client = client;
+       		}
+       	}
+       	
        	//--- Job Request Handling ---
        	public synchronized void receiveJobRequest(Job job, String client) { //input validation
        
@@ -104,6 +121,7 @@ public class VCController {
        	        addNotification(client, "Duplicate job submission rejected: " + job.getJobName());
        	        return;
        	    }
+       	    System.out.println("Conttroller received job from " + client);
 
        	    jobIDs.add(job.getJobID()); // Track unique job
        		pendingJobRequests.add(new JobRequest(job, client));
@@ -119,6 +137,9 @@ public class VCController {
                 if (req.job.equals(job)) {
                     activeJobs.add(job);
                     saveJobToFile(job);
+                    
+                    job.setProgressStatus(Job.JobStatus.IN_PROGRESS);
+                    
                     decisions.put(req.client, "APPROVED");
                     notifyAll();
                     addNotification(req.client, "Your job \"" + job.getJobName() + "\" was APPROVED");
@@ -126,8 +147,19 @@ public class VCController {
                     //UPDATE SERVER FRAME
                     logServerMessage("Job " + job.getJobID() + " APPROVED");
                     updateJobDisplay(job.getJobID(),req.client,job.getJobName(),"APPROVED");
-                    updateSystemTab();
+                   
                     
+                 // Assign vehicles and start processing
+                    assignVehicles(job);
+
+                    if (job.getAssignedVehicles() != null) {
+                        for (Vehicle v : job.getAssignedVehicles()) {
+                            logServerMessage("Starting vehicle thread: " + v.getVehicleID());
+                            v.processJob();
+                        }
+                    }
+                    
+                    updateSystemTab();
                     break;
                 }
             }
@@ -222,6 +254,28 @@ public class VCController {
     
   //Methods
     //(M5 Implementation: =========== Core Vehicle Methods ===================================
+ // Receive vehicle request from socket (ClientHandler)
+ //avneet
+    
+    public synchronized void receiveVehicleRequest(Vehicle v, String client) {
+        logServerMessage("Vehicle request received: " + v.getVehicleID());
+
+        pendingVehicleRequests.add (new VehicleRequest(v, client));
+
+        if (!connectedVehicles.contains(v)) {
+            connectedVehicles.add(v);
+            v.updateStatus(Vehicle.VehicleStatus.AVAILABLE);
+            
+            System.out.println("Vehicle added to system: " + v.getVehicleID());
+            System.out.println("Total vehicles: " + connectedVehicles.size());
+            logServerMessage("Vehicle registered: " + v.getVehicleID());
+            
+            updateSystemTab();
+        } else {
+            logServerMessage("Vehicle already registered: " + v.getVehicleID());
+        
+        }
+    }
     
     //private List<VehicleRequest> pendingVehicleRequests; ////declared field: pending vehicles for admin to view (accept or reject)
     //this.pendingVehicleRequests = new ArrayList<>();
@@ -442,6 +496,10 @@ public class VCController {
         if (serverFrame != null) {
             serverFrame.updateLogs(serverLogs); // append instead of reset
         }
+        //update outputArea 
+        if(outputArea != null) {
+        	outputArea.append(fullMessage + "\n");
+        }
         // Print to console as well
         System.out.println(fullMessage);
 
@@ -643,7 +701,7 @@ public class VCController {
             System.out.println("[VCController] Job " + j.getJobID()
             	+ " failed. Attempting checkpoint restore...");
             
-            List<Vehicle> assigned = j.getAssignedVehicles(); // passes to Job to handle internally
+           List<Vehicle> assigned = j.getAssignedVehicles(); // passes to Job to handle internally
             if (!assigned.isEmpty()) {
                 String vehicleID = assigned.get(0).getVehicleID();
                 Checkpoint cp = new Checkpoint("CHK-" + j.getJobID() + "-" + vehicleID, j.getJobID(), vehicleID, "PENDING");
@@ -741,10 +799,12 @@ public class VCController {
  
     @Override
     public String toString() {
-        return "VCController{"
-                + "controllerID='" + controllerID + '\''
-                + ", connectedVehicles=" + connectedVehicles.size()
-                + ", activeJobs=" + activeJobs.size()
-                + '}';
+    	int vehicleCount = (connectedVehicles == null) ? 0 : connectedVehicles.size();
+    	int jobCount = (activeJobs == null) ? 0 : activeJobs.size();;
+        return "VCController{" +
+    			"vehicles=" + vehicleCount +
+    			", jobs=" + jobCount +
+    			'}';
+                
     }
 }

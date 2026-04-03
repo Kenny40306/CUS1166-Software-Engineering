@@ -67,3 +67,80 @@ Model: honda
 VIN: 12345678910192837
 Residency Time: 20 Minute(s)
 ---------------------------------
+Timestamp: 2026-04-02T16:46:43.239864
+Owner ID: avneet
+Make: 2007
+Model: honda
+VIN: 12345678910192837
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T17:44:58.971962
+Owner ID: avneet
+Make: 2007
+Model: honda
+VIN: 12345678910192837
+Residency Time: 20 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T19:39:42.649546
+Owner ID: avneet
+Make: 2008
+Model: honda
+VIN: 12345678910192837
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T19:50:44.354424
+Owner ID: avneet
+Make: 2005
+Model: honda
+VIN: 12345678910192837
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T19:52:08.992315
+Owner ID: avneet
+Make: 2005
+Model: honda
+VIN: 12345678910192837
+Residency Time: 35 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T20:19:41.962257
+Owner ID: avneet
+Make: 2009
+Model: honda
+VIN: 12345678901234567
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T20:22:46.715438
+Owner ID: avneet
+Make: 2006
+Model: honda
+VIN: 12345678901234567
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T20:32:11.665867
+Owner ID: avneet
+Make: 2005
+Model: honda
+VIN: 12345678901234567
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T21:22:00.937739
+Owner ID: avneet
+Make: 2005
+Model: honda
+VIN: 12345678901234567
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T21:41:50.083973
+Owner ID: avneet
+Make: 2004
+Model: honda
+VIN: 12345678901234567
+Residency Time: 30 Minute(s)
+---------------------------------
+Timestamp: 2026-04-02T21:58:03.722840
+Owner ID: avneet
+Make: 2005
+Model: honda
+VIN: 12345678901234567
+Residency Time: 40 Minute(s)
+---------------------------------

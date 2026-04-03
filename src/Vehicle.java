@@ -32,9 +32,10 @@ public class Vehicle implements Serializable {
     protected boolean scheduleKnown; // true if we know when the vehicle is leaving
 
     // constructor - sets up a new vehicle with its basic info
-    public Vehicle(String vehicleID, String ownerID, double computePower,
+    public Vehicle(String vehicleID, String vehicleName, double computePower,
                    LocalDateTime arrivalTime, LocalDateTime departureTime, boolean scheduleKnown) {
         this.vehicleID = vehicleID;
+        this.vehicleName = vehicleName;
         this.computePower = computePower;
         this.arrivalTime = arrivalTime;
         this.departureTime = departureTime;
@@ -42,6 +43,18 @@ public class Vehicle implements Serializable {
         this.status = VehicleStatus.AVAILABLE; // starts as available by default
         this.availability = true;
         this.currentJob = null; // no job assigned yet
+    }
+    
+    public Vehicle(String ownerID, String make, String model, String vin, String residencyTime) {
+        this.vehicleID = vin;              // use VIN as vehicle ID
+        this.vehicleName = make + " " + model;
+        this.computePower = 1.0;           // default compute power
+        this.arrivalTime = LocalDateTime.now();
+        this.departureTime = LocalDateTime.now().plusHours(1);
+        this.scheduleKnown = false;
+        this.status = VehicleStatus.AVAILABLE;
+        this.availability = true;
+        this.currentJob = null;
     }
 
     // updates the vehicle's current status
@@ -56,41 +69,27 @@ public class Vehicle implements Serializable {
         this.status = VehicleStatus.BUSY;
     }
     
-    // runs the computation for the current job
-    //Avneet
-    //this starts processing the job (multithreading)
-   /* public void processJob() {
-        if (currentJob != null) {
-        	System.out.println("Vehicle " + vehicleID + 
-                    " starting thread for job: " + currentJob.getJobID());
-                this.start(); // starts the thread
-            }
-        }
-    
-    //Avneet
-    //Thread method (this runs when start() is called)
-    
-    @Override
-    public void run() {
-        if (currentJob != null) {
+    public void processJob() {
+        new Thread(() -> {
             try {
-                System.out.println("Vehicle " + vehicleID +
-                        " started processing job: " + currentJob.getJobName());
+                System.out.println("Vehicle " + vehicleID + " started processing job " + currentJob.getJobID());
 
-                // simulate job processing time
-                long sleepTime = currentJob.getDuration().toMinutes() * 1000;
-                Thread.sleep(sleepTime);
-                System.out.println("Vehicle " + vehicleID + " completed job: " + currentJob.getJobName());
-                currentJob.markCompleted();  // mark job completed
-                sendResults(null);  // send results to server
-                eraseData(); // reset vehicle
+                updateStatus(VehicleStatus.BUSY);
+
+                // Simulate job processing time
+                Thread.sleep(3000);
+
+                System.out.println("Vehicle " + vehicleID + " completed job " + currentJob.getJobID());
+
+                if (currentJob != null) {
+                    currentJob.updateProgress(Job.JobStatus.COMPLETED);
+                }
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
-    }	    */
-
+        }).start();
+    }
     
     // subat
     // sends the completed job results to the server

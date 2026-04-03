@@ -44,7 +44,7 @@ public class ServerFrame extends JFrame {
             int y = referenceFrame.getY();
             setLocation(x, y);
         } else {
-            setLocationRelativeTo(null);
+            setLocation(50, 100);
         }
 
         setVisible(true);

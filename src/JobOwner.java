@@ -27,9 +27,15 @@ private List<Job> jobSubmitted;
 
     //: Now uses socket instead of direct VCController call
     public void submitJobToServer(Job job) {
+    	
+    	//this makes sure the job belongs to the user
+    	job.setClientId(this.userID);
+    	//This tracks the submitted jobs
+    	jobSubmitted.add(job);
+    	
         new Thread(() -> {
             try {
-                ClientConnection connection = new ClientConnection("localhost", 5000);
+                ClientConnection connection = new ClientConnection("localhost", 5001);
                 MessageServer message = new MessageServer( MessageServer.Type.JOB_REQUEST,job,this.userID);
                 String response = connection.send(message); // Send job and receive server response
 
