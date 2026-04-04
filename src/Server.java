@@ -70,6 +70,7 @@ public class Server {
         System.out.println("Server " + serverID + " status updated to: " + s);
     }
     
+    //=========M5: Moved Method Here ====================
     public List<String> getServerStatusData() {
         List<String> data = new ArrayList<>();
         data.add("Server ID: " + serverID);

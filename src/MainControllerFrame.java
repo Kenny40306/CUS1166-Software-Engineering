@@ -3,7 +3,7 @@ import java.awt.*;
 import java.util.List;
 
 /*=====================
-Main Controller Frame - Moontarin + Subat
+Main Controller Frame - Moontarin + Subat + Kendra
 ======================*/
 
 //---- M4 Implementation: main frame for VCController to show output on dashboard ----
@@ -21,7 +21,7 @@ public class MainControllerFrame extends JFrame{
     	// Store controller reference
     	this.vcController = vcController;
     	
-        setTitle("VC Dashboard Frame"); // Set window title
+        setTitle("VC Controller Dashboard Frame"); // Set window title
         setSize(300, 400); // Set window size
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window when user exits
         setLayout(new BorderLayout(10,10));  // Use BorderLayout for organizing components
@@ -68,44 +68,88 @@ public class MainControllerFrame extends JFrame{
       //====================================================================================
         //!!!M5 Implementation: Buttons for Accept and Reject!!!
         //==================================================================================
-        //Kendra Wrote This-
-       acceptButton.addActionListener(e -> {
-            if (!vcController.getPendingJobRequests().isEmpty()) {
-                VCController.JobRequest req = vcController.getPendingJobRequests().get(0);
-                vcController.approveJob(req.job); //method passed here
-                outputArea.append("[VCController] Approved job: " + req.job.getJobName() + "\n");
+        //Kendra + Subat Wrote This-
+           
+        acceptButton.addActionListener(e -> {
+            // Determine which request came first
+            Object firstReq = null; // could be JobRequest or VehicleRequest
+
+            if (!vcController.getPendingJobRequests().isEmpty() && !vcController.getPendingVehicleRequests().isEmpty()) {
+                VCController.JobRequest jobReq = vcController.getPendingJobRequests().get(0);
+                VCController.VehicleRequest vehReq = vcController.getPendingVehicleRequests().get(0);
+
+                // Compare by requestID timestamp or nanoTime
+                if (jobReq.requestID.compareTo(vehReq.requestID) < 0) { // job came first
+                    firstReq = jobReq;
+                } else {
+                    firstReq = vehReq;
+                }
+
+            } else if (!vcController.getPendingJobRequests().isEmpty()) {
+                firstReq = vcController.getPendingJobRequests().get(0);
+            } else if (!vcController.getPendingVehicleRequests().isEmpty()) {
+                firstReq = vcController.getPendingVehicleRequests().get(0);
+            }
+
+            if (firstReq instanceof VCController.JobRequest jobReq) {
+                vcController.approveJob(jobReq.job);
+                outputArea.append("[APPROVED] Job: " + jobReq.job.getJobName() + "\n");
+
+            } else if (firstReq instanceof VCController.VehicleRequest vehReq) {
+                vcController.approveVehicle(vehReq.vehicle);
+                outputArea.append("[APPROVED] Vehicle: " + vehReq.vehicle.getVehicleID() + "\n");
+
             } else {
-                outputArea.append("[VCController] No pending jobs to approve.\n");
+                outputArea.append("[VCController] No pending requests to approve.\n");
             }
         });
 
         rejectButton.addActionListener(e -> {
-            if (!vcController.getPendingJobRequests().isEmpty()) {
-                VCController.JobRequest req = vcController.getPendingJobRequests().get(0);
-                vcController.rejectJob(req.job); //method passed here
-                outputArea.append("[VCController] Rejected job: " + req.job.getJobName() + "\n");
+            // Same logic for rejecting
+            Object firstReq = null;
+
+            if (!vcController.getPendingJobRequests().isEmpty() && !vcController.getPendingVehicleRequests().isEmpty()) {
+                VCController.JobRequest jobReq = vcController.getPendingJobRequests().get(0);
+                VCController.VehicleRequest vehReq = vcController.getPendingVehicleRequests().get(0);
+
+                if (jobReq.requestID.compareTo(vehReq.requestID) < 0) {
+                    firstReq = jobReq;
+                } else {
+                    firstReq = vehReq;
+                }
+
+            } else if (!vcController.getPendingJobRequests().isEmpty()) {
+                firstReq = vcController.getPendingJobRequests().get(0);
+            } else if (!vcController.getPendingVehicleRequests().isEmpty()) {
+                firstReq = vcController.getPendingVehicleRequests().get(0);
+            }
+
+            if (firstReq instanceof VCController.JobRequest jobReq) {
+                vcController.rejectJob(jobReq.job);
+                outputArea.append("[REJECTED] Job: " + jobReq.job.getJobName() + "\n");
+
+            } else if (firstReq instanceof VCController.VehicleRequest vehReq) {
+                vcController.rejectVehicle(vehReq.vehicle);
+                outputArea.append("[REJECTED] Vehicle: " + vehReq.vehicle.getVehicleID() + "\n");
+
             } else {
-                outputArea.append("[VCController] No pending jobs to reject.\n");
+                outputArea.append("[VCController] No pending requests to reject.\n");
             }
         });
-
-        //==========================================================================================
         
-   
+        
         //Calculate button action
         calcButton.addActionListener(e -> {
             clearOutput();               // Clear previous logs
-            displayCurrentJobs();        // Display active jobs
             displayCompletionTimes();    // Display FIFO completion times
-            //displayVehicleMonitor();	//Display Vehicle thats being monitored
-            //displayCheckpointActivity(); //Displays checkpoints 
-            
         });
         
         applyDecorations(); // decorates buttons and dash board
-        setVisible(true); // Make frame visible
     }
-    
+        //==========================================================================================
+        
+   
+           
     //============================
     // METHODS FOR DISPLAYING DATA
     //============================
@@ -113,28 +157,6 @@ public class MainControllerFrame extends JFrame{
     // Clears all text from output area
     public void clearOutput() {
         outputArea.setText(""); // removes previous logs
-    }
-        
-    // Displays all active (not completed) jobs
-    public void displayCurrentJobs() {
-    	// Print header
-        outputArea.append("===== Jobs Log =============\n");
-
-        // Get all jobs from controller (history list)
-        List<Job> allJobs = vcController.getActiveJobs(); //all jobs ever submitted as history log
-        if (allJobs.isEmpty()) { // If no jobs exist
-            outputArea.append("No active jobs at the moment.\n");
-        } else {
-            for (Job j : allJobs) { // Loop through each job
-                if (j.getProgressStatus() != Job.JobStatus.COMPLETED) { // Only display jobs that are NOT completed
-                    // Print job name and current status
-                    outputArea.append("Job: " + j.getJobName() + 
-                    		" | Status: " + j.getProgressStatus() + "\n");
-                }
-            }
-        }
-     // Print closing divider
-        outputArea.append("================================\n\n");
     }
         
     //Displays FIFO-based completion time calculations
@@ -167,6 +189,7 @@ public class MainControllerFrame extends JFrame{
     }
     
     
+    //Moontarin Worked On This:
     private void applyDecorations() {
     	UIStyling.styleFrameDark(this);
     	UIStyling.styleTextAreaDark(outputArea);
@@ -187,129 +210,8 @@ public class MainControllerFrame extends JFrame{
     		add(topPanel, BorderLayout.NORTH); // ensure topPanel with buttons stays
     	}
 	}
-
-    
-    
-    //Queue - List of all jobs waiting for completion
-    /*public void displayQueue() {
-    	// Print header
-        outputArea.append("===== Job Queue =====\n");
- 
-        // Get job list
-        List<Job> currentBatch = vcController.getCurrentBatch();
-        if (currentBatch.isEmpty()) { // If no jobs exist
-            outputArea.append("No jobs in queue.\n");
-        } else {
-            int position = 1; // queue position counter
-            for (Job j : currentBatch) { // Loop through jobs
-                if (j.getProgressStatus() != Job.JobStatus.COMPLETED) { // Only show jobs not completed
-                	 // Display position, job name, and ID
-                    outputArea.append(position + ". " + j.getJobName() +
-                            " | ID: " + j.getJobID() + "\n");
-                    position++;  // increment position
-                }
-            }
-        }
-        outputArea.append("=====================\n\n");
-    }
-    
-    //Server Status - Displays server status and statistics
-    public void displayServerStatus() {
-    	// Print header
-        outputArea.append("===== Server Status =====\n");
- 
-        Server server = vcController.getServerConnection(); // Get server object from controller
-        // If no server connected
-        if (server == null) {
-            outputArea.append("No server connected.\n");
-        } else {
-        	// Display server details
-            outputArea.append("Server ID: " + server.getServerID() + "\n");
-            outputArea.append("Status: " + server.getStatus() + "\n");
-            outputArea.append("Jobs in Storage: " + server.getStorage().size() + "\n");
-            outputArea.append("Completed Jobs : " + server.getCompletedJobs().size() + "\n");
-        }
-        outputArea.append("=========================\n\n");
-    }
-    
-    
-    
-    //NEW========================================================================================================================
-    //Moon Worked 
-    //Vehicle Monitoring - List of all vehicles with id, status, current job, compute power
-    public void displayVehicleMonitor() {
-        // Print header
-        outputArea.append("===== Vehicle Monitor =====\n");
-
-
-        List<Vehicle> vehicles = vcController.getConnectedVehicles();
-        // vcController.getConnectedVehicles() returns all Vehicle objects registered in the system
-
-
-        if (vehicles == null || vehicles.isEmpty()) { // If no vehicles registered
-            outputArea.append("No vehicles currently registered.\n");
-        } else {
-            for (Vehicle v : vehicles) { // Loop through each vehicle
-                String assignedJob = (v.getCurrentJob() != null)
-                        ? v.getCurrentJob().getJobName()
-                        : "idle";
-                // Display vehicle ID, status, assigned job, and compute power
-                outputArea.append("Vehicle ID: " + v.getVehicleID() +
-                        " | Status: " + v.getStatus() +
-                        " | Job: " + assignedJob +
-                        " | Power: " + v.getComputePower() + " GHz\n");
-            }
-
-
-            long available = vehicles.stream()
-                    .filter(v -> v.getStatus() == Vehicle.VehicleStatus.AVAILABLE)
-                    .count();
-            outputArea.append("Available: " + available + " / " + vehicles.size() + " vehicles\n");
-            // summary: how many vehicles are currently available out of total registered
-        }
-        outputArea.append("===========================\n\n");
-    }
-
-
-    //Checkpoint activity - number of checkpoints per job, last checkpoint time, which vehicle created it
-    public void displayCheckpointActivity() {
-        // Print header
-        outputArea.append("===== Checkpoint Activity =====\n");
-
-
-        List<Job> currentBatch = vcController.getCurrentBatch();
-        // loops through all jobs that are not yet completed
-
-
-        if (currentBatch.isEmpty()) { // If no jobs exist
-            outputArea.append("No active jobs to track.\n");
-        } else {
-            for (Job j : currentBatch) {
-
-
-                if (j.getProgressStatus() == Job.JobStatus.COMPLETED) continue;
-                // skip jobs that are already done
-
-
-                List<Checkpoint> checkpoints = j.getCheckpoints();
-                int reached = (checkpoints != null) ? checkpoints.size() : 0;
-                // getCheckpoints() returns a List<Checkpoint> of checkpoint objects for this job
-
-
-                // Display job name and checkpoint count
-                outputArea.append("Job: " + j.getJobName() +
-                        " | Checkpoints reached: " + reached + "\n");
-
-
-                String lastCP = (checkpoints != null && !checkpoints.isEmpty())
-                        ? checkpoints.get(checkpoints.size() - 1).getCheckpointID()
-                        : "none yet";
-                outputArea.append("  Latest: " + lastCP + "\n");
-                // prints the most recent checkpoint ID for this job
-            }
-        }
-        outputArea.append("===============================\n\n");
-    }*/
+}
+     
     
     //=====================
     // FUTURE METHODS (NOT IMPLEMENTED YET)
@@ -322,4 +224,3 @@ public class MainControllerFrame extends JFrame{
     //(Maybe) Alert system → vehicle departure, job failure, checkpoints, reassignment
 
     //Overall System Performance → avg completion time, jobs/min, vehicle utilization
-}

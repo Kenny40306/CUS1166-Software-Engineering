@@ -27,9 +27,7 @@ class UserLoginFrame extends JFrame {
         
     	setTitle("Login - Vehicular Cloud Console");
         setSize(600, 400);
-        setLocation(500, 200);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(7, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -79,8 +77,6 @@ class UserLoginFrame extends JFrame {
         // Action listeners
         loginButton.addActionListener(e -> authenticateUser());
         forgotPasswordButton.addActionListener(e -> recoverPassword());
-
-        setVisible(true);
     }
 
     // Authenticate user or admin validation
@@ -111,8 +107,7 @@ class UserLoginFrame extends JFrame {
                 vcController.setCurrentUserId("admin", roleEnum);
 
             } else {
-                JOptionPane.showMessageDialog(this,"Invalid admin credentials", "Login Failed",JOptionPane.ERROR_MESSAGE);
-                return;
+                roleEnum = VCController.UserRole.ADMIN;
             }
 
         } 
@@ -159,10 +154,13 @@ class UserLoginFrame extends JFrame {
             	if (role.equals("Admin")) {
                 	vcController.openServerFrame(roleFrame);
                 }
-            	dispose(); //closes login frame
                 
-            }
-        
+            }else {	
+            	JOptionPane.showMessageDialog(this,
+                    "Invalid credentials for " + role,
+                    "Login Failed",
+                    JOptionPane.ERROR_MESSAGE);
+        }
         // Clear fields
         usernameField.setText("");
         passwordField.setText("");

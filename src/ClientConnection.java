@@ -1,7 +1,8 @@
 import java.io.*;
 import java.net.Socket;
 
-//Handles Socket communication from client side
+//Client side Socket network
+//(created when JobOwner calls thread String response = connection.send(message);)
 //Acts as bridge between JobOwner(Client) and VCControllerServer
 public class ClientConnection {
 
@@ -16,15 +17,14 @@ public class ClientConnection {
 
     public String send(MessageServer message) { //sends message using MessageServer class
         try (
-            Socket socket = new Socket(host, port);
+            Socket socket = new Socket(host, port);  //<- client socket created here
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
         ) {
-        	System.out.println("Connected to server...");
-            //Send request to server
+
+            //Send request to server by opening socket to server's host and port
             out.writeObject(message);
             out.flush();
-            System.out.println("Message sent: " + message.getType());
             
             //Receive ACK
             MessageServer ack = (MessageServer) in.readObject();

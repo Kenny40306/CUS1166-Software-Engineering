@@ -1,7 +1,9 @@
 import java.io.*;
 import java.net.Socket;
 
-//Handles once client connection (bridge between network and business logic)
+//Uses VCControllerServer Socket 
+//Handles one client connection (bridge between network and business logic)
+//Receives and Sends jobs to VCController
 public class ClientHandler implements Runnable {
 
     private Socket socket;
@@ -15,48 +17,37 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try (
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream()); //receive job from client
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
         ) {
 
-            MessageServer msg = (MessageServer) in.readObject();
-            System.out.println("Server received:" + msg.getType());
+            MessageServer msg = (MessageServer) in.readObject(); //recieve
+
             //Send ACK immediately
             out.writeObject(new MessageServer(MessageServer.Type.ACK, "Request received", "SERVER"));
             out.flush();
-        
             
             switch (msg.getType()) {
 
-            case JOB_REQUEST:
-                controller.receiveJobRequest((Job) msg.getData(), msg.getSenderId());
-
-                String result = controller.waitForDecision(msg.getSenderId());
-
-                try {
-                    out.writeObject(new MessageServer(MessageServer.Type.RESPONSE, result, "SERVER"));
-                    out.flush();
-                } catch (IOException e) {
-                    controller.logServerMessage("Client disconnected before job response.");
-                }
-                break;
-
-            case VEHICLE_REQUEST:
-                controller.receiveVehicleRequest((Vehicle) msg.getData(), msg.getSenderId());
-
-                try {
-                    out.writeObject(new MessageServer(MessageServer.Type.RESPONSE, "Vehicle Registered", "SERVER"));
-                    out.flush();
-                } catch (IOException e) {
-                    controller.logServerMessage("Client disconnected before vehicle response.");
-                }
-                break;
-        }
+            	//Handle User 1 (JobOwner)
+                case JOB_REQUEST: //First user type
+                    controller.receiveJobRequest((Job) msg.getData(), msg.getSenderId());//pass to VCController
+                    break;
+              
+                //Handle User 2 (VehicleOwner)
+                case VEHICLE_REQUEST: //Second user type
+                    controller.receiveVehicleRequest((Vehicle) msg.getData(), msg.getSenderId());
+                    break;
+                
+                //Error message
+                default:
+                    controller.logServerMessage("Unknown message type received");
+            }
 
             // Wait for admin decision
             String result = controller.waitForDecision(msg.getSenderId());
 
-            // Send final result
+            // Send final result back to client
             out.writeObject(new MessageServer(MessageServer.Type.RESPONSE, result, "SERVER"));
             out.flush();
             

@@ -61,7 +61,6 @@ public class Job implements Serializable{
 	
     //Method to track which vehicles are being assigned (!!! only for job to be self aware of which vehices are being worked on)
     public void assignVehicles(List<Vehicle> vehicles) {
-    	this.assignedVehicles.clear();
     	if(vehicles !=null) { //prevent null pointer errors
     		this.assignedVehicles.addAll(vehicles);
     	}
@@ -143,11 +142,6 @@ public class Job implements Serializable{
 	public void setClientId(String clientId) { // optional setter
 	       this.clientID = clientId;
 	}
-	       
-	public void updateProgress(JobStatus status) {
-		this.progressStatus = status;
-	}
-	
 	 
 	//Getters
 	public String getJobID() {

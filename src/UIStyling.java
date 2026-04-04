@@ -2,173 +2,147 @@ import javax.swing.*;
 import java.awt.*;
 
 // =====================
-// Styling and Layout - Moontarin + Subat (added new UI updates for aesthetics)
-// UIstyling was utilized in Role selection frame, Job Owner Frame and Vehicle Owner Frame.
-// UI styling was used because repeated code everywhere makes styling easy to forget and hard to change later.
+// Styling and Layout - Moontarin
+//UIstyling was utilized in Role selection frame, Job Owner Frame and Vehical Owner Frame.
+//UI styling was used because repeated code everywhere makes styling easy to forget and hard to change later.
 // =====================
+
 public class UIStyling {
 
-	// ── Original Colors ──
-	private static final Color NAVY = new Color(15, 25, 50); // updated to dark navy
-	private static final Color BLACK = Color.BLACK;
-	private static final Color WHITE = Color.WHITE;
+		//Color elements
+	private static final Color NAVY = new Color(0, 41, 111);// deep navy blue alternative (0, 34, 68)
+    private static final Color BLACK = Color.BLACK;
+    private static final Color WHITE = Color.WHITE;
+    
+    // ── NEW Colors Dashboard Theme──
+    public static final Color BG_DARK    = new Color(18, 22, 36);   // main background
+    public static final Color BG_PANEL   = new Color(26, 32, 52);   // text area / panel background
+    public static final Color ACCENT     = new Color(64, 156, 255); // blue title/accent
+    public static final Color TEXT       = new Color(220, 230, 255);// primary text
+    public static final Color BORDER     = new Color(45, 58, 90);   // subtle border
 
-	// ── New Dashboard Theme Colors ──
-	public static final Color BG_DARK = new Color(15, 25, 50); // main background
-	public static final Color BG_PANEL = new Color(25, 40, 75); // text area / panel background
-	public static final Color ACCENT = new Color(76, 201, 240); // light blue accent
-	public static final Color TEXT = new Color(200, 220, 255);// primary text
-	public static final Color BORDER = new Color(76, 201, 240); // light blue border
 
-	// ── Fonts ──
-	public static final Font FONT_TITLE = new Font("Georgia", Font.BOLD, 24);
-	public static final Font FONT_BUTTON = new Font("Georgia", Font.BOLD, 16);
-	public static final Font FONT_BODY = new Font("Georgia", Font.PLAIN, 18);
-
-	// sets panel background to dark navy
+    // ── NEW Fonts Dashboard Theme──
+    public static final Font FONT_TITLE  = new Font("Georgia", Font.BOLD, 20);
+    public static final Font FONT_BUTTON = new Font("Courier New", Font.BOLD, 11);
+    public static final Font FONT_BODY   = new Font("Courier New", Font.PLAIN, 12);
+    
+    
 	public static void stylePanel(JPanel panel) {
-		panel.setBackground(BG_DARK);
+		// Set panel background- navy blue color
+		panel.setBackground(NAVY);
 	}
 
-	// font styling for labels - white text on dark background
+	  // Font styling for labels
 	public static void styleLabel(JLabel label) {
-		label.setFont(new Font("Georgia", Font.PLAIN, 18));
-		label.setForeground(TEXT);
+		Font labelFont = new Font("Georgia", Font.PLAIN, 16);
+		label.setFont(labelFont);
+		label.setForeground(WHITE);
 	}
-
-	// button styling - light blue background with dark text
+	  // Button styling
 	public static void styleButton(JButton button) {
-		button.setFont(FONT_BUTTON);
-		button.setForeground(BG_DARK);
-		button.setBackground(ACCENT);
-		// required for MacOS
-		button.setOpaque(true);
-		button.setContentAreaFilled(true);
-		button.setBorderPainted(false);
-		button.setFocusPainted(false);
-		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		// hover effect
-		button.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseEntered(java.awt.event.MouseEvent e) {
-				button.setBackground(new Color(56, 181, 220));
-			}
-
-			public void mouseExited(java.awt.event.MouseEvent e) {
-				button.setBackground(ACCENT);
-			}
-		});
+		button.setFont(new Font("Georgia", Font.BOLD, 14));
+		button.setForeground(BLACK);
+		button.setBackground(WHITE);
+		
+		//New: MacOS -----
+		button.setOpaque(true);              // REQUIRED 
+	    button.setContentAreaFilled(true);   // REQUIRED 
+	    button.setBorderPainted(true); //keep border visible
+		//----------------------------------
+	    
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createLineBorder(BLACK,2)); //light brown borders
 	}
-
-	// style text fields - dark background with white text and light blue border
+	  //Style text fields black text on white background
 	public static void styleTextField(JTextField field) {
-		field.setFont(FONT_BODY);
-		field.setForeground(WHITE);
-		field.setBackground(BG_DARK);
-		field.setCaretColor(WHITE);
-		field.setBorder(BorderFactory.createLineBorder(ACCENT, 2));
-	}
-
-	// creates and styles a title label
+		field.setFont(new Font("Georgia", Font.PLAIN, 16));
+		field.setForeground(BLACK);
+		field.setBackground(WHITE); 
+		field.setCaretColor(NAVY); // cursor color
+        field.setBorder(BorderFactory.createLineBorder(BLACK,2));
+    }
+	    
+	 // Creates and styles a title label
 	public static JLabel createTitleLabel(String text) {
-		// creates a centered label with bold Georgia font in white
+	  // Title styling - // This method creates a centered label, applies a larger bold Georgia font, 
+	  // sets the text color to black, and then returns the styled label so I can reuse it across different frames.
 		JLabel titleLabel = new JLabel(text, JLabel.CENTER);
-		titleLabel.setFont(FONT_TITLE);
-		titleLabel.setForeground(WHITE);
+		titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
+		titleLabel.setForeground(BLACK);
 		return titleLabel;
-	}
+	  }
+	 
+	// Apply styling to the frame and panel -  configures and displays the frames 
+	 public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel, String frameTitle) {
+	  // Frame layout - organizes frames into sections, frame title front and main panel center.
+	  frame.setLayout(new BorderLayout());
+	  frame.add(titleLabel, BorderLayout.NORTH);
+	  frame.add(panel, BorderLayout.CENTER);
+	  frame.setSize(600, 400);
+	  frame.setTitle(frameTitle);
+	  frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	  frame.setVisible(true);
+	  }
+	 
+	
 
-	// apply styling to the frame and panel - configures and displays the frames
-	public static void setupFrame(JFrame frame, JPanel panel, JLabel titleLabel, String frameTitle) {
-		// frame layout - organizes frames into sections, frame title front and main
-		// panel center
-		frame.setLayout(new BorderLayout());
-		frame.add(titleLabel, BorderLayout.NORTH);
-		frame.add(panel, BorderLayout.CENTER);
-		frame.setSize(750, 550);
-		frame.setTitle(frameTitle);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-	}
+	 /* =====================================================
+	NEW: DASHBOARD STYLING METHODS (UIDashboardStyling)
+	===================================================== */
 
-	/*
-	 * ===================================================== DASHBOARD STYLING
-	 * METHODS These methods apply a consistent dark theme across the UI
-	 * =====================================================
-	 */
-	// styles the entire JFrame with a dark background color
-	public static void styleFrameDark(JFrame frame) {
-		// access the content pane and set background color
-		frame.getContentPane().setBackground(BG_DARK);
-	}
+	// Styles a JPanel with dark background
+	 public static void styleFrameDark(JFrame frame) {
+		 frame.getContentPane().setBackground(BG_DARK);
+	 }
 
-	// styles a jtextarea with dark theme settings
-	public static void styleTextAreaDark(JTextArea area) {
-		// prevent crash if text area is not initialized
-		if (area == null)
-			return;
-		// set background color of text area
-		area.setBackground(BG_PANEL);
-		// set text color for readability on dark background
-		area.setForeground(TEXT);
-		// apply consistent font style for body text
-		area.setFont(FONT_BODY);
-		// add padding inside the text area
-		area.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-	}
+	// Styles a JTextArea with dark theme
+	 public static void styleTextAreaDark(JTextArea area) {
+		 if (area == null) return; /* FIX: prevents NullPointerException */
+		 area.setBackground(BG_PANEL);
+		 area.setForeground(TEXT);
+		 area.setFont(FONT_BODY);
+		 area.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+	 }
 
-	// styles a scroll pane to match dark theme
-	public static void styleScrollPaneDark(JScrollPane scrollPane) {
-		// add a subtle border around the scroll pane
-		scrollPane.setBorder(BorderFactory.createLineBorder(BORDER, 1));
-		// set background color to match main frame
-		scrollPane.setBackground(BG_DARK);
-	}
+	 // Styles a JScrollPane with dark border
+	 public static void styleScrollPaneDark(JScrollPane scrollPane) {
+		 scrollPane.setBorder(BorderFactory.createLineBorder(BORDER, 1));
+		 scrollPane.setBackground(BG_DARK);
+	 }
 
-	// creates and returns a styled title label for header
-	public static JLabel createDashboardTitle(String text) {
-		// center aligns the title text
-		JLabel title = new JLabel(text, SwingConstants.CENTER);
-		// apply larger bold font for titles
-		title.setFont(FONT_TITLE);
-		// set accent color for highlighting
-		title.setForeground(ACCENT);
-		// add spacing above and below the title
-		title.setBorder(BorderFactory.createEmptyBorder(10, 0, 6, 0));
-		return title;
-	}
+	// Creates and returns a styled dashboard title label
+	 public static JLabel createDashboardTitle(String text) {
+		 JLabel title = new JLabel(text, SwingConstants.CENTER);
+		 title.setFont(FONT_TITLE);
+		 title.setForeground(ACCENT);
+		 title.setBorder(BorderFactory.createEmptyBorder(10, 0, 6, 0));
+		 return title;
+	 }
 
-	// styles a button with dark theme
-	public static void styleDashboardButton(JButton btn) {
-		// set button background color
-		btn.setBackground(new Color(34, 42, 68));
-		// set text color
-		btn.setForeground(TEXT);
-		// apply consistent button font
-		btn.setFont(FONT_BUTTON);
-		// remove default focus border
-		btn.setFocusPainted(false);
-		btn.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(BORDER, 1),
-				BorderFactory.createEmptyBorder(4, 10, 4, 10)));
-		// change cursor to hand when hovering
-		btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	}
+	 // Styles a button with dark dashboard theme
+	 public static void styleDashboardButton(JButton btn) {
+		 btn.setBackground(new Color(34, 42, 68));
+		 btn.setForeground(TEXT);
+		 btn.setFont(FONT_BUTTON);
+		 btn.setFocusPainted(false);
+		 btn.setBorder(BorderFactory.createCompoundBorder(
+         BorderFactory.createLineBorder(BORDER, 1),
+         BorderFactory.createEmptyBorder(4, 10, 4, 10)
+				 ));
+		 btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	 }
 
-	// styles a single panel with dark background
-	public static void styleDashboardPanel(JPanel panel) {
-		// set panel background color
-		panel.setBackground(BG_DARK);
-	}
+	 public static void styleDashboardPanel(JPanel panel) {
+		 panel.setBackground(BG_DARK);
+	 }
 
-	// recursively styles a panel and panels inside it
-	public static void stylePanelDeep(JPanel panel) {
-		// apply background color to current panel
-		panel.setBackground(BG_DARK);
-		// loop through all child components inside the panel
-		for (Component c : panel.getComponents()) {
-			if (c instanceof JPanel) {
-				stylePanelDeep((JPanel) c);
-			}
-		}
-	}
+	 public static void stylePanelDeep(JPanel panel) {
+		 panel.setBackground(BG_DARK);
+		 for (Component c : panel.getComponents()) {
+			 if (c instanceof JPanel) {
+				 stylePanelDeep((JPanel) c);
+			 }
+		 }
+	 }
 }

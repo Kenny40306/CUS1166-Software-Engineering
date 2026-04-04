@@ -25,34 +25,33 @@ public class VehicleOwner extends User{ //implements ClientInterface{
     
     
   //==================================================================================================
-  	//-
-  	//M5 Implementation: ====== Send vehicle to VCController (asynchronous) ========
-    public void submitVehicleToServer(Vehicle vehicle) {
+   // Subat Wrote This-
+    //M5 Implementation: Send vehicle to VCController via socket (asynchronous)
+    public void submitVehicleToController(Vehicle v) {
+        // spin up a new thread so the GUI doesn't freeze while waiting
         new Thread(() -> {
             try {
-                ClientConnection connection = new ClientConnection("localhost", 5001);
-
-                MessageServer message = new MessageServer(
-                        MessageServer.Type.VEHICLE_REQUEST,
-                        vehicle,
-                        this.userID
-                );
-
+                // connect to the server on port 5000
+                ClientConnection connection = new ClientConnection("localhost", 5000);
+                
+                // wrap the vehicle in a message packet with this owner's ID
+                MessageServer message = new MessageServer(MessageServer.Type.VEHICLE_REQUEST, v, this.userID);
+          
+                // send it off and wait for the server's response
                 String response = connection.send(message);
-
+                
+                // let the owner know what the server said
                 notify("Server Response: " + response);
-
             } catch (Exception e) {
+                // something went wrong with the connection
                 notify("Error sending vehicle: " + e.getMessage());
             }
         }).start();
     }
-
     
     public void notify(String message) {
         System.out.println("[VehicleOwner Notification] " + message);
     }
-    
   //=====================================================================================================
 	
     

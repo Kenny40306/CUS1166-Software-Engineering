@@ -3,7 +3,7 @@ import java.awt.*;
 import java.util.List;
 
 /*=====================
-Role Selection Frame - Jaden + Ryan + Kendra
+Role Selection Frame - Jaden + Ryan + Kendra + Avneet
 ======================*/
 
 
@@ -47,12 +47,15 @@ class RoleSelectionFrame extends JFrame{
         //Job and VehicleOwner Buttons
         JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
         JButton jobOwnerBtn = new JButton("Job Owner (Client)");
-        JButton dashboardBtn = new JButton("Dashboard"); //New: always shown (admin & user)
         
+      //New: always shown (admin & user) Dashboards
+        JButton adminDashboardBtn = new JButton("VC Controller Dashboard"); 
+        JButton userDashboardBtn = new JButton("User Dashboard");
+        		
         UIStyling.styleButton(vehicleOwnerBtn);
         UIStyling.styleButton(jobOwnerBtn);
-        UIStyling.styleButton(dashboardBtn); 
-              
+        UIStyling.styleButton(adminDashboardBtn); 
+        UIStyling.styleButton(userDashboardBtn); 
         
         Dimension buttonSize = new Dimension(200, 200); // width 180px, height 150px
         vehicleOwnerBtn.setPreferredSize(buttonSize);
@@ -61,9 +64,16 @@ class RoleSelectionFrame extends JFrame{
         vehicleOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
         jobOwnerBtn.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
+        
         buttonPanel.add(vehicleOwnerBtn);
         buttonPanel.add(jobOwnerBtn);
-        buttonPanel.add(dashboardBtn); 
+      
+        // Add dashboard button based on role
+        if (role.equalsIgnoreCase("Admin")) {
+            buttonPanel.add(adminDashboardBtn);
+        } else {
+            buttonPanel.add(userDashboardBtn);
+        }
                 
         panel.add(buttonPanel, BorderLayout.CENTER);
         add(panel);
@@ -71,7 +81,7 @@ class RoleSelectionFrame extends JFrame{
 
         // M5: Notification Area Panel: bottom panel for Admin dashboard buttons to logout, also refresh and clear notifications ======================= 
         // Admin notification area + buttons
-   
+        
         if (role.equalsIgnoreCase("Admin")) {
             // Left-side panel to hold notification + server button
             JPanel leftPanel = new JPanel();
@@ -116,6 +126,8 @@ class RoleSelectionFrame extends JFrame{
 
             leftPanel.add(Box.createVerticalStrut(10)); // small spacing before server button
 
+            
+            
             // ----- Server Console Button (Independent) -----
             JButton serverBtn = new JButton("Server Console");
             serverBtn.setPreferredSize(new Dimension(200, 30));
@@ -126,6 +138,7 @@ class RoleSelectionFrame extends JFrame{
             serverBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             leftPanel.add(serverBtnPanel);
 
+            
             // Add left panel to main panel
             panel.add(leftPanel, BorderLayout.WEST);
 
@@ -163,7 +176,9 @@ class RoleSelectionFrame extends JFrame{
         	openRoleChildFrame(new VehicleOwnerFrame(vcController, this)));
         jobOwnerBtn.addActionListener(e -> 
         	openRoleChildFrame(new JobOwnerFrame(vcController, this)));
-        dashboardBtn.addActionListener(e -> openDashboard());
+        
+        adminDashboardBtn.addActionListener(e -> openDashboard());
+        userDashboardBtn.addActionListener(e -> openDashboard());
         
         //logout button
         logoutButton.addActionListener(e -> {
@@ -203,18 +218,29 @@ class RoleSelectionFrame extends JFrame{
     private void openDashboard() {
     	vcController.refreshNotificationsFromFile();
     	 
-        JFrame dashboardFrame;
+    	JFrame dashboardFrame;
+
         if (role.equalsIgnoreCase("Admin")) {
-            if (adminDashboardFrame == null) 
-            adminDashboardFrame = new MainControllerFrame(vcController);
+            if (adminDashboardFrame == null) {
+                adminDashboardFrame = new MainControllerFrame(vcController);
+
+                //Force layout BEFORE positioning
+                adminDashboardFrame.setSize(300, 400); // use your actual preferred size
+                adminDashboardFrame.doLayout();
+            }
             dashboardFrame = adminDashboardFrame;
+
         } else {
-            if (userDashboardFrame == null) 
-            userDashboardFrame = new UserDashboardFrame(vcController);
-            dashboardFrame = userDashboardFrame; 
+            if (userDashboardFrame == null) {
+                userDashboardFrame = new UserDashboardFrame(vcController);
+
+                //Same fix for user frame
+                userDashboardFrame.setSize(300, 400);
+                userDashboardFrame.doLayout();
+            }
+            dashboardFrame = userDashboardFrame;
         }
-        
-        
+              
         // Position next to RoleSelectionFrame
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Point loc = getLocationOnScreen();
@@ -235,7 +261,7 @@ class RoleSelectionFrame extends JFrame{
         }
 
         dashboardFrame.setLocation(x, y);
-        dashboardFrame.setVisible(true);
+        SwingUtilities.invokeLater(() -> dashboardFrame.setVisible(true));
         
     }
     

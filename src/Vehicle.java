@@ -19,8 +19,8 @@ public class Vehicle implements Serializable {
 	    OFFLINE
 	}
 
-
     // attributes for each vehicle in the system
+	protected String ownerID;
     protected String vehicleID;
     protected String vehicleName;
     protected VehicleStatus status; // Uses enums: can be AVAILABLE, BUSY, DEPARTING, or OFFLINE
@@ -32,9 +32,10 @@ public class Vehicle implements Serializable {
     protected boolean scheduleKnown; // true if we know when the vehicle is leaving
 
     // constructor - sets up a new vehicle with its basic info
-    public Vehicle(String vehicleID, String vehicleName, double computePower,
+    public Vehicle(String vehicleID, String ownerID, String vehicleName, double computePower, 
                    LocalDateTime arrivalTime, LocalDateTime departureTime, boolean scheduleKnown) {
         this.vehicleID = vehicleID;
+        this.ownerID = ownerID;
         this.vehicleName = vehicleName;
         this.computePower = computePower;
         this.arrivalTime = arrivalTime;
@@ -43,18 +44,6 @@ public class Vehicle implements Serializable {
         this.status = VehicleStatus.AVAILABLE; // starts as available by default
         this.availability = true;
         this.currentJob = null; // no job assigned yet
-    }
-    
-    public Vehicle(String ownerID, String make, String model, String vin, String residencyTime) {
-        this.vehicleID = vin;              // use VIN as vehicle ID
-        this.vehicleName = make + " " + model;
-        this.computePower = 1.0;           // default compute power
-        this.arrivalTime = LocalDateTime.now();
-        this.departureTime = LocalDateTime.now().plusHours(1);
-        this.scheduleKnown = false;
-        this.status = VehicleStatus.AVAILABLE;
-        this.availability = true;
-        this.currentJob = null;
     }
 
     // updates the vehicle's current status
@@ -68,28 +57,7 @@ public class Vehicle implements Serializable {
         this.availability = false;
         this.status = VehicleStatus.BUSY;
     }
-    
-    public void processJob() {
-        new Thread(() -> {
-            try {
-                System.out.println("Vehicle " + vehicleID + " started processing job " + currentJob.getJobID());
 
-                updateStatus(VehicleStatus.BUSY);
-
-                // Simulate job processing time
-                Thread.sleep(3000);
-
-                System.out.println("Vehicle " + vehicleID + " completed job " + currentJob.getJobID());
-
-                if (currentJob != null) {
-                    currentJob.updateProgress(Job.JobStatus.COMPLETED);
-                }
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
     
     // subat
     // sends the completed job results to the server
@@ -112,8 +80,7 @@ public class Vehicle implements Serializable {
                " | Job: " + assignedJob +
                " | Power: " + computePower + " GHz";
     }
-
-
+    
     // getters
     public String getVehicleID() { 
     	return vehicleID; 
@@ -132,5 +99,21 @@ public class Vehicle implements Serializable {
     }
     public double getComputePower() { 
     	return computePower; 
+    }
+    
+    @Override
+    public String toString() {
+        return "Vehicle{" +
+                "vehicleID='" + vehicleID + '\'' +
+                ", vehicleName='" + vehicleName + '\'' +
+                ", ownerID='" + ownerID + '\'' +
+                ", status=" + status +
+                ", computePower=" + computePower + "GHz" +
+                ", currentJob=" + (currentJob != null ? currentJob.getJobName() : "None") +
+                ", available=" + availability +
+                ", arrivalTime=" + arrivalTime +
+                ", departureTime=" + departureTime +
+                ", scheduleKnown=" + scheduleKnown +
+                '}';
     }
 }

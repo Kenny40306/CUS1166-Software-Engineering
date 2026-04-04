@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 /*=====================
@@ -147,9 +148,13 @@ Vehicle Owner Frame - Subat + Avneet
    	        String make = makeField.getText();
    	        String model = modelField.getText();
    	        String vin = vinField.getText();
-   	      //allows us to get the selected value from Residency Time dropdown
+   	        //allows us to get the selected value from Residency Time dropdown
    	        String residencyUnit = (String) residencyBox.getSelectedItem();
    	        String residencyInput = residencyField.getText();
+   	       
+   	        //M5 change gets from system user for notification logic
+   			String systemID = vcController.getCurrentUserId(); //(!!!) root cause for notification link
+
    	        
    	        // first i checked for empty fields
    	        if (ownerID.isEmpty() || make.isEmpty() || model.isEmpty() || vin.isEmpty() || residencyInput.isEmpty()) {
@@ -182,6 +187,41 @@ Vehicle Owner Frame - Subat + Avneet
    	             return;
    	         }
 
+   	         
+   	         
+   	         //-------- M5 Implementation: Create VehicleOwner and Vehicle objects ------- 
+   	         //Subat Wrote This-
+   	         //Responsible for core logic when creating vehicle submission and sending it to the system
+
+   	         //Gets data from user input from vehicleownerframe textfield boxes and submit button triggers saveVehicle()
+   			//created new owner to be derived (Overloaded for GUI use)
+   		
+   			VehicleOwner owner = new VehicleOwner( //Vehicle Owner
+   				    systemID,
+   				    "Client " + systemID,
+   				    "client@email.com",
+   				    "password123",
+   		            residencyValue + " " + residencyUnit
+   				);
+   	         
+   			//Create Vehicle correctly
+   		    Vehicle vehicle = new Vehicle(	//Vehicle Object
+   		            vin,                      // vehicleID
+   		            ownerID,                 // ownerID
+   		            make + " " + model,		//Vehicle name and year
+   		            2.5,                     // compute power default
+   		            LocalDateTime.now(),
+   		            LocalDateTime.now().plusHours(2),
+   		            true
+   		    );
+   	       
+   		      	        
+   	        //M5 change here that calls VehicleOwner Class method here
+   	        owner.submitVehicleToController(vehicle);
+   	       //------------------------------------------------------------------------*/        
+   	         
+   	        
+   	        
    	        try {
    	        	//allows us to create the FileWriter in append mode (if it is true then we don't have to overwrite the previous data
    	            FileWriter writer = new FileWriter("vehicle_owner_data.txt", true);
@@ -201,13 +241,6 @@ Vehicle Owner Frame - Subat + Avneet
    	            //this shows the success message
    	            JOptionPane.showMessageDialog(this,
    	                    "Information saved successfully!");
-   	            
-   	            //avneet
-   	            //====== SENDS VEHICLE TO SERVER ======
-   	            
-   	            Vehicle vehicle = new Vehicle(ownerID, make, model, vin, residencyValue + " " + residencyUnit);
-   	            VehicleOwner owner = new VehicleOwner(ownerID, ownerID, "", "", residencyValue + " " + residencyUnit);
-   	            owner.submitVehicleToServer(vehicle);
    	            
    	            //this will clear the fields after the submission if it is successful
    	            ownerIDField.setText("");

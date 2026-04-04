@@ -149,11 +149,13 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		    return;
 		}
 		
-		//Kendra Wrote This-
+		
+		
 		//-------- M4 Implementation: Create JobOwner and Job objects ------- 
+		//Kendra Wrote This-
 		//Responsible for core logic when creating job submission and sending it to the system
 		
-		//Gets data from user input from jobownerframe textfield boxes
+		//Gets data from user input from jobownerframe textfield boxes and submit button triggers saveJobData()
 		//created new client id to be derived (Overloaded for GUI use)
 	
 		JobOwner client = new JobOwner(
@@ -175,9 +177,10 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
                 
         );
         
-        //M5 change here that calls JobOwner Class
-        client.submitJobToServer(job); // Socket Call
+        //M5 change here that calls JobOwner Class method here
+        client.submitJobToServer(job);
        //------------------------------------------------------------------------*/
+        
         
         
 		//needs fileutil.writer and time stamp

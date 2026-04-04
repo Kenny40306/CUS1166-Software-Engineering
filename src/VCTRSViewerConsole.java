@@ -24,21 +24,19 @@ public class VCTRSViewerConsole {
     public static void main(String[] args) {
     	
     	//----M4 Implementation: uses both server and VCController for all frames to interact with each other as central source----
-    	 //server is needed to store and manage jobs and results
-    	VCController vcController = new VCController("VC01"); //main controller manages vehicle, jobs and communication with server
+    	Server server = new Server("S001"); //server is needed to store and manage jobs and results
+    	VCController vcController = new VCController("VC01", server); //main controller manages vehicle, jobs and communication with server
     	
         //--------------Start socket server using thread in the console------
-        VCControllerServer socketServer =
-            new VCControllerServer(5001, vcController);
-        
-        new Thread(() -> socketServer.start()).start();
+    	//Important: Used for Async Communication for GUI and keep it responsive for real time updates
+        new Thread(() -> {
+            new VCControllerServer(5000, vcController).start();
+        }).start();
         //-------------------------------------------------------------------
         
         //Launch GUI
         SwingUtilities.invokeLater(() -> { //lambda implementation for new instance of Description Frame to show console information
-    		
-        	UserLoginFrame loginFrame = new UserLoginFrame(vcController);
-        	vcController.openServerFrame(loginFrame);//Initiates GUI frame for window to show options and reduce race conditions / shared thread data
+    		new DescriptionFrame(vcController); //Initiates GUI frame for window to show options and reduce race conditions / shared thread data
     	});
     }
 }
