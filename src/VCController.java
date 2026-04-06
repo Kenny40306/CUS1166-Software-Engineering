@@ -118,7 +118,7 @@ public class VCController {
        	        return null;
        	    }
 
-       	    jobIDs.add(job.getJobID()); // Track and store unique job id
+       	    jobIDs.add(job.getJobID()); // Tracks added job and store unique job id
        	    String requestID = client + "_" + System.nanoTime(); //Create unique request id to avoid client over writing each other upon request
        		pendingJobRequests.add(new JobRequest(job, client, requestID)); //Add pending jobs to list so admin can review it 
        		decisions.put(requestID, null); //Track decisions not decided yet
@@ -134,14 +134,15 @@ public class VCController {
        	
         //---- Approve / Reject Jobs ----
         public synchronized void approveJob(Job job) {
-            Iterator<JobRequest> it = pendingJobRequests.iterator();
+            Iterator<JobRequest> it = pendingJobRequests.iterator(); //
             while (it.hasNext()) {
                 JobRequest req = it.next();
                 if (req.job.equals(job)) { //Find match and push pending jobs to active jobs
                     activeJobs.add(job); //active jobs is now used here for FIFO calculations
                     saveJobToFile(job); //Save job to file jobsApproved
                     decisions.put(req.requestID, "APPROVED");  //stores admin decision hash map that's used for client to wait for respose waitForDecision() unblocks
-
+                    notifyAll(); //notify client of acception
+                    
                     // Notifications
                     addNotification(req.client, "Your job \"" + job.getJobName() + "\" was APPROVED");  //updates GUI notifications
                   
@@ -163,7 +164,6 @@ public class VCController {
                     decisions.put(req.requestID, "REJECTED"); //updates decision map and notify the client waitForDecision() unblocks
 
                     jobIDs.remove(job.getJobID()); // removes jobID and allow client re-submission if needed
-                    
                     notifyAll(); //notify client of rejection
 
                     // Notifications
@@ -232,6 +232,8 @@ public class VCController {
     }
     //=======================================================================================================
         
+    
+    
   //Methods
     //(M5 Implementation: =========== Core Vehicle Methods ===================================
     //Subat Wrote This -
@@ -336,7 +338,7 @@ public class VCController {
 
     //---------------------------------------------------------------------------------------------------------------------
    
-    
+    //=====================================================================================================================
     //For Both JobRequest & VehicleRequest Classes
     //Used by client Socket to wait until admin approves or reject job
    	public synchronized String waitForDecision(String requestID) {
@@ -349,8 +351,11 @@ public class VCController {
    	    }
    	    return decisions.remove(requestID); //return decision once admin decides
    	}
+    //=======================================================================================================================
     
-    
+   	
+   	
+   	
     //Jaden Wrote This-
     //-----------------Set Current User Context-----------------------------
     public void setCurrentUserId(String userId, UserRole role) {

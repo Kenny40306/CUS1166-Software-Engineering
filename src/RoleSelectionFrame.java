@@ -42,7 +42,7 @@ class RoleSelectionFrame extends JFrame{
 
         // Button panel
         JPanel buttonPanel = new JPanel(new GridLayout(3,1,0,15));
-        UIStyling.stylePanel(buttonPanel); // optional: style panel same color
+        UIStyling.stylePanel(buttonPanel); //style panel same color
         
         //Job and VehicleOwner Buttons
         JButton vehicleOwnerBtn = new JButton("Vehicle Owner");
@@ -54,8 +54,8 @@ class RoleSelectionFrame extends JFrame{
         		
         UIStyling.styleButton(vehicleOwnerBtn);
         UIStyling.styleButton(jobOwnerBtn);
-        UIStyling.styleButton(adminDashboardBtn); 
-        UIStyling.styleButton(userDashboardBtn); 
+        UIStyling.styleButton(adminDashboardBtn);
+        UIStyling.styleButton(userDashboardBtn);
         
         Dimension buttonSize = new Dimension(200, 200); // width 180px, height 150px
         vehicleOwnerBtn.setPreferredSize(buttonSize);
@@ -100,30 +100,39 @@ class RoleSelectionFrame extends JFrame{
             notificationArea.setEditable(false);
             notificationArea.setLineWrap(true);
             notificationArea.setWrapStyleWord(true);
+            notificationArea.setForeground(UIStyling.TEXT);
+            notificationArea.setBackground(UIStyling.BG_PANEL);
+            notificationArea.setCaretColor(UIStyling.TEXT);
             notificationArea.setMargin(new Insets(5,5,5,5)); // reduce padding inside text
+            
             JScrollPane scroll = new JScrollPane(notificationArea);
             scroll.setBorder(BorderFactory.createTitledBorder("User Notifications"));
             scroll.setAlignmentX(Component.CENTER_ALIGNMENT);
-            scroll.setPreferredSize(new Dimension(250, 150)); // bigger area
-            scroll.setMaximumSize(new Dimension(250, 150));
+            scroll.setPreferredSize(new Dimension(250, 170)); // bigger area
+            scroll.setMaximumSize(new Dimension(250, 170));
             notifPanel.add(scroll);
-
+            
+            notifPanel.add(Box.createVerticalStrut(4)); // extra vertical spacing above buttons
+            
             // Refresh / Clear buttons centered
             JPanel notifBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // tighter spacing
+            UIStyling.stylePanel(notifBtnPanel); // match dark background
             JButton refreshBtn = new JButton("Refresh");
             JButton clearBtn = new JButton("Clear");
+            
             refreshBtn.setPreferredSize(new Dimension(90, 25));
             clearBtn.setPreferredSize(new Dimension(90, 25));
-            UIStyling.styleButton(refreshBtn);
-            UIStyling.styleButton(clearBtn);
+            UIStyling.styleDashboardButton(refreshBtn);
+            UIStyling.styleDashboardButton(clearBtn);
+      
             notifBtnPanel.add(refreshBtn);
             notifBtnPanel.add(clearBtn);
             notifBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+           
             notifPanel.add(notifBtnPanel);
-
             notifPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+           
             leftPanel.add(notifPanel);
-
             leftPanel.add(Box.createVerticalStrut(10)); // small spacing before server button
 
             
@@ -132,7 +141,9 @@ class RoleSelectionFrame extends JFrame{
             JButton serverBtn = new JButton("Server Console");
             serverBtn.setPreferredSize(new Dimension(200, 30));
             UIStyling.styleButton(serverBtn);
+       
             JPanel serverBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            UIStyling.stylePanel(serverBtnPanel); // match dark background
             serverBtnPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
             serverBtnPanel.add(serverBtn);
             serverBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);

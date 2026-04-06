@@ -31,7 +31,7 @@ private List<Job> jobSubmitted;
     public void submitJobToServer(Job job) {
         new Thread(() -> {
             try {
-                ClientConnection connection = new ClientConnection("localhost", 5000); //connect to server port
+                ClientConnection connection = new ClientConnection("localhost", 5001); //connect to server port
                 MessageServer message = new MessageServer( MessageServer.Type.JOB_REQUEST,job,this.userID);
                 String response = connection.send(message); // Send job and receive server response
 

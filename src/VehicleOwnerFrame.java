@@ -31,7 +31,7 @@ Vehicle Owner Frame - Subat + Avneet
 	    private JLabel residencyLabel;
 
 	 //dropdown menu for user
-	    private JTextField residencyField = new JTextField(5);
+	    private JTextField residencyField = new JTextField(10);
 	    private JComboBox<String> residencyBox;
 	    
 	    public VehicleOwnerFrame(VCController vcController, RoleSelectionFrame roleFrame) {
@@ -101,9 +101,22 @@ Vehicle Owner Frame - Subat + Avneet
 	         };
 	        
 	        residencyBox = new JComboBox<>(residencyUnits);
-	        JPanel residencyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	        
+	        JPanel residencyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
+	        UIStyling.stylePanel(residencyPanel); // dark background for panel
 	        residencyPanel.add(residencyField); //user input
 	        residencyPanel.add(residencyBox); // user selection
+	        
+	        residencyField.setPreferredSize(new Dimension(150, 30)); // width 150px, height 28px
+	        residencyField.setForeground(UIStyling.TEXT);
+	        residencyField.setBackground(UIStyling.BG_DARK);
+	        residencyField.setCaretColor(UIStyling.TEXT);
+	        residencyField.setBorder(BorderFactory.createCompoundBorder(
+	                BorderFactory.createLineBorder(UIStyling.BORDER, 2), // outer border
+	                BorderFactory.createEmptyBorder(2, 4, 2, 4)          // padding inside so cursor starts
+	        ));
+
+	        
 	        panel.add(residencyPanel);
 	        
 	        JButton submitButton = new JButton("Submit");

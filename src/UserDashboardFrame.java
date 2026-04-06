@@ -18,11 +18,9 @@ public class UserDashboardFrame extends JFrame {
 
 	private JButton prevBtn; // shows past Submissions
 	private JButton nextBtn; // shows current Submissions
-	//private boolean showingCurrent = true; // true = current submission, false = past submissions
 	
 	private List<String> allSubmissions = new ArrayList<>();//stores latest pending submission
-   // private final List<String> pastSubmissions = new ArrayList<>(); //stores approved/rejected submission
-    private int displayIndex = 0; // index to track cycling through past submissions
+    private int displayIndex = -1; // index to track cycling through past submissions
 
     
     public UserDashboardFrame(VCController vcController) {
@@ -42,29 +40,43 @@ public class UserDashboardFrame extends JFrame {
         add(title, BorderLayout.NORTH);
         
         //Notifications-------------------------------------------------
-        notificationArea = new JTextArea(5,25);
+        notificationArea = new JTextArea(8,25);
         notificationArea.setEditable(false);
         notificationArea.setLineWrap(true);
         notificationArea.setWrapStyleWord(true);
        
         JScrollPane scroll = new JScrollPane(notificationArea);
         scroll.setBorder(BorderFactory.createTitledBorder("Your Notifications"));
-        scroll.setPreferredSize(new Dimension(200, 60));
+        scroll.setPreferredSize(new Dimension(280, 70));
         panel.add(scroll, BorderLayout.NORTH);
-        
+              
+                
+        Dimension buttonSize = new Dimension(85, 25); // fixed width & height
+       
+        JPanel notifBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // 8 px gap horizontally
         JButton refreshBtn = new JButton("Refresh");
         JButton clearBtn = new JButton("Clear");
         UIStyling.styleDashboardButton(refreshBtn); //CHANGED 
         UIStyling.styleDashboardButton(clearBtn);   //CHANGED 
-
-        JPanel notifBtnPanel = new JPanel();
+        refreshBtn.setPreferredSize(buttonSize);
+        clearBtn.setPreferredSize(buttonSize);
         notifBtnPanel.add(refreshBtn);
         notifBtnPanel.add(clearBtn);
+
+        // Wrapper to add vertical spacing
+        JPanel bottomWrapper = new JPanel();
+        bottomWrapper.setLayout(new BoxLayout(bottomWrapper, BoxLayout.Y_AXIS));
+        bottomWrapper.add(Box.createVerticalStrut(10)); // spacing
+        bottomWrapper.add(notifBtnPanel);
+
         
         JPanel notifPanel = new JPanel(new BorderLayout());
+        notifPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
         notifPanel.add(scroll, BorderLayout.CENTER);
-        notifPanel.add(notifBtnPanel, BorderLayout.SOUTH);
+        notifPanel.add(bottomWrapper, BorderLayout.SOUTH);     
+        
         panel.add(notifPanel, BorderLayout.NORTH);
+       
 
         //Info Area with scroll
         infoArea = new JTextArea("Welcome! View your updates below.");
@@ -76,43 +88,52 @@ public class UserDashboardFrame extends JFrame {
         infoScroll.setBorder(BorderFactory.createTitledBorder("Dashboard Info"));
         panel.add(infoScroll, BorderLayout.CENTER);
         
-          
         // Two separate buttons for Current / Past submissions
         prevBtn = new JButton("Previous");
         nextBtn = new JButton("Next");
         UIStyling.styleDashboardButton(prevBtn);
         UIStyling.styleDashboardButton(nextBtn);
+        prevBtn.setPreferredSize(buttonSize);
+        nextBtn.setPreferredSize(buttonSize);
 
 
         // Put them side by side with spacing
         JPanel togglePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // 5 px gap
-        prevBtn.setPreferredSize(new Dimension(70, 30));
-        nextBtn.setPreferredSize(new Dimension(70, 30));
         togglePanel.add(prevBtn);
         togglePanel.add(nextBtn);
-      
+              
         panel.add(togglePanel, BorderLayout.SOUTH);
-        
         add(panel);
         
-
         //Load notifications AFTER user is set
         refreshNotifications(); 
     	
     	// ================= BUTTON ACTIONS =================
     	refreshBtn.addActionListener(e -> {
-    		vcController.refreshNotificationsFromFile();
     		refreshNotifications();
     	});
 
     	clearBtn.addActionListener(e -> {
-    		String userId = vcController.getCurrentUserId();
-    		vcController.clearNotifications(userId);
-    		refreshNotifications();
+      		notificationArea.setText("");// clear only the notification area
     	});
     
-        nextBtn.addActionListener(e -> showNextSubmission());
-        prevBtn.addActionListener(e -> showPreviousSubmission());
+    	   // Navigate to next (newer) submission
+        nextBtn.addActionListener(e -> {
+            if (!allSubmissions.isEmpty()) {
+                displayIndex++;
+                if (displayIndex >= allSubmissions.size()) displayIndex = allSubmissions.size() - 1;
+                showSubmission(allSubmissions.get(displayIndex), "SUBMISSION");
+            }
+        });
+
+        // Navigate to previous (older) submission
+        prevBtn.addActionListener(e -> {
+            if (!allSubmissions.isEmpty()) {
+                displayIndex--;
+                if (displayIndex < 0) displayIndex = 0;
+                showSubmission(allSubmissions.get(displayIndex), "SUBMISSION");
+            }
+        });
     	
         // Initial load
         refreshNotifications();
@@ -121,10 +142,9 @@ public class UserDashboardFrame extends JFrame {
 	}
         
     // Load all notifications and separate approved/rejected submissions */
+  
     public void refreshNotifications() {
         notificationArea.setText("");
-        allSubmissions.clear();
-        displayIndex = 0;
 
         String userId = vcController.getCurrentUserId();
         if (userId == null) {
@@ -143,108 +163,91 @@ public class UserDashboardFrame extends JFrame {
 
         for (String m : msgs) {
             notificationArea.append(m + "\n");
-            if (m.toLowerCase().contains("approved") || m.toLowerCase().contains("rejected")) {
+            if ((m.toLowerCase().contains("approved") || m.toLowerCase().contains("rejected"))
+                    && !allSubmissions.contains(m)) {
                 allSubmissions.add(m);
             }
         }
 
-        if (allSubmissions.isEmpty()) {
-            infoArea.setText("No approved/rejected submissions yet.");
-        } else {
-            displayIndex = allSubmissions.size() - 1; // show most recent first
-            showSubmission(allSubmissions.get(displayIndex), "SUBMISSION");
+        if (!allSubmissions.isEmpty()) {
+            displayIndex = allSubmissions.size() - 1; // most recent first
+            showSubmission(allSubmissions.get(displayIndex),"SUBMISSION");
+
         }
     }
-   
-    
-    private void showNextSubmission() {
-        if (allSubmissions.isEmpty()) return;
-
-        displayIndex++;
-        if (displayIndex >= allSubmissions.size()) {
-            displayIndex = allSubmissions.size() - 1; // stay at last
-        }
-        showSubmission(allSubmissions.get(displayIndex), "SUBMISSION");
-    }
-
-    private void showPreviousSubmission() {
-        if (allSubmissions.isEmpty()) return;
-
-        displayIndex--;
-        if (displayIndex < 0) {
-            displayIndex = 0; // stay at first
-        }
-        showSubmission(allSubmissions.get(displayIndex), "SUBMISSION");
-    }    
-    
     
     private void showSubmission(String notification, String type) {
-        if (notification == null) {
-            infoArea.append("No " + type.toLowerCase() + " submission.\n");
+    	
+    	infoArea.setText(""); // clear previous content
+    	
+    	if (notification == null) {
+    		infoArea.setText("No submissions to display.");
             return;
         }
 
-        infoArea.append("=== " + type + " SUBMISSION ===\n");
-        infoArea.append(notification + "\n");
+    	String header = "SUBMISSION";
+        if (notification.toLowerCase().contains("job")) header = "JOB";
+        else if (notification.toLowerCase().contains("vehicle")) header = "VEHICLE";
 
+        infoArea.append("== " + header + " SUBMISSION ==\n");
+        
         if (notification.toLowerCase().contains("approved")) {
-            displaySubmitJob(notification);
-            displaySubmitVehicle(notification);
-            trackJobProgress();
-            typeJob();
-        } else if (notification.toLowerCase().contains("rejected")) {
-            infoArea.append("Please submit again.\n");
+        	if (header.equals("JOB")) {
+        		 infoArea.append(notification + "\n");
+        		 displaySubmitJob(notification);
+        		 typeJob();
+        	}else if (header.equals("VEHICLE")) {
+                 displaySubmitVehicle(notification);
+            }
+        	trackJobProgress();             
+        }else if (notification.toLowerCase().contains("rejected")) {
+        	infoArea.append(notification + "\n");
+        	infoArea.append("Please submit again.\n");  
+        }else {
+            infoArea.append(notification + "\n");   // fallback for unexpected messages
         }
     }
 
         
  //Moon worked on this: PLACEHOLDER TEXTS ===============================
-    public void displaySubmitJob(String notification) {
-    	String userId = vcController.getCurrentUserId();
-    	if (userId == null) {
-    		infoArea.setText("No user logged in.");
-    		return;
-    	}
-    	    	
+    public void displaySubmitJob(String notification) {    	    	
     	// Extract job name from notification message, e.g., "Job 'Fix Engine' APPROVED"
         String jobName = "[Unknown Job]";
         if (notification != null && !notification.isEmpty()) {
             jobName = notification.replaceAll("(?i).*job\\s+'(.+?)'.*", "$1");
         }
 
-    	 infoArea.setText("=== JOB SUBMISSION ===\n");
+    	// infoArea.setText("=== JOB SUBMISSION ===\n");
     	 infoArea.append("Job Name:" + jobName + "\n");
     	 infoArea.append("Duration: [e.g., 2 hours]\n");
     	 infoArea.append("Deadline: [MM/DD/YYYY]\n");
+    	 infoArea.append("Assigned Vehicle: V-101\n");
     }
   //Type job
     public void typeJob() {
-    	String userId = vcController.getCurrentUserId();
-    	if (userId == null) {
-    		infoArea.setText("No user logged in.");
-    		return;
-    	}
-    	infoArea.append("\n=== JOB TYPE ===\n");
+    	infoArea.append("\n=== JOB DETAILS ===\n");
         infoArea.append("Description: [Job description will appear here]\n");
     }
     
     //Submit Vehicle: type of vehicle
     public void displaySubmitVehicle(String notification) {
-    	
-    	String userId = vcController.getCurrentUserId();
-    	if (userId == null) {
-    		infoArea.setText("No user logged in.");
-    		return;
-    	}
-
-    	infoArea.append("\n=== VEHICLE SETUP ===\n");
-        infoArea.append("Vehicle Type: [N/A] \n");
-        infoArea.append("Connection Status: [Not Connected]\n");
+      	// Extract vehicle name from notification message, e.g., "Vehicle 'Fix Engine' APPROVED"
+        String vehicleName = "[Unknown Vehicle]";
+        if (notification != null && !notification.isEmpty()) {
+            vehicleName = notification.replaceAll("(?i).*vehicle\\s+'(.+?)'.*", "$1");
+        }
+    	//infoArea.append("\n=== VEHICLE SUBMISSION ===\n");
+        infoArea.append("Vehicle ID: " + vehicleName + "\n");
+        infoArea.append("Model: Ford Bronco\n");
+        infoArea.append("Capacity: 1000 kg\n");
+        infoArea.append("Connection Status: [Connected]\n");
+        infoArea.append("Last Sync: Date/Time\n");
     }
     
     //Track Job Progress (status:pending/processing/completed/failed)
     public void trackJobProgress() {
     	infoArea.append("Status: ----\n");
+    	infoArea.append("Progress: 60%\n");
     }
     
     
@@ -270,10 +273,8 @@ public class UserDashboardFrame extends JFrame {
 //==================================
 //FUTURE METHODS (NOT IMPLEMENTED YET)
 //===================================
-  		
-	//refresh dashboard
-   //Submit Job: type of job submitted, connected vehicles
-  
+ 
+	//Cancel Job Maybe
   //refresh dashboard
   /*public void refreshDashboard() {
   	refreshNotifications();

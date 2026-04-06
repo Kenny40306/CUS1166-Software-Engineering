@@ -21,13 +21,17 @@ public class MainControllerFrame extends JFrame{
     	// Store controller reference
     	this.vcController = vcController;
     	
-        setTitle("VC Controller Dashboard Frame"); // Set window title
+        setTitle("VC Controller Frame"); // Set window title
         setSize(300, 400); // Set window size
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window when user exits
         setLayout(new BorderLayout(10,10));  // Use BorderLayout for organizing components
         
      // Title
-        JLabel title = UIStyling.createDashboardTitle("VC Controller Dashboard");
+        //JLabel title = UIStyling.createDashboardTitle("VC Controller Dashboard");
+        
+        JLabel title = new JLabel("VC Controller Dashboard", SwingConstants.CENTER);
+        title.setFont(new Font("Georgia", Font.BOLD, 20)); // smaller than default 24
+        title.setForeground(UIStyling.ACCENT);
         
         JButton acceptButton = new JButton("Accept");
         JButton rejectButton = new JButton("Reject");
@@ -180,9 +184,9 @@ public class MainControllerFrame extends JFrame{
     	        Long time = completionTimes.get(i);
     	        long durationMin = j.getDuration().toMinutes(); // get its completion time
     	        // Display job name, ID, and computed time
-    	        outputArea.append("Job: " + j.getJobName() + 
-    	        		" | JobID: " + j.getJobID() +
-    	        		" | Duration: " + durationMin + " min" +
+    	        outputArea.append("Job: " + j.getJobName() + "\n" +
+    	        		" | JobID: " + j.getJobID() + "\n"+
+    	        		" | Duration: " + durationMin + " min" + "\n" +
     	                " | Completion Time: " + time + " min\n");
     	    }
     	    outputArea.append("===============================================\n\n");	    

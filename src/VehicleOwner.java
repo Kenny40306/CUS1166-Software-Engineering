@@ -32,7 +32,7 @@ public class VehicleOwner extends User{ //implements ClientInterface{
         new Thread(() -> {
             try {
                 // connect to the server on port 5000
-                ClientConnection connection = new ClientConnection("localhost", 5000);
+                ClientConnection connection = new ClientConnection("localhost", 5001);
                 
                 // wrap the vehicle in a message packet with this owner's ID
                 MessageServer message = new MessageServer(MessageServer.Type.VEHICLE_REQUEST, v, this.userID);

@@ -30,7 +30,7 @@ public class VCTRSViewerConsole {
         //--------------Start socket server using thread in the console------
     	//Important: Used for Async Communication for GUI and keep it responsive for real time updates
         new Thread(() -> {
-            new VCControllerServer(5000, vcController).start();
+            new VCControllerServer(5001, vcController).start();
         }).start();
         //-------------------------------------------------------------------
         
@@ -63,8 +63,11 @@ public class VCTRSViewerConsole {
 	       JLabel subtitle = new JLabel("VEHICULAR CLOUD SYSTEM", SwingConstants.CENTER);
 	       subtitle.setFont(new Font("Arial", Font.PLAIN, 16));
 	       subtitle.setForeground(UIStyling.ACCENT);
-	       // main welcome title
-	       JLabel title = UIStyling.createDashboardTitle("Welcome To The Vehicular Cloud Console");
+	       // main welcome title	       
+	       JLabel title = new JLabel("Welcome To The Vehicular Cloud Console", SwingConstants.CENTER);
+	       title.setFont(new Font("Georgia", Font.BOLD, 20)); // smaller than default 24
+	       title.setForeground(UIStyling.ACCENT);
+	       
 	       titlePanel.add(subtitle, BorderLayout.NORTH);
 	       titlePanel.add(title, BorderLayout.CENTER);
 	       panel.add(titlePanel, BorderLayout.NORTH);
