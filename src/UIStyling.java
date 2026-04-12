@@ -24,7 +24,7 @@ public class UIStyling {
 	public static final Font FONT_TITLE = new Font("Georgia", Font.BOLD, 24);
 	public static final Font FONT_BUTTON = new Font("Georgia", Font.BOLD, 13);
 	public static final Font FONT_BODY = new Font("Georgia", Font.PLAIN, 13);
-
+	
 	// sets panel background to dark navy
 	public static void stylePanel(JPanel panel) {
 		panel.setBackground(BG_DARK);
@@ -172,5 +172,36 @@ public class UIStyling {
 				stylePanelDeep((JPanel) c);
 			}
 		}
+	}
+	
+	public static JButton createIconButton(String symbol, Color baseColor, Color hoverColor) {
+
+	    JButton btn = new JButton(symbol);
+
+	    btn.setPreferredSize(new Dimension(45, 25));
+	    btn.setFont(new Font("Segoe UI Symbol", Font.BOLD, 14));
+
+	    btn.setFocusPainted(false);
+	    btn.setBorderPainted(false);
+	    btn.setOpaque(true);
+
+	    btn.setForeground(Color.WHITE);
+	    btn.setBackground(baseColor);
+	    btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+	    // hover effect
+	    btn.addMouseListener(new MouseAdapter() {
+
+	        @Override
+	        public void mouseEntered(MouseEvent e) {
+	            btn.setBackground(hoverColor);
+	        }
+
+	        @Override
+	        public void mouseExited(MouseEvent e) {
+	            btn.setBackground(baseColor);
+	        }
+	    });
+	    return btn;
 	}
 }

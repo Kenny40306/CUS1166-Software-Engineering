@@ -214,20 +214,23 @@ Vehicle Owner Frame - Subat + Avneet
    				    "Client " + systemID,
    				    "client@email.com",
    				    "password123",
-   		            residencyValue + " " + residencyUnit
+   		            residencyValue+ " " + residencyUnit
    				);
-   	         
-   			//Create Vehicle correctly
-   		    Vehicle vehicle = new Vehicle(	//Vehicle Object
+   			
+   			
+   			
+   			Vehicle vehicle = new Vehicle(	//Vehicle Object
    		            vin,                      // vehicleID
    		            ownerID,                 // ownerID
-   		            make + " " + model,		//Vehicle name and year
-   		            2.5,                     // compute power default
+   		            model,					//name of car
+   		            Integer.parseInt(make),	//year
+   		            2.5,  // compute power default
+   		            residencyValue,
+   		         	residencyUnit,
    		            LocalDateTime.now(),
    		            LocalDateTime.now().plusHours(2),
    		            true
    		    );
-   	       
    		      	        
    	        //M5 change here that calls VehicleOwner Class method here
    	        owner.submitVehicleToController(vehicle);

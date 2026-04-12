@@ -1,5 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /*=====================
@@ -10,213 +13,351 @@ Main Controller Frame - Moontarin + Subat + Kendra
 
 //Main Frame (GUI window for displaying system output)
 public class MainControllerFrame extends JFrame{
-  
-	  
-    private VCController vcController;  // Reference to VCController (connects GUI to backend logic)
-    private JTextArea outputArea;	// Text area used to display backend output/logs
-    private JPanel topPanel;	
-    
-    //initializes the frame and connects it to controller
+	
+    private VCController vcController;
+
+    private JPanel requestPanel;
+    private JTextArea fifoOutput;
+
     public MainControllerFrame(VCController vcController) {
-    	// Store controller reference
-    	this.vcController = vcController;
-    	
-        setTitle("VC Controller Frame"); // Set window title
-        setSize(300, 400); // Set window size
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window when user exits
-        setLayout(new BorderLayout(10,10));  // Use BorderLayout for organizing components
-        
-     // Title
-        //JLabel title = UIStyling.createDashboardTitle("VC Controller Dashboard");
-        
+        this.vcController = vcController;
+
+        setTitle("VC Controller Dashboard");
+        setSize(340, 400);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+
+        UIStyling.styleFrameDark(this);
+
+        // ================= TITLE =================
         JLabel title = new JLabel("VC Controller Dashboard", SwingConstants.CENTER);
-        title.setFont(new Font("Georgia", Font.BOLD, 20)); // smaller than default 24
+        title.setFont(new Font("Georgia", Font.BOLD, 20));
         title.setForeground(UIStyling.ACCENT);
+
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        UIStyling.styleDashboardPanel(titlePanel);
+        titlePanel.add(title, BorderLayout.CENTER);
+
+        add(titlePanel, BorderLayout.NORTH);
+
+        // ================= CENTER =================
+        JPanel center = new JPanel(new BorderLayout(10, 10));
+        UIStyling.styleDashboardPanel(center);
+
+        // ================= PENDING TITLE (LEFT + SMALL) =================
+        JLabel pendingTitle = new JLabel("Pending Requests");
+        pendingTitle.setFont(new Font("SansSerif", Font.BOLD, 13));
+        pendingTitle.setForeground(UIStyling.ACCENT);
+
+        JPanel pendingTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        UIStyling.styleDashboardPanel(pendingTitlePanel);
+        pendingTitlePanel.add(pendingTitle);
+
+        // ================= REQUEST PANEL =================
+        requestPanel = new JPanel();
+        requestPanel.setLayout(new BoxLayout(requestPanel, BoxLayout.Y_AXIS));
+        UIStyling.styleDashboardPanel(requestPanel);
+
+        JScrollPane requestScroll = new JScrollPane(requestPanel);
+        UIStyling.styleScrollPaneDark(requestScroll);
         
-        JButton acceptButton = new JButton("Accept");
-        JButton rejectButton = new JButton("Reject");
-        JButton calcButton = new JButton("Calculate");
+        JPanel requestContainer = new JPanel(new BorderLayout(8, 9));
+        UIStyling.styleDashboardPanel(requestContainer);
+        requestContainer.add(pendingTitlePanel, BorderLayout.NORTH);
+        requestContainer.add(requestScroll, BorderLayout.CENTER);
 
-        UIStyling.styleDashboardButton(acceptButton); /* CHANGED */
-        UIStyling.styleDashboardButton(rejectButton); /* CHANGED */
-        UIStyling.styleDashboardButton(calcButton);   /* CHANGED */
+        center.add(requestContainer, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.add(acceptButton);
-        buttonPanel.add(rejectButton);
-        buttonPanel.add(calcButton);
-        UIStyling.styleDashboardPanel(buttonPanel);
-
-        // Combine into header
-        topPanel = new JPanel(new BorderLayout());
-        topPanel.add(title, BorderLayout.NORTH);
-        topPanel.add(buttonPanel, BorderLayout.SOUTH);
-        UIStyling.styleDashboardPanel(topPanel);
-        
-        add(topPanel, BorderLayout.NORTH);
-
-        //Text Area For Output
-        outputArea = new JTextArea(15,50); // Create text area for output display
-        outputArea.setEditable(false); // Make text area read-only (user cannot edit)
-        JScrollPane scrollPane = new JScrollPane(outputArea);
-        UIStyling.styleScrollPaneDark(scrollPane);
-
-        JPanel centerWrapper = new JPanel(new BorderLayout());
-        UIStyling.styleDashboardPanel(centerWrapper);
-        centerWrapper.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-        centerWrapper.add(scrollPane, BorderLayout.CENTER);
-        
-        add(centerWrapper, BorderLayout.CENTER); // Add scroll pane to center of frame
-        
+        // ================= FIFO TITLE (LEFT + SMALL) =================
        
-      //====================================================================================
-        //!!!M5 Implementation: Buttons for Accept and Reject!!!
-        //==================================================================================
-        //Kendra + Subat Wrote This-
-           
-        acceptButton.addActionListener(e -> {
-            // Determine which request came first
-            Object firstReq = null; // could be JobRequest or VehicleRequest
+        JLabel fifoTitle = new JLabel("Calculate FIFO");
+        fifoTitle.setFont(new Font("SansSerif", Font.BOLD, 13));
+        fifoTitle.setForeground(UIStyling.ACCENT);
 
-            if (!vcController.getPendingJobRequests().isEmpty() && !vcController.getPendingVehicleRequests().isEmpty()) {
-                VCController.JobRequest jobReq = vcController.getPendingJobRequests().get(0);
-                VCController.VehicleRequest vehReq = vcController.getPendingVehicleRequests().get(0);
+        JPanel fifoTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        UIStyling.styleDashboardPanel(fifoTitlePanel);
+        fifoTitlePanel.add(fifoTitle);
 
-                // Compare by requestID timestamp or nanoTime
-                if (jobReq.requestID.compareTo(vehReq.requestID) < 0) { // job came first
-                    firstReq = jobReq;
-                } else {
-                    firstReq = vehReq;
-                }
+        // ================= FIFO PANEL =================
+        JPanel fifoPanel = new JPanel(new BorderLayout(8, 8));
+        UIStyling.styleDashboardPanel(fifoPanel);
 
-            } else if (!vcController.getPendingJobRequests().isEmpty()) {
-                firstReq = vcController.getPendingJobRequests().get(0);
-            } else if (!vcController.getPendingVehicleRequests().isEmpty()) {
-                firstReq = vcController.getPendingVehicleRequests().get(0);
-            }
+        JButton calcButton = new JButton("Calculate");
+        UIStyling.styleDashboardButton(calcButton);
 
-            if (firstReq instanceof VCController.JobRequest jobReq) {
-                vcController.approveJob(jobReq.job);
-                outputArea.append("[APPROVED] Job: " + jobReq.job.getJobName() + "\n");
+        fifoOutput = new JTextArea(8, 40);
+        fifoOutput.setEditable(false);
+        UIStyling.styleTextAreaDark(fifoOutput);
 
-            } else if (firstReq instanceof VCController.VehicleRequest vehReq) {
-                vcController.approveVehicle(vehReq.vehicle);
-                outputArea.append("[APPROVED] Vehicle: " + vehReq.vehicle.getVehicleID() + "\n");
+        JScrollPane fifoScroll = new JScrollPane(fifoOutput);
+        UIStyling.styleScrollPaneDark(fifoScroll);
 
-            } else {
-                outputArea.append("[VCController] No pending requests to approve.\n");
-            }
+        fifoPanel.add(calcButton, BorderLayout.NORTH);
+        fifoPanel.add(fifoScroll, BorderLayout.CENTER);
+
+        JPanel fifoContainer = new JPanel(new BorderLayout(5, 5));
+        UIStyling.styleDashboardPanel(fifoContainer);
+        fifoContainer.add(fifoTitlePanel, BorderLayout.NORTH);
+        fifoContainer.add(fifoPanel, BorderLayout.CENTER);
+
+        center.add(fifoContainer, BorderLayout.SOUTH);
+
+        add(center, BorderLayout.CENTER);
+
+        refreshRequests();
+        calcButton.addActionListener(e -> runFIFO());
+
+        setVisible(true);
+    }
+
+    // =========================================================
+    // REFRESH REQUESTS
+    // =========================================================
+    private void refreshRequests() {
+        requestPanel.removeAll();
+
+        // combine both lists into one timeline-sorted list
+        List<Object> allRequests = new ArrayList<>();
+
+        allRequests.addAll(vcController.getPendingJobRequests());
+        allRequests.addAll(vcController.getPendingVehicleRequests());
+
+        // sort by requestID timestamp (nanoTime embedded at end)
+        allRequests.sort((a, b) -> {
+
+            long t1 = extractTime(a);
+            long t2 = extractTime(b);
+
+            return Long.compare(t1, t2);
         });
 
-        rejectButton.addActionListener(e -> {
-            // Same logic for rejecting
-            Object firstReq = null;
+        //Correct UI Order
+        for (Object req : allRequests) {
 
-            if (!vcController.getPendingJobRequests().isEmpty() && !vcController.getPendingVehicleRequests().isEmpty()) {
-                VCController.JobRequest jobReq = vcController.getPendingJobRequests().get(0);
-                VCController.VehicleRequest vehReq = vcController.getPendingVehicleRequests().get(0);
-
-                if (jobReq.requestID.compareTo(vehReq.requestID) < 0) {
-                    firstReq = jobReq;
-                } else {
-                    firstReq = vehReq;
-                }
-
-            } else if (!vcController.getPendingJobRequests().isEmpty()) {
-                firstReq = vcController.getPendingJobRequests().get(0);
-            } else if (!vcController.getPendingVehicleRequests().isEmpty()) {
-                firstReq = vcController.getPendingVehicleRequests().get(0);
+            if (req instanceof VCController.JobRequest jr) {
+                requestPanel.add(createJobRow(jr));
+            } else if (req instanceof VCController.VehicleRequest vr) {
+                requestPanel.add(createVehicleRow(vr));
             }
+        }
 
-            if (firstReq instanceof VCController.JobRequest jobReq) {
-                vcController.rejectJob(jobReq.job);
-                outputArea.append("[REJECTED] Job: " + jobReq.job.getJobName() + "\n");
+        //Refresh UI
+        requestPanel.revalidate();
+        requestPanel.repaint();
+    }
+    
+    //Helper method that extract timestamp form requestID in VCController to sort requests
+    private long extractTime(Object req) {
 
-            } else if (firstReq instanceof VCController.VehicleRequest vehReq) {
-                vcController.rejectVehicle(vehReq.vehicle);
-                outputArea.append("[REJECTED] Vehicle: " + vehReq.vehicle.getVehicleID() + "\n");
+        String id;
 
-            } else {
-                outputArea.append("[VCController] No pending requests to reject.\n");
-            }
+        if (req instanceof VCController.JobRequest jr) {
+            id = jr.requestID;
+        } else {
+            id = ((VCController.VehicleRequest) req).requestID;
+        }
+
+        // requestID format: client + "_" + nanoTime
+        try {
+            return Long.parseLong(id.split("_")[1]);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // =========================================================
+    // JOB ROW (ALIGNED)
+    // =========================================================
+    private JPanel createJobRow(VCController.JobRequest req) {
+
+        JPanel row = new JPanel(new GridBagLayout());
+        UIStyling.styleDashboardPanel(row);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(2, 5, 2, 5);
+        gbc.gridy = 0;
+
+        // ================= MULTI-LINE JOB INFO =================
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        UIStyling.styleDashboardPanel(textPanel);
+
+        // user-friendly + system values
+        long durationMin = req.job.getDuration().toMinutes();
+        long deadlineMin = Duration.between(
+                LocalDateTime.now(),
+                req.job.getDeadline()
+        ).toMinutes();
+
+
+        JLabel line1 = new JLabel("JOB | " + req.client + " Requested");
+        JLabel line2 = new JLabel("ID: " + req.job.getJobID());
+        JLabel line3 = new JLabel("Name: " + req.job.getJobName());
+      
+        JLabel line4 = new JLabel("Duration: " + durationMin + " min");
+        JLabel line5 = new JLabel("Deadline: " + deadlineMin  + " min");
+        
+        line1.setForeground(UIStyling.TEXT);
+        line2.setForeground(UIStyling.TEXT);
+        line3.setForeground(UIStyling.TEXT);
+        line4.setForeground(UIStyling.TEXT);
+        line5.setForeground(UIStyling.TEXT);
+
+        textPanel.add(line1);
+        textPanel.add(line2);
+        textPanel.add(line3);
+        textPanel.add(line4);
+        textPanel.add(line5);
+        
+        JLabel separator = new JLabel("---------------------------------------");
+        separator.setForeground(UIStyling.TEXT);
+        textPanel.add(separator);
+       
+        Color approveColor = new Color(127, 140, 141);        // grey
+        Color hoverApproveColor = new Color(41, 128, 185);	//hover is blue
+
+        Color rejectColor = new Color(127, 140, 141);          // grey
+        Color hoverRejectColor = new Color(231, 76, 60);	//hover is red
+        
+        JButton approve = UIStyling.createIconButton("✓", approveColor, hoverApproveColor);
+        JButton reject  = UIStyling.createIconButton("X", rejectColor, hoverRejectColor);
+        
+        approve.addActionListener(e -> {
+            vcController.approveJob(req.job);
+            refreshRequests();
         });
-        
-        
-        //Calculate button action
-        calcButton.addActionListener(e -> {
-            clearOutput();               // Clear previous logs
-            displayCompletionTimes();    // Display FIFO completion times
+
+        reject.addActionListener(e -> {
+            vcController.rejectJob(req.job);
+            refreshRequests();
         });
-        
-        applyDecorations(); // decorates buttons and dash board
+
+        // LEFT label (expands)
+        gbc.gridx = 0;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        row.add(textPanel, gbc);
+
+        // APPROVE
+        gbc.gridx = 1;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        row.add(approve, gbc);
+
+        // REJECT
+        gbc.gridx = 2;
+        row.add(reject, gbc);
+
+        return row;
     }
-        //==========================================================================================
+
+    // =========================================================
+    // VEHICLE ROW (ALIGNED)
+    // =========================================================
+    private JPanel createVehicleRow(VCController.VehicleRequest req) {
+
+        JPanel row = new JPanel(new GridBagLayout());
+        UIStyling.styleDashboardPanel(row);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(2, 5, 2, 5);
+        gbc.gridy = 0;
+
         
-   
-           
-    //============================
-    // METHODS FOR DISPLAYING DATA
-    //============================
-    
-    // Clears all text from output area
-    public void clearOutput() {
-        outputArea.setText(""); // removes previous logs
-    }
+     // ================= MULTI-LINE VEHICLE INFO =================
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        UIStyling.styleDashboardPanel(textPanel);
         
-    //Displays FIFO-based completion time calculations
-    public void displayCompletionTimes() {
-    	// Print header
-    	 outputArea.append("===== FIFO Completion Times ===================\n");
-    	
-         // Get calculated completion times from controller
-    	 List<Long> completionTimes = vcController.calculateCompletionTimes();
+        JLabel line1 = new JLabel("VEHICLE | " + req.client + " Requested");
+        JLabel line2 = new JLabel("ID: " + req.vehicle.getVehicleID());
+        JLabel line3 = new JLabel("Year Made: " + req.vehicle.getYearMade());
+        JLabel line4 = new JLabel("Name: " + req.vehicle.getVehicleName());
+        JLabel line5 = new JLabel("Residency Time: " + req.vehicle.getResidencyDisplay());
 
-    	 if (completionTimes.isEmpty()) { // If no jobs exist
-    	        outputArea.append("No jobs to calculate completion times.\n");
-    	        outputArea.append("===============================================\n\n");
-    	        return; // stop method
-    	    }
+        line1.setForeground(UIStyling.TEXT);
+        line2.setForeground(UIStyling.TEXT);
+        line3.setForeground(UIStyling.TEXT);
+        line4.setForeground(UIStyling.TEXT);
+        line5.setForeground(UIStyling.TEXT);
 
-    	// Get job list to match with completion times
-    	    List<Job> batch = vcController.getCurrentBatch(); // only show the batch just calculated
-    	    for (int i = 0; i < batch.size(); i++) { // Loop through jobs and corresponding times
-    	        Job j = batch.get(i);
-    	        Long time = completionTimes.get(i);
-    	        long durationMin = j.getDuration().toMinutes(); // get its completion time
-    	        // Display job name, ID, and computed time
-    	        outputArea.append("Job: " + j.getJobName() + "\n" +
-    	        		" | JobID: " + j.getJobID() + "\n"+
-    	        		" | Duration: " + durationMin + " min" + "\n" +
-    	                " | Completion Time: " + time + " min\n");
-    	    }
-    	    outputArea.append("===============================================\n\n");	    
+        textPanel.add(line1);
+        textPanel.add(line2);
+        textPanel.add(line3);
+        textPanel.add(line4);
+        textPanel.add(line5);
+
+        JLabel separator = new JLabel("---------------------------------------");
+        separator.setForeground(UIStyling.TEXT);
+        textPanel.add(separator);
+        
+        Color approveColor = new Color(127, 140, 141);        // grey
+        Color hoverApproveColor = new Color(41, 128, 185);	//hover is blue
+
+        Color rejectColor = new Color(127, 140, 141);          // grey
+        Color hoverRejectColor = new Color(231, 76, 60);	//hover is red
+        
+        JButton approve = UIStyling.createIconButton("✓", approveColor, hoverApproveColor);
+        JButton reject  = UIStyling.createIconButton("X", rejectColor, hoverRejectColor);
+        
+        approve.addActionListener(e -> {
+            vcController.approveVehicle(req.vehicle);
+            refreshRequests();
+        });
+
+        reject.addActionListener(e -> {
+            vcController.rejectVehicle(req.vehicle);
+            refreshRequests();
+        });
+
+        gbc.gridx = 0;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        row.add(textPanel, gbc); 
+
+        //Approve
+        gbc.gridx = 1;
+        gbc.weightx = 0;
+        row.add(approve, gbc);
+
+        //Reject
+        gbc.gridx = 2;
+        row.add(reject, gbc);
+
+        return row;
     }
     
-    
-    //Moontarin Worked On This:
-    private void applyDecorations() {
-    	UIStyling.styleFrameDark(this);
-    	UIStyling.styleTextAreaDark(outputArea);
+    // =========================================================
+    // FIFO LOGIC
+    // =========================================================
+    private void runFIFO() {
 
-    	// Wrap outputArea scroll pane
-    	JScrollPane scrollPane = new JScrollPane(outputArea);
-    	UIStyling.styleScrollPaneDark(scrollPane);
+        fifoOutput.setText("");
 
-    	JPanel centerWrapper = new JPanel(new BorderLayout());
-    	UIStyling.styleDashboardPanel(centerWrapper);
-    	centerWrapper.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-    	centerWrapper.add(scrollPane, BorderLayout.CENTER);
+        List<Long> times = vcController.calculateCompletionTimes();
+        List<Job> batch = vcController.getCurrentBatch();
 
-    	add(centerWrapper, BorderLayout.CENTER);
+        if (times.isEmpty()) {
+            fifoOutput.append("No jobs to calculate.\n");
+            return;
+        }
 
-    	// Keep buttons visible by re-adding topPanel if needed
-    	if (topPanel != null) {
-    		add(topPanel, BorderLayout.NORTH); // ensure topPanel with buttons stays
-    	}
-	}
+        fifoOutput.append("===== FIFO RESULTS =====\n\n");
+
+        for (int i = 0; i < batch.size(); i++) {
+
+            Job j = batch.get(i);
+
+            fifoOutput.append(
+                    "Job: " + j.getJobName() + "\n" +
+                    "ID: " + j.getJobID() + "\n" +
+                    "Duration: " + j.getDuration().toMinutes() + " min\n" +
+                    "Completion: " + times.get(i) + " min\n\n"
+            );
+        }
+    }
 }
-     
-    
+	    
     //=====================
     // FUTURE METHODS (NOT IMPLEMENTED YET)
     //=====================

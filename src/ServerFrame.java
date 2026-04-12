@@ -18,7 +18,7 @@ public class ServerFrame extends JFrame {
     private JTextArea systemArea;
 
     // Constructor that builds the GUI and optionally positions it relative to another frame
-    public ServerFrame(JFrame referenceFrame) {
+    public ServerFrame(JFrame referenceFrame) { //Called in VCCOntroller
         setTitle("Server Console Frame");
         setSize(340, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

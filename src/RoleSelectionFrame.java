@@ -236,7 +236,7 @@ class RoleSelectionFrame extends JFrame{
                 adminDashboardFrame = new MainControllerFrame(vcController);
 
                 //Force layout BEFORE positioning
-                adminDashboardFrame.setSize(300, 400); // use your actual preferred size
+                adminDashboardFrame.setSize(340, 400); // use your actual preferred size
                 adminDashboardFrame.doLayout();
             }
             dashboardFrame = adminDashboardFrame;
@@ -246,7 +246,7 @@ class RoleSelectionFrame extends JFrame{
                 userDashboardFrame = new UserDashboardFrame(vcController);
 
                 //Same fix for user frame
-                userDashboardFrame.setSize(300, 400);
+                userDashboardFrame.setSize(340, 400);
                 userDashboardFrame.doLayout();
             }
             dashboardFrame = userDashboardFrame;
@@ -255,7 +255,7 @@ class RoleSelectionFrame extends JFrame{
         // Position next to RoleSelectionFrame
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Point loc = getLocationOnScreen();
-        int spacing = 10;
+        int spacing = 2;
 
         int x = loc.x + getWidth() + spacing;
         int y = loc.y;

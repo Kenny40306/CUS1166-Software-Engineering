@@ -43,13 +43,14 @@ public class VCController {
     private List<Job> currentBatch; ////declared field: for FIFO calculation method
     private Set<String> jobIDs; ////declared field: prevent duplicate job submissions
     
-    
-   
     //---M5 Attributes for Job and Vehicle> --------------------------------------------------------------------------------------------
     private List<JobRequest> pendingJobRequests; //declared field: pending jobs for admin to view (accept or reject)
     private List<VehicleRequest> pendingVehicleRequests; //declared field: pending vehicles for admin to view (accept or reject)
     private Map<String, String> decisions; //admin's decisions to approve or reject for each client request
     
+    //New Approved File For Both Job and Vehicle:
+    private final String APPROVED_FILE = "approved_data.txt";
+
     //Role Tracking User Context
     private String currentUserId; // Tracks logged-in user either admin of regular user
     private UserRole currentRole;
@@ -57,8 +58,7 @@ public class VCController {
     
     //Notify System
     private Map<String, List<String>> notifications = new HashMap<>(); ////declared field: stores notification in memory per user
-    private final String NOTIF_FILE = "notifications.txt"; // persistent file storage for user
-  
+
     //Server Frame & persistent server data
     private ServerFrame serverFrame;
     private List<String> serverLogs = new ArrayList<>();
@@ -67,7 +67,10 @@ public class VCController {
     private List<String> userDisplay = new ArrayList<>();
     //------------------------------------------------------------------------------------------------------------------------------------
     
+    //---M6 Attributes for Job and Vehicle> --------------------------------------------------------------------------------------------
+    //need something to connect database class
     
+    //----------------------------------------------------------------------------------------------------------------------------------
     
     // Constructor
     public VCController(String controllerID, Server serverConnection) {
@@ -82,9 +85,6 @@ public class VCController {
         this.pendingJobRequests = new ArrayList<>();
         this.pendingVehicleRequests = new ArrayList<>();
         this.decisions= new HashMap<>();
-        
-        resetNotificationFile(); //clear old notification files
-        loadNotificationsFromFile();   // Load persisted notifications is now empty at program startup
         //-----------------------------------------------------------
     }
        
@@ -110,18 +110,18 @@ public class VCController {
        	}
        	
        	//--- Job Request Handling ---
-       	//For admin validation upon client submission
+       	//For admin validation upon client submission and synchronized to prevent race conditions when multiple client submits jobs simultaneously
        	public synchronized String receiveJobRequest(Job job, String client) { 
        
        	    if (jobIDs.contains(job.getJobID())) { // Prevent duplicate job submissions (stop same job being submitted twice) 
-       	        addNotification(client, "Duplicate job submission rejected: " + job.getJobName());
+       	        addNotification(client, "Duplicate job submission rejected: " + job.getJobName()); //immediate feed back to admin 
        	        return null;
        	    }
 
-       	    jobIDs.add(job.getJobID()); // Tracks added job and store unique job id
+       	    jobIDs.add(job.getJobID()); // Tracks and marks job as viewed then add job and store unique id
        	    String requestID = client + "_" + System.nanoTime(); //Create unique request id to avoid client over writing each other upon request
-       		pendingJobRequests.add(new JobRequest(job, client, requestID)); //Add pending jobs to list so admin can review it 
-       		decisions.put(requestID, null); //Track decisions not decided yet
+       		pendingJobRequests.add(new JobRequest(job, client, requestID)); //Add pending jobs to list so admin can review it later
+       		decisions.put(requestID, null); //Track decisions not decided yet so client thread will wait until decision is complete
 
        		addNotification("ADMIN", "Job request from " + client); //Notify admin for GUI on RoleSelectionFrame
        	    
@@ -129,19 +129,21 @@ public class VCController {
        	    logServerMessage("New job request from " + client); //For global notifs tab
        	    updateJobDisplay(job.getJobID(),client,job.getJobName(),"PENDING"); //for job tab
        	    
-       	    return requestID; //Returns request ID
+       	    return requestID; //Returns request ID used to wait for client's approval
        	}
        	
-        //---- Approve / Reject Jobs ----
+        //---- Approve / Reject Jobs ---- Called in MainControllerFrame
         public synchronized void approveJob(Job job) {
-            Iterator<JobRequest> it = pendingJobRequests.iterator(); //
+            Iterator<JobRequest> it = pendingJobRequests.iterator(); //Iterator allows safe removal during iteration while looping through requests
             while (it.hasNext()) {
                 JobRequest req = it.next();
-                if (req.job.equals(job)) { //Find match and push pending jobs to active jobs
+                if (req.job.equals(job)) { //Find correct match and push pending jobs to active jobs
                     activeJobs.add(job); //active jobs is now used here for FIFO calculations
-                    saveJobToFile(job); //Save job to file jobsApproved
-                    decisions.put(req.requestID, "APPROVED");  //stores admin decision hash map that's used for client to wait for respose waitForDecision() unblocks
-                    notifyAll(); //notify client of acception
+                    
+                    saveApprovedData("JOB", job.getJobID(), req.client, job.getJobName()); //Save job to file jobsApproved
+
+                    decisions.put(req.requestID, "APPROVED");  //stores admin decision hash map that's used for client to wait for response waitForDecision() unblocks
+                    notifyAll(); //wakes and notify client threads that are waiting in waitForDecision()!!!
                     
                     // Notifications
                     addNotification(req.client, "Your job \"" + job.getJobName() + "\" was APPROVED");  //updates GUI notifications
@@ -150,17 +152,17 @@ public class VCController {
                     logServerMessage("Job " + job.getJobID() + " APPROVED");  //For global notifs tab
                     updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "APPROVED");  //for job tab
 
-                    it.remove(); // remove AFTER notifications
+                    it.remove(); // remove from pending AFTER notifications to avoid re-processing same request 
                     break;
                 }
             }
         }
 
         public synchronized void rejectJob(Job job) {
-            Iterator<JobRequest> it = pendingJobRequests.iterator();
+            Iterator<JobRequest> it = pendingJobRequests.iterator(); //Iterator allows safe removal during iteration 
             while (it.hasNext()) {
                 JobRequest req = it.next();
-                if (req.job.equals(job)) { //finds match request
+                if (req.job.equals(job)) { //finds correct match request
                     decisions.put(req.requestID, "REJECTED"); //updates decision map and notify the client waitForDecision() unblocks
 
                     jobIDs.remove(job.getJobID()); // removes jobID and allow client re-submission if needed
@@ -179,16 +181,7 @@ public class VCController {
             }
         }
         
-       	//Save file only on Approval for approveJob() 
-       	private void saveJobToFile(Job job) {
-       	    try (FileWriter fw = new FileWriter("jobsApproved.txt", true)) {
-       	        fw.write(job.toString() + "\n"); //called upon approval
-       	    } catch (IOException e) {
-       	        e.printStackTrace();
-       	    }
-       	}
-   
-       //===========================================================================================
+        //===========================================================================================
       
        	
     //(M4 Implementation: =========== Core FIFO Method ===================================
@@ -207,12 +200,12 @@ public class VCController {
         
     	List<Long> completionTimes = new ArrayList<>();
     	
-    	if (currentBatch.isEmpty()) {
+    	if (currentBatch.isEmpty()) { //edge case 
             System.out.println("[VCController] No active jobs to calculate completion times for.");
             return new ArrayList<>();
         }
     	
-    	long cumulativeTime = 0;
+    	long cumulativeTime = 0; //Tracks total elapsed time 
         
     	//Loops FIFO order
         for (Job j : currentBatch) { 
@@ -287,8 +280,8 @@ public class VCController {
                 connectedVehicles.add(vehicle);
 
                 // save to file only on approval (requirement)
-                saveVehicleToFile(vehicle);
-
+                saveApprovedData("VEHICLE",vehicle.getVehicleID(), req.client, vehicle.getVehicleName());
+                
                 // put the decision in the map so waitForDecision() unblocks
                 decisions.put(req.requestID, "APPROVED");
                 notifyAll();
@@ -326,23 +319,30 @@ public class VCController {
             }
         }
     }
+    //---------------------------------------------------------------------------------------------------------------------
+   
+    //=====================================================================================================================
+    //----For Both JobRequest & VehicleRequest Classes----
     
-    // only called on approval - writes vehicle info to file
-    private void saveVehicleToFile(Vehicle vehicle) {
-        try (FileWriter fw = new FileWriter("vehiclesApproved.txt", true)) {
-            fw.write(vehicle.toString() + "\n");
+    // SINGLE SAVE METHOD
+    private void saveApprovedData(String type, String id, String owner, String name) {
+        try (FileWriter fw = new FileWriter(APPROVED_FILE, true)) {
+
+            fw.write("Timestamp: " + LocalDateTime.now() + "\n");
+            fw.write("Type: " + type + "\n");
+            fw.write("ID: " + id + "\n");
+            fw.write("Owner: " + owner + "\n");
+            fw.write("Name: " + name + "\n");
+            fw.write("---------------------------------\n");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    //---------------------------------------------------------------------------------------------------------------------
-   
-    //=====================================================================================================================
-    //For Both JobRequest & VehicleRequest Classes
+    
     //Used by client Socket to wait until admin approves or reject job
    	public synchronized String waitForDecision(String requestID) {
-   	    while (!decisions.containsKey(requestID)) {
+   	    while (!decisions.containsKey(requestID)) { //ensure thread waits until decision exists
    	        try {
    	            wait(); //wait until notifyAll is called *note used for thread sync (called by clientHandler)*
    	        } catch (InterruptedException e) {
@@ -406,15 +406,7 @@ public class VCController {
     public void addNotification(String userId, String message) {
     	userId = normalize(userId);
     	notifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
-        
-        // Append to file for persistent notification
-        try (FileWriter fw = new FileWriter(NOTIF_FILE, true)) {
-            fw.write(userId + "|" + message + "\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        
-                
+             
         //update if same user is active for real time admin update only        
         if (roleFrame != null && currentUserId != null) {
             
@@ -429,67 +421,17 @@ public class VCController {
             // Otherwise, do not show notifications in notifications box
         }
     }
-
-    //loads notifications from file writer
-    //Read all save notification from file into memory 
-    //enables persistent notification so user don’t lose messages when restarting application
-    public void loadNotificationsFromFile() {
-        File file = new File(NOTIF_FILE);
-        if (!file.exists()) return;
-
-        notifications.clear(); // prevent duplicates
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\\|", 2);
-                if (parts.length == 2) {
-                	String user = normalize(parts[0]); 
-                    String msg = parts[1];
-                	notifications
-                        .computeIfAbsent(user, k -> new ArrayList<>())
-                        .add(msg);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-
-        }
-    }
     
     //Removes all notifications for specific user and keep the notification storage manageable 
     public void clearNotifications(String userId) {
     	userId = normalize(userId);
         notifications.remove(userId); //explicit clear
-        
-     // Rewrite file WITHOUT this user's notifications
-        File inputFile = new File(NOTIF_FILE);
-        File tempFile = new File("temp_notifications.txt");
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-             FileWriter writer = new FileWriter(tempFile)) {
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.toLowerCase().startsWith(userId + "|")) {
-                    writer.write(line + "\n");
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Replace original file
-        inputFile.delete();
-        tempFile.renameTo(inputFile);
     }
-    
+        
     //refresh notification from file
     //Updates in memory notification with the latest from the file and reload file to reflect any changes made externally by other processes, calls loadnotification 
     //Merge/replace current map to ensure memory state is consistent with persisted data
     public void refreshNotificationsFromFile() {
-        loadNotificationsFromFile();
         if (roleFrame != null) {
             roleFrame.refreshNotifications();
         }
@@ -498,24 +440,13 @@ public class VCController {
     //Returns the list of notifications for a given user by looking up the user ID in-memory map and providing a dashboard with current notifications.
     public List<String> getNotifications(String userId) {
     	userId = normalize(userId);
-    	loadNotificationsFromFile();
         return notifications.getOrDefault(userId, new ArrayList<>());
     }
     
-    //Reset and clear dashboard notifications upon program startup
-    private void resetNotificationFile() {
-        try (FileWriter fw = new FileWriter(NOTIF_FILE, false)) {
-            // overwrite file (clear contents)
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
     //-----------------------------------------------------------------------------------------------------------------
    
 
-    
-    
-    //Avneet Worked On This-
+    //Avneet + Moon Worked On This-
     //----------------- Server Management-----------------------------
     // Store ServerFrame
     public ServerFrame openServerFrame (JFrame referenceFrame) {
@@ -551,15 +482,20 @@ public class VCController {
         String timestamp = "[" + LocalDateTime.now()
         .format(DateTimeFormatter.ofPattern("HH:mm:ss"))+ "] ";
         
-        String fullMessage = timestamp + message;
+        String formatted =
+                "==============================\n" +
+                "Time: " + timestamp + "\n" +
+                "Event: " + message + "\n" +
+                "==============================\n";
+        
         // Add to internal log
-        serverLogs.add(fullMessage);
+        serverLogs.add(formatted);
         
         if (serverFrame != null) {
             serverFrame.updateLogs(serverLogs); // append instead of reset
         }
         // Print to console as well
-        System.out.println(fullMessage);
+        System.out.println(formatted);
 
     }
 
@@ -654,9 +590,6 @@ public class VCController {
     
     
     
-    
-    
-    
   //Attach GUI output
     public void setOutputArea(JTextArea outputArea) {
         this.outputArea = outputArea;
@@ -711,77 +644,4 @@ public class VCController {
                 + ", activeJobs=" + activeJobs.size()
                 + '}';
     }
-}
-    
-    
-    
-  //THESE ARE REFRENCE METHODS PAST THIS POINT!!!------------------------
-
-    //Might Not Need This (Only Here For Reference Now)
-    /*public void manageCheckpoints(Job j) {
-        if (j == null) {
-            System.out.println("[VCController] Cannot manage checkpoints for a null job.");
-            return;
-        }
-
-        if (j.getProgressStatus() == Job.JobStatus.FAILED) {
-            System.out.println("[VCController] Job " + j.getJobID()
-            	+ " failed. Attempting checkpoint restore...");
-            
-            List<Vehicle> assigned = j.getAssignedVehicles(); // passes to Job to handle internally
-            if (!assigned.isEmpty()) {
-                String vehicleID = assigned.get(0).getVehicleID();
-                Checkpoint cp = new Checkpoint("CHK-" + j.getJobID() + "-" + vehicleID, j.getJobID(), vehicleID, "PENDING");
-                j.restoreFromCheckpoint(cp);
-            }
-         } else {
-        	 for (Vehicle v : j.getAssignedVehicles()) {
-                 j.createCheckpoint("CHK-" + j.getJobID() + "-" + v.getVehicleID(), v.getVehicleID());            
-                 System.out.println("[VCController] Checkpoint created for job " + j.getJobID());
-        	 }
-        }
-    }
-
-    public void handleVehicleDeparture(Vehicle v) {
-        if (v == null) {
-            System.out.println("[VCController] Cannot handle departure of a null vehicle.");
-            return;
-        }
-
-        System.out.println("[VCController] Handling departure of vehicle " + v.getVehicleID());
-
-        // Save checkpoint for any active job before the vehicle leaves
-        Job currentJob = v.getCurrentJob();
-        if (currentJob != null
-                && currentJob.getProgressStatus() == Job.JobStatus.IN_PROGRESS) {
-            manageCheckpoints(currentJob);
-            // Reassign the job to another vehicle
-            //assignVehicles(currentJob);
-        }
-
-        v.eraseData();
-        serverConnection.eraseData(v);
-        connectedVehicles.remove(v);
-
-        System.out.println("[VCController] Vehicle " + v.getVehicleID()
-                + " removed from cloud.");
-    }
-
-    
-    public void setRedundancyLevel(Job j, int level) {
-        if (j == null) {
-            System.out.println("[VCController] Cannot set redundancy on a null job.");
-            return;
-        }
-        if (level < 1) {
-            System.out.println("[VCController] Redundancy level must be at least 1.");
-            return;
-        }
-
-        j.setRedundancyLevel(level);
-        System.out.println("[VCController] Redundancy level for job " + j.getJobID()
-                + " set to " + level);
-    	}       
-    }*/
-    
-    
+}    

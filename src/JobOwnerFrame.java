@@ -157,20 +157,18 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		
 		//Gets data from user input from jobownerframe textfield boxes and submit button triggers saveJobData()
 		//created new client id to be derived (Overloaded for GUI use)
-	
 		JobOwner client = new JobOwner(
 			    systemID,
 			    "Client " + systemID,
 			    "client@email.com",
 			    "password123"
 			);
-         
-        String jobID = String.format("JOB-%08d", (int)(Math.random()* 100_000_000)); // generate unique jobID 8 digit
         
+        String jobID = String.format("JOB-%08d", (int)(Math.random()* 100_000_000)); // generate unique jobID 8 digit    
         Job job = new Job(		// created new job object that builds the actual job for submission    
         		jobID,
                 jName,
-                systemID,				//M5 change matches login user job knows which client submitted it via systemID
+                systemID,				//M5 change matches login user so job knows which client submitted it via systemID
                 Duration.ofMinutes(durationMin),     // Duration of the object
                 LocalDateTime.now().plusMinutes(deadlineMin), // deadline
                 1     // default redundancy value

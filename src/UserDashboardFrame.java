@@ -152,7 +152,6 @@ public class UserDashboardFrame extends JFrame {
             return;
         }
 
-        vcController.loadNotificationsFromFile();
         List<String> msgs = vcController.getNotifications(userId);
 
         if (msgs.isEmpty()) {
@@ -269,16 +268,3 @@ public class UserDashboardFrame extends JFrame {
         }
     }
 }
-
-//==================================
-//FUTURE METHODS (NOT IMPLEMENTED YET)
-//===================================
- 
-	//Cancel Job Maybe
-  //refresh dashboard
-  /*public void refreshDashboard() {
-  	refreshNotifications();
-  	trackJobProgress();
-  	infoArea.append("\nDashboard refreshed at " + java.time.LocalTime.now());
-  }*/
-      

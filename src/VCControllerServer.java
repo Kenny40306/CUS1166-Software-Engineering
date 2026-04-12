@@ -34,13 +34,12 @@ public class VCControllerServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept(); //<- waits for client to connect (implicit call to ClientConnection via network message)
                 if (controller != null) {
-                    controller.logServerMessage("Client connected: " + clientSocket.getInetAddress());
+                    controller.logServerMessage("Client connected: " + clientSocket.getInetAddress()); //socket class java
                 }
                 // Handle client in a separate thread using ClientHandler 
                 pool.execute(new ClientHandler(clientSocket, controller));
             }
              
-
         } catch (IOException e) {
             e.printStackTrace();
             

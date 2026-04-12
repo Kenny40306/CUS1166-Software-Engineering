@@ -7,10 +7,10 @@ public class MessageServer implements Serializable {
 
 	//Enum acts as data packet for socket communication (modifiable) 
     public enum Type {
-        JOB_REQUEST,
-        VEHICLE_REQUEST,
-        RESPONSE, //
-        ACK //
+        JOB_REQUEST, //User 1
+        VEHICLE_REQUEST, //User 2
+        RESPONSE, //Client Response 
+        ACK //Server acknowledgement
     }
 
     private Type type; //nested enums type of message

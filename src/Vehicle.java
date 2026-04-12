@@ -22,22 +22,30 @@ public class Vehicle implements Serializable {
     // attributes for each vehicle in the system
 	protected String ownerID;
     protected String vehicleID;
+    protected int yearMade;
     protected String vehicleName;
     protected VehicleStatus status; // Uses enums: can be AVAILABLE, BUSY, DEPARTING, or OFFLINE
     protected double computePower; //GHz
     protected Job currentJob; // the job this vehicle is currently running
+    protected int residencyTime;
+    protected String residencyUnit;
     protected boolean availability = true; // true = free, false = busy
     protected LocalDateTime arrivalTime;
     protected LocalDateTime departureTime;
     protected boolean scheduleKnown; // true if we know when the vehicle is leaving
 
     // constructor - sets up a new vehicle with its basic info
-    public Vehicle(String vehicleID, String ownerID, String vehicleName, double computePower, 
-                   LocalDateTime arrivalTime, LocalDateTime departureTime, boolean scheduleKnown) {
-        this.vehicleID = vehicleID;
+    public Vehicle(String vehicleID, String ownerID, String vehicleName, int yearMade, double computePower,
+    			int residencyTime, String residencyUnit,
+    			LocalDateTime arrivalTime, LocalDateTime departureTime, boolean scheduleKnown) {    
+    	
+    	this.vehicleID = vehicleID;
         this.ownerID = ownerID;
+        this.yearMade = yearMade;
         this.vehicleName = vehicleName;
-        this.computePower = computePower;
+        this.residencyTime = residencyTime;
+        this.residencyUnit = residencyUnit;
+        this.computePower = computePower;     
         this.arrivalTime = arrivalTime;
         this.departureTime = departureTime;
         this.scheduleKnown = scheduleKnown;
@@ -72,6 +80,7 @@ public class Vehicle implements Serializable {
         this.status = VehicleStatus.AVAILABLE;
         System.out.println("Vehicle " + vehicleID + " data erased.");
     }
+
     
     public String getVehicleStatusInfo() {
         String assignedJob = (currentJob != null) ? currentJob.getJobName() : "idle";
@@ -80,6 +89,7 @@ public class Vehicle implements Serializable {
                " | Job: " + assignedJob +
                " | Power: " + computePower + " GHz";
     }
+    
     
     // getters
     public String getVehicleID() { 
@@ -91,6 +101,14 @@ public class Vehicle implements Serializable {
     public Job getCurrentJob() {
     	return currentJob;
     }
+    public int getYearMade() {
+        return yearMade;
+    }    
+    
+    public String getResidencyDisplay() {
+        return residencyTime + " " + residencyUnit;
+    }
+
     public VehicleStatus getStatus() { 
     	return status; 
     }

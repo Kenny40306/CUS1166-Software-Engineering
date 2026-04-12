@@ -134,17 +134,6 @@ class UserLoginFrame extends JFrame {
         if (loginSuccess) {
             // Logs login
        
-            try (FileWriter writer = new FileWriter("user_login_data.txt", true)) {
-                writer.write("Timestamp: " + LocalDateTime.now() + "\n");
-                writer.write("Role: " + role + "\n");
-                writer.write("Username: " + username + "\n");
-                writer.write("Password: " + password + "\n"); // In real system, would encrypt [PROTECTED]
-                writer.write("---------------------------------\n");
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error saving login data: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-
             JOptionPane.showMessageDialog(this, role + " login successful!");
             dispose(); // Close login frame
            
