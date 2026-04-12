@@ -204,4 +204,25 @@ public class UIStyling {
 	    });
 	    return btn;
 	}
+	
+	
+	
+	// ================= SCROLL BAR STYLING =================	
+	
+	
+	public static void styleScrollPaneCompact(JScrollPane scrollPane) {
+		
+		// smooth, smaller scroll steps
+		scrollPane.getVerticalScrollBar().setUnitIncrement(10);
+	    scrollPane.getHorizontalScrollBar().setUnitIncrement(10);
+
+	    // optional: make scrollbar slimmer
+	    scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(10, Integer.MAX_VALUE));
+	    scrollPane.getHorizontalScrollBar().setPreferredSize(new Dimension(Integer.MAX_VALUE, 10));
+
+	    // keep consistent dark styling
+	    scrollPane.setBorder(BorderFactory.createLineBorder(BORDER, 1));
+	    scrollPane.setBackground(BG_DARK);
+	
+	}
 }

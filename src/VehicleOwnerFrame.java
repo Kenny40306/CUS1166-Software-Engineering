@@ -144,16 +144,12 @@ Vehicle Owner Frame - Subat + Avneet
 	            }
 	    	});
 
-	        //makes window visible
-	        setVisible(true);
 	    }
      
      
      //Avneet- I enhanced the submit button functionality to make sure the code runs when the user clicks the "Submit" button
      //the code includes validation, VIN check, timestamp, and auto-clear
      //it allows us to collect all the entered data and saves it to the text file
-     
-
 
     	 private void saveVehicle() {
    	    	//this code receives the user input from the text fields
@@ -166,7 +162,7 @@ Vehicle Owner Frame - Subat + Avneet
    	        String residencyInput = residencyField.getText();
    	       
    	        //M5 change gets from system user for notification logic
-   			String systemID = vcController.getCurrentUserId(); //(!!!) root cause for notification link
+   			String systemID = vcController.getCurrentUserID(); //(!!!) root cause for notification link
 
    	        
    	        // first i checked for empty fields

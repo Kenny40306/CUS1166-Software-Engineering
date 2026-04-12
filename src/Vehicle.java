@@ -92,6 +92,9 @@ public class Vehicle implements Serializable {
     
     
     // getters
+    public String getOwnerID() {
+        return ownerID;
+    }
     public String getVehicleID() { 
     	return vehicleID; 
     }

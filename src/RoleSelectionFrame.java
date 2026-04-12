@@ -83,60 +83,69 @@ class RoleSelectionFrame extends JFrame{
         // Admin notification area + buttons
         
         if (role.equalsIgnoreCase("Admin")) {
-            // Left-side panel to hold notification + server button
+
             JPanel leftPanel = new JPanel();
             leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-            leftPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // minimal padding
+            leftPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             UIStyling.stylePanel(leftPanel);
 
-            // ----- Notification Panel (includes Refresh/Clear buttons) -----
-            JPanel notifPanel = new JPanel();
-            notifPanel.setLayout(new BoxLayout(notifPanel, BoxLayout.Y_AXIS));
-            notifPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); // remove extra border
-            UIStyling.stylePanel(notifPanel);
-
-            // Notification area
-            notificationArea = new JTextArea(7, 25); // slightly taller
+            // ================= NOTIFICATION AREA =================
+            notificationArea = new JTextArea(7, 25);
             notificationArea.setEditable(false);
             notificationArea.setLineWrap(true);
             notificationArea.setWrapStyleWord(true);
-            notificationArea.setForeground(UIStyling.TEXT);
-            notificationArea.setBackground(UIStyling.BG_PANEL);
-            notificationArea.setCaretColor(UIStyling.TEXT);
-            notificationArea.setMargin(new Insets(5,5,5,5)); // reduce padding inside text
-            
+
+            UIStyling.styleTextAreaDark(notificationArea);
+
             JScrollPane scroll = new JScrollPane(notificationArea);
-            scroll.setBorder(BorderFactory.createTitledBorder("User Notifications"));
-            scroll.setAlignmentX(Component.CENTER_ALIGNMENT);
-            scroll.setPreferredSize(new Dimension(250, 170)); // bigger area
+            UIStyling.styleScrollPaneCompact(scroll);
+
+            scroll.setPreferredSize(new Dimension(250, 170));
             scroll.setMaximumSize(new Dimension(250, 170));
-            notifPanel.add(scroll);
-            
-            notifPanel.add(Box.createVerticalStrut(4)); // extra vertical spacing above buttons
-            
-            // Refresh / Clear buttons centered
-            JPanel notifBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // tighter spacing
-            UIStyling.stylePanel(notifBtnPanel); // match dark background
+
+            // ================= TITLE (LEFT ALIGNED FIXED) =================
+            JLabel notifTitle = new JLabel("User Notifications");
+            notifTitle.setForeground(UIStyling.ACCENT);
+            notifTitle.setFont(UIStyling.FONT_BUTTON);
+
+            JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            titlePanel.setBackground(UIStyling.BG_DARK);
+            titlePanel.add(notifTitle);
+
+            // ================= BUTTONS (CENTERED) =================
             JButton refreshBtn = new JButton("Refresh");
             JButton clearBtn = new JButton("Clear");
-            
-            refreshBtn.setPreferredSize(new Dimension(90, 25));
-            clearBtn.setPreferredSize(new Dimension(90, 25));
+
             UIStyling.styleDashboardButton(refreshBtn);
             UIStyling.styleDashboardButton(clearBtn);
-      
+
+            refreshBtn.setPreferredSize(new Dimension(90, 25));
+            clearBtn.setPreferredSize(new Dimension(90, 25));
+
+            JPanel notifBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
+            notifBtnPanel.setBackground(UIStyling.BG_DARK);
             notifBtnPanel.add(refreshBtn);
             notifBtnPanel.add(clearBtn);
-            notifBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-           
-            notifPanel.add(notifBtnPanel);
-            notifPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-           
-            leftPanel.add(notifPanel);
-            leftPanel.add(Box.createVerticalStrut(10)); // small spacing before server button
 
-            
-            
+            // ================= NOTIFICATION PANEL =================
+            JPanel notifPanel = new JPanel();
+            notifPanel.setLayout(new BoxLayout(notifPanel, BoxLayout.Y_AXIS));
+            notifPanel.setBackground(UIStyling.BG_DARK);
+            notifPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+            // 🔥 FIXED ORDER (IMPORTANT)
+            notifPanel.add(titlePanel);
+            notifPanel.add(Box.createVerticalStrut(5));
+            notifPanel.add(scroll);
+            notifPanel.add(Box.createVerticalStrut(8));
+
+            notifBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            notifPanel.add(notifBtnPanel);
+
+            // ================= ADD TO LEFT PANEL =================
+            leftPanel.add(notifPanel);
+            leftPanel.add(Box.createVerticalStrut(10));
+         
             // ----- Server Console Button (Independent) -----
             JButton serverBtn = new JButton("Server Console");
             serverBtn.setPreferredSize(new Dimension(200, 30));
@@ -148,11 +157,10 @@ class RoleSelectionFrame extends JFrame{
             serverBtnPanel.add(serverBtn);
             serverBtnPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             leftPanel.add(serverBtnPanel);
-
             
             // Add left panel to main panel
             panel.add(leftPanel, BorderLayout.WEST);
-
+            
             // Button actions
             refreshBtn.addActionListener(e -> {
                 vcController.refreshNotificationsFromFile();

@@ -25,8 +25,10 @@ public class Job implements Serializable{
 	private String jobID; //unique identifier
 	private String jobName;	//job name description
 	private String clientID; //gets clients id
+	//private String clientName; //gets name of client
 	private Duration duration;	//how much time job will take to finish
 	private LocalDateTime deadline;	//precise time job will finish
+	private long deadlineMin;
 	private int redundancyLevel;	//how many vehicles are connected to one job
 	private JobStatus progressStatus; //nested enum is used shows current status
 	private List<Checkpoint> checkpoints; //stores many snapshot checkpoints one job may have
@@ -37,13 +39,15 @@ public class Job implements Serializable{
 	private long completionTime; //in minutes to store computed time FIFO results
 	
 	//Constructor:
-	public Job(String jobID, String jobName, String clientID, Duration duration, LocalDateTime deadline, int redundancyLevel) {
+	public Job(String jobID, String jobName, String clientID, Duration duration, LocalDateTime deadline, long deadlineMin, int redundancyLevel) {
 		//Assigns correct data to objects (initialize properties)
 		this.jobID = jobID;
 		this.jobName = jobName;
 		this.clientID = clientID;
+		//this.clientID = clientName;
 		this.duration = duration;
 		this.deadline = deadline;
+		this.deadlineMin = deadlineMin; 
 		this.redundancyLevel = redundancyLevel;
 		this.progressStatus = JobStatus.PENDING; //default state for every job
 		this.checkpoints = new ArrayList<>();
@@ -150,6 +154,9 @@ public class Job implements Serializable{
 	public String getClientID() {
 		return clientID;
 	}
+	/*public String getClientName() {
+	    return clientName;
+	}*/
 	public String getJobName() {
 		return jobName;
 	}
@@ -159,6 +166,10 @@ public class Job implements Serializable{
 	public LocalDateTime getDeadline() {
 		return deadline;
 	}
+	public long getDeadlineMinutes() {
+	    return deadlineMin;
+	}
+	
 	public int getRedundancyLevel() {
 		return redundancyLevel;
 	}

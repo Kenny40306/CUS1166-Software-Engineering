@@ -52,7 +52,7 @@ public class VCController {
     private final String APPROVED_FILE = "approved_data.txt";
 
     //Role Tracking User Context
-    private String currentUserId; // Tracks logged-in user either admin of regular user
+    private String currentUserID; // Tracks logged-in user either admin of regular user
     private UserRole currentRole;
     private RoleSelectionFrame roleFrame; //user and admin dash board frame reference
     
@@ -104,7 +104,7 @@ public class VCController {
        	
        	public JobRequest(Job job, String client, String requestID){
        		this.job=job;  //holds job object data submitted by client
-       		this.client=client; //identify who submitted it
+       		this.client=client; //identify who submitted it by client's name
             this.requestID = requestID; //unique ID for this specific request connects client thread to admin decision
        		} 
        	}
@@ -238,7 +238,7 @@ public class VCController {
 
         public VehicleRequest(Vehicle vehicle, String client,String requestID) {
             this.vehicle = vehicle;
-            this.client = client;
+            this.client = client; //display client name
             this.requestID = requestID;
         }
     }
@@ -358,18 +358,35 @@ public class VCController {
    	
     //Jaden Wrote This-
     //-----------------Set Current User Context-----------------------------
-    public void setCurrentUserId(String userId, UserRole role) {
-        this.currentUserId = normalize(userId);
-        // Refresh notifications for this user if role frame exist
+   
+    //standardize user ID so it’s not consistent anywhere and can convert lowercase to uppercase that prevents mismatches. 
+    //Ensure notifications are stored and retrieved correctly (avoid notification loss due to inconsistent IDs).
+    /*private String normalize(String id) {
+        return id == null ? null : id.trim().toLowerCase();
+    }*/
+   	
+   	private String normalize(String userId) {
+   	    if (userId == null) return "";
 
+   	    // Remove "Client " prefix if accidentally passed
+   	    if (userId.startsWith("Client ")) {
+   	        return userId.replace("Client ", "").trim();
+   	    }
+
+   	    return userId.trim();
+   	}
+
+   	public void setCurrentUserId(String userId, UserRole role) {
+      
         //Prevent fake admin login
         if (role == UserRole.USER && userId.equals("admin")) {
             throw new IllegalArgumentException("Username 'admin' is reserved.");
         }
-
-        this.currentUserId = userId;
+        
+        this.currentUserID = normalize(userId);
+        //this.currentUserID = userId;       // numeric/system ID
         this.currentRole = role;
-      
+
         // Open server frame if admin   
         if (roleFrame != null) {
             roleFrame.refreshNotifications();
@@ -379,9 +396,10 @@ public class VCController {
         System.out.println("LOGIN -> " + userId + " (" + role + ")"); // DEBUG (keep this while testing) 
     }
     
-    public String getCurrentUserId() {
-        return currentUserId;
+    public String getCurrentUserID() {
+        return currentUserID;
     }
+
     //Set frame for notifications on RoleselectionFrame 
     public void setRoleFrame(RoleSelectionFrame roleFrame) {
         this.roleFrame = roleFrame;
@@ -395,12 +413,6 @@ public class VCController {
     //Still need notifications for message history, GUI updates, offline message tracking and dash board visibility
     //Socket is short lived where connection opens, sends message, then closes
     
-    //standardize user ID so it’s not consistent anywhere and can convert lowercase to uppercase that prevents mismatches. 
-    //Ensure notifications are stored and retrieved correctly (avoid notification loss due to inconsistent IDs).
-    private String normalize(String id) {
-        return id == null ? null : id.trim().toLowerCase();
-    }
-
     //adds notification message for specific user in that calls normalized(userId) and stores in memory (Map<String,List<String>>)
     //to keep users informed and up to date (file ensures notification persist after program closes) 
     public void addNotification(String userId, String message) {
@@ -408,14 +420,14 @@ public class VCController {
     	notifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
              
         //update if same user is active for real time admin update only        
-        if (roleFrame != null && currentUserId != null) {
+        if (roleFrame != null && currentUserID != null) {
             
         	// If current user is admin and notification is for admin, show it
         	if (currentRole == UserRole.ADMIN && userId.equals("admin")) {
                 roleFrame.appendNotification(message);
             } 
             // If current user is a regular user and notification is for them, show it
-        	else if (currentRole == UserRole.USER && userId.equals(currentUserId)) {
+        	else if (currentRole == UserRole.USER && userId.equals(currentUserID)) {
                 roleFrame.appendNotification(message);
             }
             // Otherwise, do not show notifications in notifications box
@@ -595,6 +607,7 @@ public class VCController {
         this.outputArea = outputArea;
     }
     
+    
     // Getters & Setters
  
     public String getControllerID() {
@@ -604,7 +617,7 @@ public class VCController {
     public void setControllerID(String controllerID) {
         this.controllerID = controllerID;
     }
- 
+        
     public List<Vehicle> getConnectedVehicles() {
         return connectedVehicles;
     }

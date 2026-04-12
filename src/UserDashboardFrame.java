@@ -34,59 +34,84 @@ public class UserDashboardFrame extends JFrame {
 
         JPanel panel = new JPanel(new BorderLayout(10,10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
+              
         // Title        
-        JLabel title = UIStyling.createDashboardTitle("User Dashboard");
+        JLabel title = UIStyling.createDashboardTitle("User Dashboard");       
         add(title, BorderLayout.NORTH);
         
         //Notifications-------------------------------------------------
+        
         notificationArea = new JTextArea(8,25);
         notificationArea.setEditable(false);
         notificationArea.setLineWrap(true);
         notificationArea.setWrapStyleWord(true);
        
+        UIStyling.styleTextAreaDark(notificationArea);
         JScrollPane scroll = new JScrollPane(notificationArea);
-        scroll.setBorder(BorderFactory.createTitledBorder("Your Notifications"));
-        scroll.setPreferredSize(new Dimension(280, 70));
-        panel.add(scroll, BorderLayout.NORTH);
-              
+        UIStyling.styleScrollPaneCompact(scroll);
+        scroll.setPreferredSize(new Dimension(290, 60));
+
+        
+        JLabel notifTitle = new JLabel("Notifications");
+        notifTitle.setForeground(UIStyling.ACCENT);
+        notifTitle.setFont(UIStyling.FONT_BUTTON);
                 
         Dimension buttonSize = new Dimension(85, 25); // fixed width & height
-       
-        JPanel notifBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // 8 px gap horizontally
+        
         JButton refreshBtn = new JButton("Refresh");
         JButton clearBtn = new JButton("Clear");
+       
         UIStyling.styleDashboardButton(refreshBtn); //CHANGED 
         UIStyling.styleDashboardButton(clearBtn);   //CHANGED 
+       
         refreshBtn.setPreferredSize(buttonSize);
         clearBtn.setPreferredSize(buttonSize);
+      
+        JPanel notifBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // 8 px gap horizontally
+        notifBtnPanel.setBackground(UIStyling.BG_DARK);
         notifBtnPanel.add(refreshBtn);
         notifBtnPanel.add(clearBtn);
-
+        
         // Wrapper to add vertical spacing
         JPanel bottomWrapper = new JPanel();
         bottomWrapper.setLayout(new BoxLayout(bottomWrapper, BoxLayout.Y_AXIS));
-        bottomWrapper.add(Box.createVerticalStrut(10)); // spacing
+        bottomWrapper.setBackground(UIStyling.BG_DARK);
+        bottomWrapper.add(Box.createVerticalStrut(4)); // spacing
         bottomWrapper.add(notifBtnPanel);
 
         
-        JPanel notifPanel = new JPanel(new BorderLayout());
+        JPanel notifPanel = new JPanel(new BorderLayout(5, 5));
+        notifPanel.setBackground(UIStyling.BG_DARK);
         notifPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
+
+        notifPanel.add(notifTitle, BorderLayout.NORTH);
         notifPanel.add(scroll, BorderLayout.CENTER);
-        notifPanel.add(bottomWrapper, BorderLayout.SOUTH);     
+        notifPanel.add(bottomWrapper, BorderLayout.SOUTH);
         
         panel.add(notifPanel, BorderLayout.NORTH);
        
 
         //Info Area with scroll
-        infoArea = new JTextArea("Welcome! View your updates below.");
+        infoArea = new JTextArea(10,25);
         infoArea.setEditable(false);
         infoArea.setLineWrap(true);
         infoArea.setWrapStyleWord(true);
 
+        UIStyling.styleTextAreaDark(infoArea);
+
         JScrollPane infoScroll = new JScrollPane(infoArea);
-        infoScroll.setBorder(BorderFactory.createTitledBorder("Dashboard Info"));
-        panel.add(infoScroll, BorderLayout.CENTER);
+        UIStyling.styleScrollPaneCompact(infoScroll);
+        
+        JLabel infoTitle = new JLabel("Dashboard Info");
+        infoTitle.setForeground(UIStyling.ACCENT);
+        infoTitle.setFont(UIStyling.FONT_BUTTON);
+
+        JPanel infoPanel = new JPanel(new BorderLayout(5, 5));
+        infoPanel.setBackground(UIStyling.BG_DARK);
+        infoPanel.add(infoTitle, BorderLayout.NORTH);
+        infoPanel.add(infoScroll, BorderLayout.CENTER);
+
+        panel.add(infoPanel, BorderLayout.CENTER);
         
         // Two separate buttons for Current / Past submissions
         prevBtn = new JButton("Previous");
@@ -146,7 +171,7 @@ public class UserDashboardFrame extends JFrame {
     public void refreshNotifications() {
         notificationArea.setText("");
 
-        String userId = vcController.getCurrentUserId();
+        String userId = vcController.getCurrentUserID();
         if (userId == null) {
             notificationArea.append("No user logged in\n");
             return;

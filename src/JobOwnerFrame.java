@@ -113,15 +113,17 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	private void saveJobData() {
 		// get input from user 
 		
-		String id = clientIDField.getText().trim(); //gets from user input for file
+		String cID = clientIDField.getText().trim(); //gets from user input for file
 		String jName = jobNameField.getText().trim();
 		String durText = durationField.getText().trim();
 		String ddlText = deadlineField.getText().trim();
 		//M5 change gets from system user for notification logic
-		String systemID = vcController.getCurrentUserId(); //(!!!) root cause for notification link
+		
+		// ===== LOGIN CONTEXT =====
+		String systemID = vcController.getCurrentUserID(); //(!!!) root cause for notification link
 		
 		// validates that there are no empty fields
-		if (id.isEmpty() || jName.isEmpty() || durText.isEmpty() || ddlText.isEmpty()) {
+		if (cID.isEmpty() || jName.isEmpty() || durText.isEmpty() || ddlText.isEmpty()) {
 		JOptionPane.showMessageDialog(this,
 		"All fields must be filled out!",
 		"Input Error",
@@ -158,7 +160,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		//Gets data from user input from jobownerframe textfield boxes and submit button triggers saveJobData()
 		//created new client id to be derived (Overloaded for GUI use)
 		JobOwner client = new JobOwner(
-			    systemID,
+				systemID, //I
 			    "Client " + systemID,
 			    "client@email.com",
 			    "password123"
@@ -166,11 +168,12 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
         
         String jobID = String.format("JOB-%08d", (int)(Math.random()* 100_000_000)); // generate unique jobID 8 digit    
         Job job = new Job(		// created new job object that builds the actual job for submission    
-        		jobID,
+        		jobID,	
                 jName,
-                systemID,				//M5 change matches login user so job knows which client submitted it via systemID
+                cID,
                 Duration.ofMinutes(durationMin),     // Duration of the object
                 LocalDateTime.now().plusMinutes(deadlineMin), // deadline
+                deadlineMin,
                 1     // default redundancy value
                 
         );
@@ -185,7 +188,7 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 		//creates file reader 
 		try (FileWriter writer = new FileWriter("job_owner_data.txt", true)) {
 		writer.write("Timestamp: " + LocalDateTime.now() + "\n");
-		writer.write("Client ID: " + id + "\n");
+		writer.write("Client ID: " + cID + "\n");
 		writer.write("Job Name: " + jName + "\n");
 		writer.write("Job Duration: " + durText + " Minutes\n");
 		writer.write("Job Deadline: " + ddlText + " Minutes\n");

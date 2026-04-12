@@ -53,13 +53,14 @@ public class MainControllerFrame extends JFrame{
         UIStyling.styleDashboardPanel(pendingTitlePanel);
         pendingTitlePanel.add(pendingTitle);
 
-        // ================= REQUEST PANEL =================
+        // ================= REQUEST PANEL =================        
         requestPanel = new JPanel();
         requestPanel.setLayout(new BoxLayout(requestPanel, BoxLayout.Y_AXIS));
         UIStyling.styleDashboardPanel(requestPanel);
 
         JScrollPane requestScroll = new JScrollPane(requestPanel);
-        UIStyling.styleScrollPaneDark(requestScroll);
+       // UIStyling.styleScrollPaneDark(requestScroll);
+        UIStyling.styleScrollPaneCompact(requestScroll);
         
         JPanel requestContainer = new JPanel(new BorderLayout(8, 9));
         UIStyling.styleDashboardPanel(requestContainer);
@@ -90,13 +91,18 @@ public class MainControllerFrame extends JFrame{
         UIStyling.styleTextAreaDark(fifoOutput);
 
         JScrollPane fifoScroll = new JScrollPane(fifoOutput);
-        UIStyling.styleScrollPaneDark(fifoScroll);
+        //UIStyling.styleScrollPaneDark(fifoScroll);
+        UIStyling.styleScrollPaneCompact(fifoScroll);
 
         fifoPanel.add(calcButton, BorderLayout.NORTH);
         fifoPanel.add(fifoScroll, BorderLayout.CENTER);
 
         JPanel fifoContainer = new JPanel(new BorderLayout(5, 5));
         UIStyling.styleDashboardPanel(fifoContainer);
+       
+        // FIX: balanced with request panel
+        fifoContainer.setPreferredSize(new Dimension(200, 180));
+
         fifoContainer.add(fifoTitlePanel, BorderLayout.NORTH);
         fifoContainer.add(fifoPanel, BorderLayout.CENTER);
 
@@ -106,8 +112,6 @@ public class MainControllerFrame extends JFrame{
 
         refreshRequests();
         calcButton.addActionListener(e -> runFIFO());
-
-        setVisible(true);
     }
 
     // =========================================================
@@ -184,30 +188,27 @@ public class MainControllerFrame extends JFrame{
 
         // user-friendly + system values
         long durationMin = req.job.getDuration().toMinutes();
-        long deadlineMin = Duration.between(
-                LocalDateTime.now(),
-                req.job.getDeadline()
-        ).toMinutes();
-
 
         JLabel line1 = new JLabel("JOB | " + req.client + " Requested");
-        JLabel line2 = new JLabel("ID: " + req.job.getJobID());
-        JLabel line3 = new JLabel("Name: " + req.job.getJobName());
-      
-        JLabel line4 = new JLabel("Duration: " + durationMin + " min");
-        JLabel line5 = new JLabel("Deadline: " + deadlineMin  + " min");
+        JLabel line2 = new JLabel("Client ID: " + req.job.getClientID());
+        JLabel line3 = new JLabel("Job ID: " + req.job.getJobID());
+        JLabel line4 = new JLabel("Name: " +  req.job.getJobName());
+        JLabel line5 = new JLabel("Duration: " + durationMin + " min");     
+        JLabel line6 = new JLabel("Deadline: " + req.job.getDeadlineMinutes() + " min");
         
         line1.setForeground(UIStyling.TEXT);
         line2.setForeground(UIStyling.TEXT);
         line3.setForeground(UIStyling.TEXT);
         line4.setForeground(UIStyling.TEXT);
         line5.setForeground(UIStyling.TEXT);
+        line6.setForeground(UIStyling.TEXT);
 
         textPanel.add(line1);
         textPanel.add(line2);
         textPanel.add(line3);
         textPanel.add(line4);
         textPanel.add(line5);
+        textPanel.add(line6);
         
         JLabel separator = new JLabel("---------------------------------------");
         separator.setForeground(UIStyling.TEXT);
@@ -270,22 +271,26 @@ public class MainControllerFrame extends JFrame{
         UIStyling.styleDashboardPanel(textPanel);
         
         JLabel line1 = new JLabel("VEHICLE | " + req.client + " Requested");
-        JLabel line2 = new JLabel("ID: " + req.vehicle.getVehicleID());
-        JLabel line3 = new JLabel("Year Made: " + req.vehicle.getYearMade());
-        JLabel line4 = new JLabel("Name: " + req.vehicle.getVehicleName());
-        JLabel line5 = new JLabel("Residency Time: " + req.vehicle.getResidencyDisplay());
+        JLabel line2 = new JLabel("Client ID: " + req.vehicle.getOwnerID());
+        JLabel line3 = new JLabel("Vehicle ID: " + req.vehicle.getVehicleID());
+        JLabel line4 = new JLabel("Year Made: " + req.vehicle.getYearMade());
+        JLabel line5 = new JLabel("Name: " + req.vehicle.getVehicleName());
+        JLabel line6 = new JLabel("Residency Time: " + req.vehicle.getResidencyDisplay());
 
         line1.setForeground(UIStyling.TEXT);
         line2.setForeground(UIStyling.TEXT);
         line3.setForeground(UIStyling.TEXT);
         line4.setForeground(UIStyling.TEXT);
         line5.setForeground(UIStyling.TEXT);
+        line6.setForeground(UIStyling.TEXT);
 
         textPanel.add(line1);
         textPanel.add(line2);
         textPanel.add(line3);
         textPanel.add(line4);
         textPanel.add(line5);
+        textPanel.add(line6);
+
 
         JLabel separator = new JLabel("---------------------------------------");
         separator.setForeground(UIStyling.TEXT);
@@ -342,7 +347,7 @@ public class MainControllerFrame extends JFrame{
             return;
         }
 
-        fifoOutput.append("===== FIFO RESULTS =====\n\n");
+        fifoOutput.append("===== FIFO RESULTS =====\n");
 
         for (int i = 0; i < batch.size(); i++) {
 
