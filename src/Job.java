@@ -38,6 +38,12 @@ public class Job implements Serializable{
 	private boolean completionTimeCalculated = false; //tracks if job has already been completed for FIFO calculation (avoid recalculating)
 	private long completionTime; //in minutes to store computed time FIFO results
 	
+	
+    //M6 NEW: Lock Flag After FIFO Calculation
+    private boolean locked = false;
+    //-------------------------------------------
+    
+    
 	//Constructor:
 	public Job(String jobID, String jobName, String clientID, Duration duration, LocalDateTime deadline, long deadlineMin, int redundancyLevel) {
 		//Assigns correct data to objects (initialize properties)
@@ -146,7 +152,31 @@ public class Job implements Serializable{
 	public void setClientId(String clientId) { // optional setter
 	       this.clientID = clientId;
 	}
-	 
+	
+	//========== M6 LOCK SYSTEM =================
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void lockJob() {
+        this.locked = true;
+    }
+	// ================= M6 ADMIN EDIT SETTERS =================
+	public void setJobName(String jobName) {
+	    this.jobName = jobName;
+	}
+
+	public void setDuration(Duration duration) {
+	    this.duration = duration;
+	}
+
+	public void setDeadlineMinutes(long deadlineMin) {
+	    this.deadlineMin = deadlineMin;
+	}
+	//===========================================================
+		 
+	
+	
 	//Getters
 	public String getJobID() {
 		return jobID;

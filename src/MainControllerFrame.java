@@ -18,7 +18,8 @@ public class MainControllerFrame extends JFrame{
 
     private JPanel requestPanel;
     private JTextArea fifoOutput;
-
+    private JButton editDbButton;
+    
     public MainControllerFrame(VCController vcController) {
         this.vcController = vcController;
 
@@ -49,10 +50,29 @@ public class MainControllerFrame extends JFrame{
         pendingTitle.setFont(new Font("SansSerif", Font.BOLD, 13));
         pendingTitle.setForeground(UIStyling.ACCENT);
 
-        JPanel pendingTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        UIStyling.styleDashboardPanel(pendingTitlePanel);
-        pendingTitlePanel.add(pendingTitle);
+        //M6 Create Edit Button
+        editDbButton = new JButton("Edit DB");
+        editDbButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        UIStyling.styleDashboardButton(editDbButton);
+        
+        
+        // RIGHT side container for button
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
+        UIStyling.styleDashboardPanel(rightPanel);
+        rightPanel.add(editDbButton);
 
+        // LEFT PANEL (ENSURES SAME ALIGNMENT AS FIFO)
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        UIStyling.styleDashboardPanel(leftPanel);
+        leftPanel.add(pendingTitle);
+      
+        // FULL HEADER PANEL (LEFT title + RIGHT button)
+        JPanel pendingTitlePanel = new JPanel(new BorderLayout());
+        UIStyling.styleDashboardPanel(pendingTitlePanel);
+        pendingTitlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        pendingTitlePanel.add(pendingTitle, BorderLayout.WEST);
+        pendingTitlePanel.add(rightPanel, BorderLayout.EAST);
+        
         // ================= REQUEST PANEL =================        
         requestPanel = new JPanel();
         requestPanel.setLayout(new BoxLayout(requestPanel, BoxLayout.Y_AXIS));
@@ -75,7 +95,7 @@ public class MainControllerFrame extends JFrame{
         fifoTitle.setFont(new Font("SansSerif", Font.BOLD, 13));
         fifoTitle.setForeground(UIStyling.ACCENT);
 
-        JPanel fifoTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel fifoTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
         UIStyling.styleDashboardPanel(fifoTitlePanel);
         fifoTitlePanel.add(fifoTitle);
 
@@ -85,13 +105,12 @@ public class MainControllerFrame extends JFrame{
 
         JButton calcButton = new JButton("Calculate");
         UIStyling.styleDashboardButton(calcButton);
-
+        
         fifoOutput = new JTextArea(8, 40);
         fifoOutput.setEditable(false);
         UIStyling.styleTextAreaDark(fifoOutput);
 
         JScrollPane fifoScroll = new JScrollPane(fifoOutput);
-        //UIStyling.styleScrollPaneDark(fifoScroll);
         UIStyling.styleScrollPaneCompact(fifoScroll);
 
         fifoPanel.add(calcButton, BorderLayout.NORTH);
@@ -111,7 +130,16 @@ public class MainControllerFrame extends JFrame{
         add(center, BorderLayout.CENTER);
 
         refreshRequests();
+        
         calcButton.addActionListener(e -> runFIFO());
+       
+        //M6 Button Listener
+        editDbButton.addActionListener(e -> {
+            if (vcController != null) {
+                openEditDialog();
+            }
+        });
+       
     }
 
     // =========================================================
@@ -219,10 +247,15 @@ public class MainControllerFrame extends JFrame{
 
         Color rejectColor = new Color(127, 140, 141);          // grey
         Color hoverRejectColor = new Color(231, 76, 60);	//hover is red
+                
+        JButton approve = UIStyling.createIconButton("\u2713", approveColor, hoverApproveColor); // "✓"
+        JButton reject  = UIStyling.createIconButton("\u2715", rejectColor, hoverRejectColor); // "✕"
+
+        Font symbolFont = new Font("Dialog", Font.BOLD, 11); //cross-platform safe for mac os and windows
+        approve.setFont(symbolFont);
+        reject.setFont(symbolFont);
         
-        JButton approve = UIStyling.createIconButton("✓", approveColor, hoverApproveColor);
-        JButton reject  = UIStyling.createIconButton("X", rejectColor, hoverRejectColor);
-        
+        //Button Action Listeners
         approve.addActionListener(e -> {
             vcController.approveJob(req.job);
             refreshRequests();
@@ -302,9 +335,14 @@ public class MainControllerFrame extends JFrame{
         Color rejectColor = new Color(127, 140, 141);          // grey
         Color hoverRejectColor = new Color(231, 76, 60);	//hover is red
         
-        JButton approve = UIStyling.createIconButton("✓", approveColor, hoverApproveColor);
-        JButton reject  = UIStyling.createIconButton("X", rejectColor, hoverRejectColor);
+        JButton approve = UIStyling.createIconButton("\u2713", approveColor, hoverApproveColor); // "✓"
+        JButton reject  = UIStyling.createIconButton("\u2715", rejectColor, hoverRejectColor); // "✕"
+
+        Font symbolFont = new Font("Dialog", Font.BOLD, 11); // cross-platform safe for mac os and windows
+        approve.setFont(symbolFont);
+        reject.setFont(symbolFont);
         
+        //Button Action Listeners
         approve.addActionListener(e -> {
             vcController.approveVehicle(req.vehicle);
             refreshRequests();
@@ -332,8 +370,10 @@ public class MainControllerFrame extends JFrame{
         return row;
     }
     
+    
+    
     // =========================================================
-    // FIFO LOGIC
+    // FIFO LOGIC DISPLAYED
     // =========================================================
     private void runFIFO() {
 
@@ -349,16 +389,224 @@ public class MainControllerFrame extends JFrame{
 
         fifoOutput.append("===== FIFO RESULTS =====\n");
 
+        //New: M6 Change Avneet Worked On This: 
+        long startTime = 0; 
+      
         for (int i = 0; i < batch.size(); i++) {
 
             Job j = batch.get(i);
 
             fifoOutput.append(
+                    "Order: " + (i + 1) + "\n" +
                     "Job: " + j.getJobName() + "\n" +
                     "ID: " + j.getJobID() + "\n" +
+                    "Start Time: " + startTime + " min\n" +
                     "Duration: " + j.getDuration().toMinutes() + " min\n" +
                     "Completion: " + times.get(i) + " min\n\n"
             );
+
+            startTime = times.get(i);
+        }
+    }
+    
+    
+    
+    
+    //M6: New Database Edit Button Method ==================================================================================
+    //Subat + Kendra + Jaden
+   
+    private void openEditDialog() {
+
+        String[] options = {"Job", "Vehicle"};
+
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Which submission do you want to edit?",
+                "Database Editor",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        if (choice == -1) return;
+
+        String id = JOptionPane.showInputDialog(this, "Enter ID:");
+        if (id == null || id.trim().isEmpty()) return;
+
+        id = id.trim();
+
+     
+        // ================= JOB EDIT =============================
+        if (choice == 0) {
+
+            // -------- PENDING JOB --------
+            for (VCController.JobRequest jr : vcController.getPendingJobRequests()) {
+
+                if (jr.job.getJobID().equals(id)) {
+
+                	//LOCK CHECK ADDED
+                    if (jr.job.isLocked()) {
+                        JOptionPane.showMessageDialog(this,
+                                "Job is LOCKED after FIFO calculation.");
+                        return;
+                    }
+                    
+                    // ===== INLINE EDIT UI =====
+                    JTextField nameField = new JTextField(jr.job.getJobName());
+                    JTextField durationField = new JTextField(String.valueOf(jr.job.getDuration().toMinutes()));
+                    JTextField deadlineField = new JTextField(String.valueOf(jr.job.getDeadlineMinutes()));
+
+                    Object[] fields = {
+                            "Job Name:", nameField,
+                            "Duration (min):", durationField,
+                            "Deadline (min):", deadlineField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(
+                            this,
+                            fields,
+                            "Edit Pending Job",
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
+
+                    if (result == JOptionPane.OK_OPTION) {
+
+                        jr.job.setJobName(nameField.getText());
+                        jr.job.setDuration(Duration.ofMinutes(Long.parseLong(durationField.getText())));
+                        jr.job.setDeadlineMinutes(Long.parseLong(deadlineField.getText()));
+
+                        vcController.adminUpdateJob(jr.job);
+                        refreshRequests();
+                    }
+                    return;
+                }
+            }
+
+            // -------- APPROVED JOB --------
+            for (Job j : vcController.getActiveJobs()) {
+
+                if (j.getJobID().equals(id)) {
+
+                	// 🔒 LOCK CHECK ADDED
+                    if (j.isLocked()) {
+                        JOptionPane.showMessageDialog(this,
+                                "Job is LOCKED after FIFO calculation.");
+                        return;
+                    }
+                    
+                    JTextField nameField = new JTextField(j.getJobName());
+                    JTextField durationField = new JTextField(String.valueOf(j.getDuration().toMinutes()));
+                    JTextField deadlineField = new JTextField(String.valueOf(j.getDeadlineMinutes()));
+
+                    Object[] fields = {
+                            "Job Name:", nameField,
+                            "Duration (min):", durationField,
+                            "Deadline (min):", deadlineField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(
+                            this,
+                            fields,
+                            "Edit Approved Job",
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
+
+                    if (result == JOptionPane.OK_OPTION) {
+
+                        j.setJobName(nameField.getText());
+                        j.setDuration(Duration.ofMinutes(Long.parseLong(durationField.getText())));
+                        j.setDeadlineMinutes(Long.parseLong(deadlineField.getText()));
+
+                        vcController.adminUpdateJob(j);
+                    }
+
+                    return;
+                }
+            }
+
+            JOptionPane.showMessageDialog(this, "Job ID not found.");
+        }
+        
+        
+
+        //Avneet + Moontarin + Ryan     
+        // ================= VEHICLE EDIT =========================
+        else {
+
+            // -------- PENDING VEHICLE --------
+            for (VCController.VehicleRequest vr : vcController.getPendingVehicleRequests()) {
+
+                if (vr.vehicle.getVehicleID().equals(id)) {
+
+                    JTextField nameField = new JTextField(vr.vehicle.getVehicleName());
+                    JTextField yearField = new JTextField(String.valueOf(vr.vehicle.getYearMade()));
+                    JTextField residencyField = new JTextField(vr.vehicle.getResidencyDisplay());
+
+                    Object[] fields = {
+                            "Vehicle Name:", nameField,
+                            "Year Made:", yearField,
+                            "Residency:", residencyField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(
+                            this,
+                            fields,
+                            "Edit Pending Vehicle",
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
+
+                    if (result == JOptionPane.OK_OPTION) {
+
+                        vr.vehicle.setVehicleName(nameField.getText());
+                        vr.vehicle.setYearMade(Integer.parseInt(yearField.getText()));
+                        vr.vehicle.setResidencyDisplay(residencyField.getText());
+
+                        vcController.adminUpdateVehicle(vr.vehicle);
+                        refreshRequests();
+                    }
+
+                    return;
+                }
+            }
+
+            // -------- APPROVED VEHICLE --------
+            for (Vehicle v : vcController.getConnectedVehicles()) {
+
+                if (v.getVehicleID().equals(id)) {
+
+                    JTextField nameField = new JTextField(v.getVehicleName());
+                    JTextField yearField = new JTextField(String.valueOf(v.getYearMade()));
+                    JTextField residencyField = new JTextField(v.getResidencyDisplay());
+
+                    Object[] fields = {
+                            "Vehicle Name:", nameField,
+                            "Year Made:", yearField,
+                            "Residency:", residencyField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(
+                            this,
+                            fields,
+                            "Edit Approved Vehicle",
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
+
+                    if (result == JOptionPane.OK_OPTION) {
+
+                        v.setVehicleName(nameField.getText());
+                        v.setYearMade(Integer.parseInt(yearField.getText()));
+                        v.setResidencyDisplay(residencyField.getText());
+
+                        vcController.adminUpdateVehicle(v);
+                    }
+
+                    return;
+                }
+            }
+
+            JOptionPane.showMessageDialog(this, "Vehicle ID not found.");
         }
     }
 }

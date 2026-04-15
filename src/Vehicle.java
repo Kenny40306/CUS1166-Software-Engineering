@@ -81,7 +81,28 @@ public class Vehicle implements Serializable {
         System.out.println("Vehicle " + vehicleID + " data erased.");
     }
 
+ // ================= ADMIN EDIT SETTERS =================
+    public void setVehicleName(String vehicleName) {
+        this.vehicleName = vehicleName;
+    }
+
+    public void setYearMade(int yearMade) {
+        this.yearMade = yearMade;
+    }
+
+    public void setResidencyDisplay(String display) {
+        // simple parse: "5 days" → split number + unit
+        try {
+            String[] parts = display.trim().split(" ");
+            this.residencyTime = Integer.parseInt(parts[0]);
+            this.residencyUnit = (parts.length > 1) ? parts[1] : "days";
+        } catch (Exception e) {
+            System.out.println("Invalid residency format: " + display);
+        }
+    }
+    //====================================================================
     
+    // getters
     public String getVehicleStatusInfo() {
         String assignedJob = (currentJob != null) ? currentJob.getJobName() : "idle";
         return "Vehicle ID: " + vehicleID +
@@ -89,9 +110,6 @@ public class Vehicle implements Serializable {
                " | Job: " + assignedJob +
                " | Power: " + computePower + " GHz";
     }
-    
-    
-    // getters
     public String getOwnerID() {
         return ownerID;
     }

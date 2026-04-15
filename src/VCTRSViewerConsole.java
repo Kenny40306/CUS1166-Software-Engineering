@@ -79,7 +79,7 @@ public class VCTRSViewerConsole {
 	       JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
 	       UIStyling.styleDashboardPanel(centerPanel);
 	       centerPanel.add(separator, BorderLayout.NORTH);
-	       // description text area
+	  //....'..............ppppp[[ppppppp     // description text area
 	       JTextArea description = new JTextArea(
 	           "\nThis application allows clients to submit computational jobs to available vehicles " +
 	           "and vehicle owners to rent out their vehicles for processing tasks within the cloud."

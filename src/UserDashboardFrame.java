@@ -167,7 +167,7 @@ public class UserDashboardFrame extends JFrame {
 	}
         
     // Load all notifications and separate approved/rejected submissions */
-  
+    
     public void refreshNotifications() {
         notificationArea.setText("");
 
@@ -187,8 +187,10 @@ public class UserDashboardFrame extends JFrame {
 
         for (String m : msgs) {
             notificationArea.append(m + "\n");
-            if ((m.toLowerCase().contains("approved") || m.toLowerCase().contains("rejected"))
-                    && !allSubmissions.contains(m)) {
+            if ((m.toLowerCase().contains("approved")
+                    || m.toLowerCase().contains("rejected")
+                    || m.toLowerCase().contains("updated"))
+                && !allSubmissions.contains(m)) {
                 allSubmissions.add(m);
             }
         }
@@ -224,10 +226,16 @@ public class UserDashboardFrame extends JFrame {
                  displaySubmitVehicle(notification);
             }
         	trackJobProgress();             
+       
         }else if (notification.toLowerCase().contains("rejected")) {
         	infoArea.append(notification + "\n");
         	infoArea.append("Please submit again.\n");  
-        }else {
+       
+        //Kendra Worked On This
+        }else if (notification.toLowerCase().contains("updated")) {
+            infoArea.append(notification + "\n");
+            infoArea.append("Your submission was modified by admin. Review changes.\n");
+        }else{
             infoArea.append(notification + "\n");   // fallback for unexpected messages
         }
     }

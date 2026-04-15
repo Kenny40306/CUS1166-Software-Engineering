@@ -30,9 +30,7 @@ public class VCController {
         USER
     }
 	//---------------------------------------------
-	
-	
-	
+		
 	//M4 Attributes
     private String controllerID;
     private List<Vehicle> connectedVehicles; //declared field:
@@ -67,10 +65,18 @@ public class VCController {
     private List<String> userDisplay = new ArrayList<>();
     //------------------------------------------------------------------------------------------------------------------------------------
     
-    //---M6 Attributes for Job and Vehicle> --------------------------------------------------------------------------------------------
-    //need something to connect database class
     
+    
+    //---M6 Attributes for Job and Vehicle> --------------------------------------------------------------------------------------------
+    //Kendra Worked On This:
+    private SQLDatabaseManager dbManager; //placeholder filed 
+    
+    // persistent ownership tracking for job and vehicle so admin can notify user of updates
+    private Map<String, String> jobOwnerMap = new HashMap<>();
+    private Map<String, String> vehicleOwnerMap = new HashMap<>();
     //----------------------------------------------------------------------------------------------------------------------------------
+    
+    
     
     // Constructor
     public VCController(String controllerID, Server serverConnection) {
@@ -86,7 +92,11 @@ public class VCController {
         this.pendingVehicleRequests = new ArrayList<>();
         this.decisions= new HashMap<>();
         //-----------------------------------------------------------
-    }
+        
+        //-----M6------------
+        this.dbManager = new SQLDatabaseManager();
+    }  
+
        
    
     
@@ -123,12 +133,17 @@ public class VCController {
        		pendingJobRequests.add(new JobRequest(job, client, requestID)); //Add pending jobs to list so admin can review it later
        		decisions.put(requestID, null); //Track decisions not decided yet so client thread will wait until decision is complete
 
+       		//M6
+       		jobOwnerMap.put(job.getJobID(), client); //store owner
+       		
        		addNotification("ADMIN", "Job request from " + client); //Notify admin for GUI on RoleSelectionFrame
        	    
        	    //UPDATE SERVER FRAME GUI!!!
        	    logServerMessage("New job request from " + client); //For global notifs tab
        	    updateJobDisplay(job.getJobID(),client,job.getJobName(),"PENDING"); //for job tab
        	    
+       	    refreshServerGUI(); //updates all GUI in server when admin changes database
+       	 
        	    return requestID; //Returns request ID used to wait for client's approval
        	}
        	
@@ -139,6 +154,10 @@ public class VCController {
                 JobRequest req = it.next();
                 if (req.job.equals(job)) { //Find correct match and push pending jobs to active jobs
                     activeJobs.add(job); //active jobs is now used here for FIFO calculations
+                    
+                    //---M6 Kendra Worked On This:
+                    dbManager.insertJob(job, req.client); //save to database upon admin approval
+                    //-----------------------------------
                     
                     saveApprovedData("JOB", job.getJobID(), req.client, job.getJobName()); //Save job to file jobsApproved
 
@@ -152,7 +171,10 @@ public class VCController {
                     logServerMessage("Job " + job.getJobID() + " APPROVED");  //For global notifs tab
                     updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "APPROVED");  //for job tab
 
+                    refreshServerGUI(); //updates all GUI in server when admin changes database
+                    
                     it.remove(); // remove from pending AFTER notifications to avoid re-processing same request 
+
                     break;
                 }
             }
@@ -175,6 +197,8 @@ public class VCController {
                     logServerMessage("Job " + job.getJobID() + " REJECTED");
                     updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "REJECTED");  //for job tab
 
+                    refreshServerGUI(); //updates all GUI in server when admin changes database
+                    
                     it.remove(); // remove AFTER notifications
                     break;
                 }
@@ -202,31 +226,101 @@ public class VCController {
     	
     	if (currentBatch.isEmpty()) { //edge case 
             System.out.println("[VCController] No active jobs to calculate completion times for.");
-            return new ArrayList<>();
+            return completionTimes;
         }
     	
-    	long cumulativeTime = 0; //Tracks total elapsed time 
-        
+    	//New M6 change here Ryan Worked On This ----------------------------------------------------------------------------	
+    	long cumulativeTime = 0; //Tracks total elapsed time
+    	
+    	int order = 1; //New: FIFO ORDER COUNTER
+
     	//Loops FIFO order
         for (Job j : currentBatch) { 
             long durationMinutes = j.getDuration().toMinutes();  //called form Job Class and set to minutes
+            
+            long startTime = cumulativeTime;   //New: start time before adding duration
+            
             cumulativeTime += durationMinutes; //FIFO Calculation
             j.setCompletionTime(cumulativeTime); // gets in Job Class public void setCompletionTime (long completionTime)
             j.setCompletionTimeCalculated(true); // mark as processed true for completion, gets in Job Class 
+           
+            //!!!LOCK JOB AFTER FIFO!!!
+            j.lockJob();
+
             completionTimes.add(cumulativeTime);
- 
+            
+            //New: STORE FIFO INTO DATABASE
+            dbManager.updateJobFIFO(j, order, startTime);
+
             System.out.println("[\nVCController] -> Calculations");
             System.out.println("[VCController] Job " + j.getJobID()
-                    + " | Duration: " + durationMinutes
-                    + " min | Completion Time: " + cumulativeTime + " min");
-        }
+            + " | Order: " + order
+            + " | Start: " + startTime
+            + " | Duration: " + durationMinutes
+            + " | Completion: " + cumulativeTime);
+
+            order++;
+        }   
+        
         System.out.println("============================");
         return completionTimes;
     }
+    
+    // ================= Admin Fix Job =================
+    //Jaden Worked On This 
+    public void adminUpdateJob(Job job) {
+        
+    	 if (job.isLocked()) {
+    	        logServerMessage("BLOCKED EDIT ATTEMPT ON LOCKED JOB: " + job.getJobID());
+    	        return;
+    	    }
+    	
+    	dbManager.updateJob(job);
+        logServerMessage("ADMIN UPDATED JOB: " + job.getJobID());
+        
+        String owner = findJobOwner(job);
+
+        if (owner != null) {
+            addNotification(owner,
+                    "JOB UPDATED: " + job.getJobName() +
+                    " (ID: " + job.getJobID() + ")");
+
+            updateJobDisplay(job.getJobID(), owner, job.getJobName(), "UPDATED");
+        }
+
+        refreshServerGUI(); //updates all GUI in server when admin changes database
+     }
+    
+    private String findJobOwner(Job job) {
+        return jobOwnerMap.get(job.getJobID());
+    }    
+
+    
+    // ================= Admin Fix Vehicle =================
+    //Subat Worked On This
+    public void adminUpdateVehicle(Vehicle vehicle) {
+        dbManager.updateVehicle(vehicle);
+        logServerMessage("ADMIN UPDATED VEHICLE: " + vehicle.getVehicleID());
+        
+        String owner = findVehicleOwner(vehicle);
+
+        if (owner != null) {
+            addNotification(owner,
+                    "VEHICLE UPDATED: " + vehicle.getVehicleName() +
+                    " (ID: " + vehicle.getVehicleID() + ")");
+
+            updateVehicleDisplay(vehicle.getVehicleID(), owner, vehicle.getVehicleName(), "UPDATED");
+        }
+
+        refreshServerGUI(); //updates all GUI in server when admin changes database
+    }
+    
+    private String findVehicleOwner(Vehicle vehicle) {
+        return vehicleOwnerMap.get(vehicle.getVehicleID());
+    }
     //=======================================================================================================
         
-    
-    
+   
   //Methods
     //(M5 Implementation: =========== Core Vehicle Methods ===================================
     //Subat Wrote This -
@@ -255,6 +349,9 @@ public class VCController {
         //Track decisions not decided yet
         decisions.put(requestID, null);
 
+        //store owner
+        vehicleOwnerMap.put(vehicle.getVehicleID(), client);
+
         // notify admin that a new vehicle request came in
         addNotification("ADMIN", "Vehicle request from " + client);
 
@@ -263,6 +360,9 @@ public class VCController {
 
         // show it in the vehicle tab of server frame as pending
         updateVehicleDisplay(vehicle.getVehicleID(), client, vehicle.getVehicleName(), "PENDING");
+        
+        //Update GUI
+        refreshServerGUI(); //updates all GUI in server when admin changes database
         
         //Returns request ID
         return requestID;
@@ -279,6 +379,10 @@ public class VCController {
             	 // add vehicle to connected vehicles list
                 connectedVehicles.add(vehicle);
 
+                //---M6 Kendra Worked On This:
+                dbManager.insertVehicle(vehicle, req.client);  //save to database upon admin aproval
+                //-------------------------------------------
+                
                 // save to file only on approval (requirement)
                 saveApprovedData("VEHICLE",vehicle.getVehicleID(), req.client, vehicle.getVehicleName());
                 
@@ -290,6 +394,8 @@ public class VCController {
                 logServerMessage("Vehicle " + vehicle.getVehicleID() + " APPROVED");
                 updateVehicleDisplay(vehicle.getVehicleID(), req.client, vehicle.getVehicleName(), "APPROVED");
 
+                refreshServerGUI(); //updates all GUI in server when admin changes database
+                
                 it.remove(); // remove AFTER notifications
                 break;
             }
@@ -314,6 +420,8 @@ public class VCController {
                 logServerMessage("Vehicle " + vehicle.getVehicleID() + " REJECTED");
                 updateVehicleDisplay(vehicle.getVehicleID(), req.client, vehicle.getVehicleName(), "REJECTED");
 
+                refreshServerGUI(); //updates all GUI in server when admin changes database
+                
                 it.remove(); // remove AFTER notifications
                 break;
             }
@@ -361,19 +469,17 @@ public class VCController {
    
     //standardize user ID so it’s not consistent anywhere and can convert lowercase to uppercase that prevents mismatches. 
     //Ensure notifications are stored and retrieved correctly (avoid notification loss due to inconsistent IDs).
-    /*private String normalize(String id) {
-        return id == null ? null : id.trim().toLowerCase();
-    }*/
-   	
    	private String normalize(String userId) {
-   	    if (userId == null) return "";
+   	   
+   		if (userId == null) return "";
 
-   	    // Remove "Client " prefix if accidentally passed
+   	    userId = userId.trim();
+
    	    if (userId.startsWith("Client ")) {
-   	        return userId.replace("Client ", "").trim();
+   	        userId = userId.replace("Client ", "");
    	    }
 
-   	    return userId.trim();
+   	    return userId.toLowerCase(); // IMPORTANT FOR: consistent keying 	
    	}
 
    	public void setCurrentUserId(String userId, UserRole role) {
@@ -384,7 +490,6 @@ public class VCController {
         }
         
         this.currentUserID = normalize(userId);
-        //this.currentUserID = userId;       // numeric/system ID
         this.currentRole = role;
 
         // Open server frame if admin   
@@ -415,23 +520,26 @@ public class VCController {
     
     //adds notification message for specific user in that calls normalized(userId) and stores in memory (Map<String,List<String>>)
     //to keep users informed and up to date (file ensures notification persist after program closes) 
+    
     public void addNotification(String userId, String message) {
-    	userId = normalize(userId);
-    	notifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
-             
-        //update if same user is active for real time admin update only        
-        if (roleFrame != null && currentUserID != null) {
-            
-        	// If current user is admin and notification is for admin, show it
-        	if (currentRole == UserRole.ADMIN && userId.equals("admin")) {
-                roleFrame.appendNotification(message);
-            } 
-            // If current user is a regular user and notification is for them, show it
-        	else if (currentRole == UserRole.USER && userId.equals(currentUserID)) {
-                roleFrame.appendNotification(message);
+
+        String normalizedUser = normalize(userId);
+        notifications.computeIfAbsent(normalizedUser, k -> new ArrayList<>()).add(message);
+
+        if (roleFrame == null || currentUserID == null) return;
+
+        SwingUtilities.invokeLater(() -> {
+
+            String current = normalize(currentUserID);
+
+            boolean isAdminMsg = currentRole == UserRole.ADMIN && normalizedUser.equals("admin");
+
+            boolean isUserMsg = currentRole == UserRole.USER && normalizedUser.equals(current);
+
+            if (isAdminMsg || isUserMsg) {
+                roleFrame.refreshNotifications();
             }
-            // Otherwise, do not show notifications in notifications box
-        }
+        });
     }
     
     //Removes all notifications for specific user and keep the notification storage manageable 
@@ -455,9 +563,6 @@ public class VCController {
         return notifications.getOrDefault(userId, new ArrayList<>());
     }
     
-    //-----------------------------------------------------------------------------------------------------------------
-   
-
     //Avneet + Moon Worked On This-
     //----------------- Server Management-----------------------------
     // Store ServerFrame
@@ -551,6 +656,14 @@ public class VCController {
         }
     }
 
+    //-------New M6 Moontarin Worked on This------------------------------------
+    private void refreshServerGUI() {
+        if (serverFrame != null) {
+            serverFrame.updateJobs(jobDisplay);
+            serverFrame.updateVehicles(vehicleDisplay);
+        }
+    }
+  //---------------------------------------------------------------------
     
     
   //--------------------- Data For Server System Panel -----------------------
@@ -606,7 +719,6 @@ public class VCController {
     public void setOutputArea(JTextArea outputArea) {
         this.outputArea = outputArea;
     }
-    
     
     // Getters & Setters
  
