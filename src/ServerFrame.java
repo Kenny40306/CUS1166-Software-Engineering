@@ -35,24 +35,25 @@ public class ServerFrame extends JFrame {
         
         // ===== LOGS =====
         logArea = createArea();
-        tabs.addTab("Global Notifs", new JScrollPane(logArea));
+        tabs.addTab("Global Notifs", createStyledScrollPane(logArea));
 
         // ===== JOBS =====
         jobsArea = createArea();
-        tabs.addTab("Jobs", new JScrollPane(jobsArea));
+        tabs.addTab("Jobs", createStyledScrollPane(jobsArea));
 
         // ===== Vehicles =====
         vehiclesArea = createArea();
-        tabs.addTab("Vehicle", new JScrollPane(vehiclesArea));
+        tabs.addTab("Vehicle", createStyledScrollPane(vehiclesArea));
         
         // ===== USERS =====
         usersArea = createArea();
-        tabs.addTab("Users", new JScrollPane(usersArea));
+        tabs.addTab("Users",createStyledScrollPane(usersArea));
 
         // ===== Systems =====
         systemArea = createArea();
-        tabs.addTab("Systems", new JScrollPane(systemArea));
+        tabs.addTab("Systems", createStyledScrollPane(systemArea));
 
+        
         // Add tabbed pane to the center of the frame
         add(tabs, BorderLayout.CENTER);
 
@@ -78,6 +79,14 @@ public class ServerFrame extends JFrame {
         return area;
     }
 
+    // Apply custom scroll styling
+    private JScrollPane createStyledScrollPane(JTextArea area) {
+        JScrollPane scroll = new JScrollPane(area);
+        UIStyling.styleScrollPaneCompact(scroll);
+
+        return scroll;
+    }
+    
     // ================= UPDATE METHODS =================
     
     //---- Logs ---- // Replace all logs with a new list of logs

@@ -231,7 +231,7 @@ public class UserDashboardFrame extends JFrame {
         	infoArea.append(notification + "\n");
         	infoArea.append("Please submit again.\n");  
        
-        //Kendra Worked On This
+        //Kendra Worked On This---
         }else if (notification.toLowerCase().contains("updated")) {
             infoArea.append(notification + "\n");
             infoArea.append("Your submission was modified by admin. Review changes.\n");

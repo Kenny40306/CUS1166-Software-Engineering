@@ -248,10 +248,10 @@ public class MainControllerFrame extends JFrame{
         Color rejectColor = new Color(127, 140, 141);          // grey
         Color hoverRejectColor = new Color(231, 76, 60);	//hover is red
                 
-        JButton approve = UIStyling.createIconButton("\u2713", approveColor, hoverApproveColor); // "✓"
-        JButton reject  = UIStyling.createIconButton("\u2715", rejectColor, hoverRejectColor); // "✕"
+        JButton approve = UIStyling.createIconButton("\u2714", approveColor, hoverApproveColor); // "✓"
+        JButton reject  = UIStyling.createIconButton("\u2716", rejectColor, hoverRejectColor); // "✕"
 
-        Font symbolFont = new Font("Dialog", Font.BOLD, 11); //cross-platform safe for mac os and windows
+        Font symbolFont = new Font("Arial Unicode MS", Font.BOLD, 11); //cross-platform safe for mac os and windows
         approve.setFont(symbolFont);
         reject.setFont(symbolFont);
         
@@ -335,10 +335,10 @@ public class MainControllerFrame extends JFrame{
         Color rejectColor = new Color(127, 140, 141);          // grey
         Color hoverRejectColor = new Color(231, 76, 60);	//hover is red
         
-        JButton approve = UIStyling.createIconButton("\u2713", approveColor, hoverApproveColor); // "✓"
-        JButton reject  = UIStyling.createIconButton("\u2715", rejectColor, hoverRejectColor); // "✕"
+        JButton approve = UIStyling.createIconButton("\u2714", approveColor, hoverApproveColor); // "✓"
+        JButton reject  = UIStyling.createIconButton("\u2716", rejectColor, hoverRejectColor); // "✕"
 
-        Font symbolFont = new Font("Dialog", Font.BOLD, 11); // cross-platform safe for mac os and windows
+        Font symbolFont = new Font("Arial Unicode MS", Font.BOLD, 11); //cross-platform safe for mac os and windows
         approve.setFont(symbolFont);
         reject.setFont(symbolFont);
         
@@ -404,20 +404,27 @@ public class MainControllerFrame extends JFrame{
                     "Duration: " + j.getDuration().toMinutes() + " min\n" +
                     "Completion: " + times.get(i) + " min\n\n"
             );
-
             startTime = times.get(i);
         }
     }
     
     
+    //Old Version: Real data source is memory where MainControllerFrame UI is still reading from memory like java object values not SQL database state directly
+    //UI edits VCController memory then VCController updates SQL
+    //Ex: Java lists in VCController class (pendingJobrequests, activeJobs, pendingVehiclerequests, connectedVehicles)
+    //SQL updates later after admin action of approval for permanent data storage
     
+    
+    //New Version: made it so Pending submissions edits from VCController memory (Temporary State)
+    //Approved submission edits from SQL data first then update data using VCController sync (Permanent State)
+    //FIFO lock is enforced so admin doesn't change sql data after calculation (Processed State)
     
     //M6: New Database Edit Button Method ==================================================================================
+    
     //Subat + Kendra + Jaden
-   
-    private void openEditDialog() {
+    private void openEditDialog() { //Editor Pop up System
 
-        String[] options = {"Job", "Vehicle"};
+        String[] options = {"Job", "Vehicle"}; //choose what to edit for either pending or approved 
 
         int choice = JOptionPane.showOptionDialog(
                 this,
@@ -432,28 +439,26 @@ public class MainControllerFrame extends JFrame{
 
         if (choice == -1) return;
 
-        String id = JOptionPane.showInputDialog(this, "Enter ID:");
+        String id = JOptionPane.showInputDialog(this, "Enter ID:"); //edit based off of ID
         if (id == null || id.trim().isEmpty()) return;
 
         id = id.trim();
 
-     
         // ================= JOB EDIT =============================
         if (choice == 0) {
 
-            // -------- PENDING JOB --------
+            // -------- PENDING JOB (Memory Only) --------
             for (VCController.JobRequest jr : vcController.getPendingJobRequests()) {
 
                 if (jr.job.getJobID().equals(id)) {
 
-                	//LOCK CHECK ADDED
                     if (jr.job.isLocked()) {
                         JOptionPane.showMessageDialog(this,
-                                "Job is LOCKED after FIFO calculation.");
+                                "Job LOCKED after FIFO calculation.");
                         return;
                     }
-                    
-                    // ===== INLINE EDIT UI =====
+
+                    //Fields to edit
                     JTextField nameField = new JTextField(jr.job.getJobName());
                     JTextField durationField = new JTextField(String.valueOf(jr.job.getDuration().toMinutes()));
                     JTextField deadlineField = new JTextField(String.valueOf(jr.job.getDeadlineMinutes()));
@@ -475,71 +480,83 @@ public class MainControllerFrame extends JFrame{
 
                         jr.job.setJobName(nameField.getText());
                         jr.job.setDuration(Duration.ofMinutes(Long.parseLong(durationField.getText())));
-                        jr.job.setDeadlineMinutes(Long.parseLong(deadlineField.getText()));
-
-                        vcController.adminUpdateJob(jr.job);
-                        refreshRequests();
-                    }
-                    return;
-                }
-            }
-
-            // -------- APPROVED JOB --------
-            for (Job j : vcController.getActiveJobs()) {
-
-                if (j.getJobID().equals(id)) {
-
-                	// 🔒 LOCK CHECK ADDED
-                    if (j.isLocked()) {
-                        JOptionPane.showMessageDialog(this,
-                                "Job is LOCKED after FIFO calculation.");
-                        return;
-                    }
+                        jr.job.setDeadlineMinutes(Long.parseLong(deadlineField.getText())); 
                     
-                    JTextField nameField = new JTextField(j.getJobName());
-                    JTextField durationField = new JTextField(String.valueOf(j.getDuration().toMinutes()));
-                    JTextField deadlineField = new JTextField(String.valueOf(j.getDeadlineMinutes()));
+                        //UPDATE SERVER FRAME
+                        vcController.updateJobDisplay(
+                                jr.job.getJobID(),
+                                jr.client,
+                                jr.job.getJobName(),
+                                "PENDING (EDITED)"
+                        );
 
-                    Object[] fields = {
-                            "Job Name:", nameField,
-                            "Duration (min):", durationField,
-                            "Deadline (min):", deadlineField
-                    };
+                        //GUI REFRESH
+                        vcController.refreshServerGUI();
+                        refreshRequests(); //Refresh Pending Request Panel from Memory
 
-                    int result = JOptionPane.showConfirmDialog(
-                            this,
-                            fields,
-                            "Edit Approved Job",
-                            JOptionPane.OK_CANCEL_OPTION
-                    );
-
-                    if (result == JOptionPane.OK_OPTION) {
-
-                        j.setJobName(nameField.getText());
-                        j.setDuration(Duration.ofMinutes(Long.parseLong(durationField.getText())));
-                        j.setDeadlineMinutes(Long.parseLong(deadlineField.getText()));
-
-                        vcController.adminUpdateJob(j);
                     }
-
                     return;
                 }
             }
 
-            JOptionPane.showMessageDialog(this, "Job ID not found.");
-        }
-        
-        
+            // -------- APPROVED JOB (SQL EDIT PATH) --------
+            Job dbJob = vcController.getJobFromDB(id); //Job path fetch from SQL to edit real stored data instead of memory only (avoids editing stale data)
+        											//SQL is fetched when admin explicitly edits approved job data, getJobFromDB calls dbManager.getJobById(id) 
+            if (dbJob == null) {
+                JOptionPane.showMessageDialog(this, "Job ID not found in database.");
+                return;
+            }
+
+            //Lock Check Database fetch
+            if (!vcController.canEditJob(id)) {
+                JOptionPane.showMessageDialog(this,
+                        "Job Locked After FIFO Calculation.");
+                return;
+            }
+                       
+              //Fields to edit
+                JTextField nameField = new JTextField(dbJob.getJobName());
+                JTextField durationField = new JTextField(String.valueOf(dbJob.getDuration().toMinutes()));
+                JTextField deadlineField = new JTextField(String.valueOf(dbJob.getDeadlineMinutes()));
+
+                Object[] fields = {
+                        "Job Name:", nameField,
+                        "Duration (min):", durationField,
+                        "Deadline (min):", deadlineField
+                };
+
+                int result = JOptionPane.showConfirmDialog(
+                        this,
+                        fields,
+                        "Edit Approved Job (DB)",
+                        JOptionPane.OK_CANCEL_OPTION
+                );
+
+                if (result == JOptionPane.OK_OPTION) {
+
+                    String oldName = dbJob.getJobName(); //correct old value
+
+                    dbJob.setJobName(nameField.getText());
+                    dbJob.setDuration(Duration.ofMinutes(Long.parseLong(durationField.getText())));
+                    dbJob.setDeadlineMinutes(Long.parseLong(deadlineField.getText()));
+
+                    vcController.updateApprovedJobFromDB(dbJob, oldName); //Calls dbManager.updateJob(job);
+                    													//Updates memory, Server GUI Frame and sends notification
+                }
+
+                return;
+            }        
 
         //Avneet + Moontarin + Ryan     
         // ================= VEHICLE EDIT =========================
-        else {
+    	else {
 
-            // -------- PENDING VEHICLE --------
-            for (VCController.VehicleRequest vr : vcController.getPendingVehicleRequests()) {
+            // -------- PENDING VEHICLE (Memory Only) --------
+            for (VCController.VehicleRequest vr : vcController.getPendingVehicleRequests()) { 
 
                 if (vr.vehicle.getVehicleID().equals(id)) {
 
+                	//Fields to edit
                     JTextField nameField = new JTextField(vr.vehicle.getVehicleName());
                     JTextField yearField = new JTextField(String.valueOf(vr.vehicle.getYearMade()));
                     JTextField residencyField = new JTextField(vr.vehicle.getResidencyDisplay());
@@ -563,52 +580,64 @@ public class MainControllerFrame extends JFrame{
                         vr.vehicle.setYearMade(Integer.parseInt(yearField.getText()));
                         vr.vehicle.setResidencyDisplay(residencyField.getText());
 
-                        vcController.adminUpdateVehicle(vr.vehicle);
-                        refreshRequests();
+                        //UPDATE SERVER FRAME
+                        vcController.updateVehicleDisplay(
+                                vr.vehicle.getVehicleID(),
+                                vr.client,
+                                vr.vehicle.getVehicleName(),
+                                "PENDING (EDITED)"
+                        );
+
+                        //GUI REFRESH
+                        vcController.refreshServerGUI();
+                        refreshRequests(); //Refresh Pending Request Panel from Memory
                     }
 
                     return;
                 }
             }
 
-            // -------- APPROVED VEHICLE --------
-            for (Vehicle v : vcController.getConnectedVehicles()) {
+            // -------- APPROVED VEHICLE (SQL EDIT PATH) --------
+            Vehicle dbVehicle = vcController.getVehicleFromDB(id); //Vehicle path fetch from SQL to edit real stored data instead of memory only (avoid editing stale data)
+            													//SQL is fetched when admin explicitly edits approved vehicle data, getVehicleFromDB calls dbManager.getVehicleById(id);
+            if (dbVehicle != null) {
 
-                if (v.getVehicleID().equals(id)) {
+            	//Fields to edit
+                JTextField nameField = new JTextField(dbVehicle.getVehicleName());
+                JTextField yearField = new JTextField(String.valueOf(dbVehicle.getYearMade()));
+                JTextField residencyField = new JTextField(dbVehicle.getResidencyDisplay());
 
-                    JTextField nameField = new JTextField(v.getVehicleName());
-                    JTextField yearField = new JTextField(String.valueOf(v.getYearMade()));
-                    JTextField residencyField = new JTextField(v.getResidencyDisplay());
+                Object[] fields = {
+                        "Vehicle Name:", nameField,
+                        "Year Made:", yearField,
+                        "Residency:", residencyField
+                };
 
-                    Object[] fields = {
-                            "Vehicle Name:", nameField,
-                            "Year Made:", yearField,
-                            "Residency:", residencyField
-                    };
+                int result = JOptionPane.showConfirmDialog(
+                        this,
+                        fields,
+                        "Edit Approved Vehicle (DB)",
+                        JOptionPane.OK_CANCEL_OPTION
+                );
 
-                    int result = JOptionPane.showConfirmDialog(
-                            this,
-                            fields,
-                            "Edit Approved Vehicle",
-                            JOptionPane.OK_CANCEL_OPTION
-                    );
+                if (result == JOptionPane.OK_OPTION) {
 
-                    if (result == JOptionPane.OK_OPTION) {
+                    String oldName = dbVehicle.getVehicleName();
 
-                        v.setVehicleName(nameField.getText());
-                        v.setYearMade(Integer.parseInt(yearField.getText()));
-                        v.setResidencyDisplay(residencyField.getText());
+                    dbVehicle.setVehicleName(nameField.getText());
+                    dbVehicle.setYearMade(Integer.parseInt(yearField.getText()));
+                    dbVehicle.setResidencyDisplay(residencyField.getText());
 
-                        vcController.adminUpdateVehicle(v);
-                    }
-
-                    return;
+                    vcController.updateApprovedVehicleFromDB(dbVehicle, oldName); //calls dbManager.updateVehicle
+                    																//Updates memory, Server GUI Frame and sends update user notification
                 }
+
+                return;
             }
 
             JOptionPane.showMessageDialog(this, "Vehicle ID not found.");
         }
-    }
+    }   
 }
 	    
     //=====================
@@ -621,4 +650,4 @@ public class MainControllerFrame extends JFrame{
     
     //(Maybe) Alert system → vehicle departure, job failure, checkpoints, reassignment
 
-    //Overall System Performance → avg completion time, jobs/min, vehicle utilization
+    //Better Overall System Performance → avg completion time, jobs/min, vehicle utilization

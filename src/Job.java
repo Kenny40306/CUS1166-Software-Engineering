@@ -153,14 +153,21 @@ public class Job implements Serializable{
 	       this.clientID = clientId;
 	}
 	
+	
+	
 	//========== M6 LOCK SYSTEM =================
     public boolean isLocked() {
         return locked;
     }
-
     public void lockJob() {
         this.locked = true;
     }
+    
+    //useful for temporary unlock if admin needed to rerun fifo 
+    public void unlockJob() {
+        this.locked = false;
+    }
+    
 	// ================= M6 ADMIN EDIT SETTERS =================
 	public void setJobName(String jobName) {
 	    this.jobName = jobName;
@@ -184,9 +191,6 @@ public class Job implements Serializable{
 	public String getClientID() {
 		return clientID;
 	}
-	/*public String getClientName() {
-	    return clientName;
-	}*/
 	public String getJobName() {
 		return jobName;
 	}

@@ -81,7 +81,10 @@ public class Vehicle implements Serializable {
         System.out.println("Vehicle " + vehicleID + " data erased.");
     }
 
- // ================= ADMIN EDIT SETTERS =================
+    
+    
+ // ================= M6 ADMIN EDIT SETTERS =================
+    //Avneet Worked On this
     public void setVehicleName(String vehicleName) {
         this.vehicleName = vehicleName;
     }
@@ -101,6 +104,8 @@ public class Vehicle implements Serializable {
         }
     }
     //====================================================================
+    
+    
     
     // getters
     public String getVehicleStatusInfo() {

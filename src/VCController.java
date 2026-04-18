@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -45,18 +46,14 @@ public class VCController {
     private List<JobRequest> pendingJobRequests; //declared field: pending jobs for admin to view (accept or reject)
     private List<VehicleRequest> pendingVehicleRequests; //declared field: pending vehicles for admin to view (accept or reject)
     private Map<String, String> decisions; //admin's decisions to approve or reject for each client request
-    
     //New Approved File For Both Job and Vehicle:
     private final String APPROVED_FILE = "approved_data.txt";
-
     //Role Tracking User Context
     private String currentUserID; // Tracks logged-in user either admin of regular user
     private UserRole currentRole;
     private RoleSelectionFrame roleFrame; //user and admin dash board frame reference
-    
     //Notify System
     private Map<String, List<String>> notifications = new HashMap<>(); ////declared field: stores notification in memory per user
-
     //Server Frame & persistent server data
     private ServerFrame serverFrame;
     private List<String> serverLogs = new ArrayList<>();
@@ -69,8 +66,8 @@ public class VCController {
     
     //---M6 Attributes for Job and Vehicle> --------------------------------------------------------------------------------------------
     //Kendra Worked On This:
-    private SQLDatabaseManager dbManager; //placeholder filed 
-    
+    private SQLDatabaseManager dbManager; //Links Database CLass
+   
     // persistent ownership tracking for job and vehicle so admin can notify user of updates
     private Map<String, String> jobOwnerMap = new HashMap<>();
     private Map<String, String> vehicleOwnerMap = new HashMap<>();
@@ -82,8 +79,10 @@ public class VCController {
     public VCController(String controllerID, Server serverConnection) {
         this.controllerID    = controllerID;
         this.serverConnection = serverConnection;
+                
         this.connectedVehicles = new ArrayList<>();
         this.activeJobs = new ArrayList<>();
+        
         this.currentBatch = new ArrayList<>();
         this.jobIDs = new HashSet<>();
         
@@ -93,8 +92,10 @@ public class VCController {
         this.decisions= new HashMap<>();
         //-----------------------------------------------------------
         
+        
+        
         //-----M6------------
-        this.dbManager = new SQLDatabaseManager();
+        this.dbManager = new SQLDatabaseManager(); //connects to database
     }  
 
        
@@ -142,7 +143,7 @@ public class VCController {
        	    logServerMessage("New job request from " + client); //For global notifs tab
        	    updateJobDisplay(job.getJobID(),client,job.getJobName(),"PENDING"); //for job tab
        	    
-       	    refreshServerGUI(); //updates all GUI in server when admin changes database
+       	    refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
        	 
        	    return requestID; //Returns request ID used to wait for client's approval
        	}
@@ -171,7 +172,7 @@ public class VCController {
                     logServerMessage("Job " + job.getJobID() + " APPROVED");  //For global notifs tab
                     updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "APPROVED");  //for job tab
 
-                    refreshServerGUI(); //updates all GUI in server when admin changes database
+                    refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                     
                     it.remove(); // remove from pending AFTER notifications to avoid re-processing same request 
 
@@ -197,7 +198,7 @@ public class VCController {
                     logServerMessage("Job " + job.getJobID() + " REJECTED");
                     updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "REJECTED");  //for job tab
 
-                    refreshServerGUI(); //updates all GUI in server when admin changes database
+                    refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                     
                     it.remove(); // remove AFTER notifications
                     break;
@@ -238,18 +239,19 @@ public class VCController {
         for (Job j : currentBatch) { 
             long durationMinutes = j.getDuration().toMinutes();  //called form Job Class and set to minutes
             
-            long startTime = cumulativeTime;   //New: start time before adding duration
+            long startTime = cumulativeTime;//New: start time before adding duration
             
             cumulativeTime += durationMinutes; //FIFO Calculation
             j.setCompletionTime(cumulativeTime); // gets in Job Class public void setCompletionTime (long completionTime)
             j.setCompletionTimeCalculated(true); // mark as processed true for completion, gets in Job Class 
            
-            //!!!LOCK JOB AFTER FIFO!!!
-            j.lockJob();
-
+            //!!!LOCK JOB AFTER FIFO!!! 
+            j.lockJob(); //memory lock Called from Job Class Method
+            dbManager.lockJobs(j.getJobID()); // DB lock Called from SQLDatabaseManagement Class
+            
             completionTimes.add(cumulativeTime);
             
-            //New: STORE FIFO INTO DATABASE
+            //New: store fifo in database from SQLDatabase Class
             dbManager.updateJobFIFO(j, order, startTime);
 
             System.out.println("[\nVCController] -> Calculations");
@@ -266,61 +268,117 @@ public class VCController {
         return completionTimes;
     }
     
+    //VCController becomes live system state (RAM/Java Objects) where everything happens here first that UI reads
+    //Note: MainCOntrollerFrame UI reads from mostly VCController memory not SQL directly
+  
+    //updateApprovedJobFromDB() and updateApprovedVehicleFromDB() sync database and in-memory system (hybrid)
+    //Changes written to SQL and Java memory VCCOntroller lists + UI stays consistent
+    
     // ================= Admin Fix Job =================
     //Jaden Worked On This 
-    public void adminUpdateJob(Job job) {
-        
-    	 if (job.isLocked()) {
-    	        logServerMessage("BLOCKED EDIT ATTEMPT ON LOCKED JOB: " + job.getJobID());
-    	        return;
-    	    }
+    public void updateApprovedJobFromDB(Job job, String oldName) {
+
+    	//Hard Lock Blocks admin after fifo to not update job 
+        if (job.isLocked()) {
+            logServerMessage("BLOCKED LOCKED JOB: " + job.getJobID());
+            return;
+        }
+               
+        //calls update method from SQL Manager Class updates database / Calls SQL
+        boolean updated = dbManager.updateJob(job);
+
+        if (updated) {
+
+            logServerMessage("DB UPDATED JOB: " + job.getJobID());
+
+            //Memory sync to match system values with approved jobs in database
+            for (int i = 0; i < activeJobs.size(); i++) {
+                if (activeJobs.get(i).getJobID().equals(job.getJobID())) {
+                    activeJobs.set(i, job); //replace old job object in VCController memory to keep Controller consistent with SQL
+                }
+            }
+            
+         //Notify Owner (user feedback)
+         String owner = jobOwnerMap.get(job.getJobID());
+         if (owner != null) {
+              addNotification(owner,
+                        "Job Submission: "+ oldName + " Was Updated To: " + job.getJobName());
+           }
+
+         //UPDATE SERVER UI STATE
+         updateJobDisplay(job.getJobID(), owner, job.getJobName(), "APPROVED (UPDATED)");
+
+         //GLOBAL UI REFRESH
+         refreshServerGUI();
+        }
+    }
+    
+    //Database Fetch upon admin approval by job ID wrapper method returns object so UI can read it
+    public Job getJobFromDB(String id) {
+        return dbManager.getJobById(id); //In SQLDatabaseManager Class
+    }
+    
+    //Ryan Worked on This
+    public boolean canEditJob(String id) {
     	
-    	dbManager.updateJob(job);
-        logServerMessage("ADMIN UPDATED JOB: " + job.getJobID());
-        
-        String owner = findJobOwner(job);
-
-        if (owner != null) {
-            addNotification(owner,
-                    "JOB UPDATED: " + job.getJobName() +
-                    " (ID: " + job.getJobID() + ")");
-
-            updateJobDisplay(job.getJobID(), owner, job.getJobName(), "UPDATED");
+    	//1. Always Check DB (persistent truth)
+        if (dbManager.isJobLocked(id)) {
+            return false;
         }
 
-        refreshServerGUI(); //updates all GUI in server when admin changes database
-     }
-    
-    private String findJobOwner(Job job) {
-        return jobOwnerMap.get(job.getJobID());
-    }    
+        //2. Check FIFO memory lock (only if already loaded into RAM)
+        for (Job j : activeJobs) {
+            if (j.getJobID().equals(id)) {
+                return !j.isLocked();
+            }
+        }
 
+        //3. If not in memory but exists in DB → it's editable (approved state)
+        Job dbJob = getJobFromDB(id);
+        return dbJob != null; // exists = editable unless locked
+    }           
+   
     
     // ================= Admin Fix Vehicle =================
     //Subat Worked On This
-    public void adminUpdateVehicle(Vehicle vehicle) {
-        dbManager.updateVehicle(vehicle);
-        logServerMessage("ADMIN UPDATED VEHICLE: " + vehicle.getVehicleID());
+    public void updateApprovedVehicleFromDB(Vehicle v, String oldName) {
         
-        String owner = findVehicleOwner(vehicle);
+        //calls update method from SQL Manager Class
+        boolean updated = dbManager.updateVehicle(v);
 
-        if (owner != null) {
-            addNotification(owner,
-                    "VEHICLE UPDATED: " + vehicle.getVehicleName() +
-                    " (ID: " + vehicle.getVehicleID() + ")");
+        if (updated) {
 
-            updateVehicleDisplay(vehicle.getVehicleID(), owner, vehicle.getVehicleName(), "UPDATED");
+            logServerMessage("DB UPDATED VEHICLE: " + v.getVehicleID());
+
+            // MEMORY SYNC
+            for (int i = 0; i < connectedVehicles.size(); i++) {
+                if (connectedVehicles.get(i).getVehicleID().equals(v.getVehicleID())) {
+                    connectedVehicles.set(i, v);
+                }
+            }
+
+            String owner = vehicleOwnerMap.get(v.getVehicleID());
+            
+            if (owner != null) {
+                addNotification(owner,
+                        "Vehicle Submission: " + oldName + " Was Updated To: " + v.getVehicleName());
+            }
+
+            //UPDATE SERVER UI STATE
+            updateVehicleDisplay(v.getVehicleID(), owner, v.getVehicleName(), "APPROVED (UPDATED)");
+
+            //GLOBAL UI REFRESH
+            refreshServerGUI();
+
         }
-
-        refreshServerGUI(); //updates all GUI in server when admin changes database
+    }  
+    //Database Fetch upon admin approval by Vehicle ID wrapper method returns object so UI can read it
+    public Vehicle getVehicleFromDB(String id) {
+        return dbManager.getVehicleById(id); //In SQLDatabaseManager Class
     }
     
-    private String findVehicleOwner(Vehicle vehicle) {
-        return vehicleOwnerMap.get(vehicle.getVehicleID());
-    }
     //=======================================================================================================
-        
-   
+            
   //Methods
     //(M5 Implementation: =========== Core Vehicle Methods ===================================
     //Subat Wrote This -
@@ -362,8 +420,8 @@ public class VCController {
         updateVehicleDisplay(vehicle.getVehicleID(), client, vehicle.getVehicleName(), "PENDING");
         
         //Update GUI
-        refreshServerGUI(); //updates all GUI in server when admin changes database
-        
+        refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
+
         //Returns request ID
         return requestID;
     }
@@ -394,7 +452,7 @@ public class VCController {
                 logServerMessage("Vehicle " + vehicle.getVehicleID() + " APPROVED");
                 updateVehicleDisplay(vehicle.getVehicleID(), req.client, vehicle.getVehicleName(), "APPROVED");
 
-                refreshServerGUI(); //updates all GUI in server when admin changes database
+                refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                 
                 it.remove(); // remove AFTER notifications
                 break;
@@ -420,7 +478,7 @@ public class VCController {
                 logServerMessage("Vehicle " + vehicle.getVehicleID() + " REJECTED");
                 updateVehicleDisplay(vehicle.getVehicleID(), req.client, vehicle.getVehicleName(), "REJECTED");
 
-                refreshServerGUI(); //updates all GUI in server when admin changes database
+                refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                 
                 it.remove(); // remove AFTER notifications
                 break;
@@ -657,7 +715,7 @@ public class VCController {
     }
 
     //-------New M6 Moontarin Worked on This------------------------------------
-    private void refreshServerGUI() {
+    public void refreshServerGUI() {
         if (serverFrame != null) {
             serverFrame.updateJobs(jobDisplay);
             serverFrame.updateVehicles(vehicleDisplay);
@@ -713,8 +771,6 @@ public class VCController {
  //=================================================================================================================
  //=================================================================================================================
     
-    
-    
   //Attach GUI output
     public void setOutputArea(JTextArea outputArea) {
         this.outputArea = outputArea;
@@ -729,14 +785,6 @@ public class VCController {
     public void setControllerID(String controllerID) {
         this.controllerID = controllerID;
     }
-        
-    public List<Vehicle> getConnectedVehicles() {
-        return connectedVehicles;
-    }
- 
-    public List<Job> getActiveJobs() {
-        return activeJobs;
-    }
     public List<Job> getCurrentBatch() { 
     	return currentBatch; 
     }
@@ -749,16 +797,23 @@ public class VCController {
         this.serverConnection = serverConnection;
     }
     
+    
+    //---------- Pending Request uses these getter Memory for admin edit ---------------
+    public List<Vehicle> getConnectedVehicles() {
+        return connectedVehicles;
+    }
+    public List<Job> getActiveJobs() {
+        return activeJobs;
+    }
     //M5 getter so MainControllerFrame can check pending job requests
     public synchronized List<JobRequest> getPendingJobRequests() {
         return pendingJobRequests;
     }
-    
     //M5 getter so MainControllerFrame can check pending vehicle requests
     public synchronized List<VehicleRequest> getPendingVehicleRequests() {
         return pendingVehicleRequests;
     }
-    
+    //-----------------------------------------------------------------------------------------
 
  
     @Override
