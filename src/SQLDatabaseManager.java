@@ -164,9 +164,10 @@ public class SQLDatabaseManager {
     //Write (updates database) as locked after fifo 1= true prevents future edits
     public void lockJobs(String jobId) {
         try {
-            String sql = "UPDATE jobs SET job_locked = 1 WHERE job_id = ?";
+            String sql = "UPDATE jobs SET job_locked = 1, job_status = ? WHERE job_id = ?";
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, jobId);
+            ps.setString(1, "APPROVED (LOCKED)");
+            ps.setString(2, jobId);
 
             int rows = ps.executeUpdate();
 
@@ -177,7 +178,7 @@ public class SQLDatabaseManager {
         }
     }
     
-    //Jaden + Subat Worked On This: 
+    //Avneet + Subat Worked On This: 
     //Reads lock state if true = 1 or false = 0 that maps boolean value and if true admin can't edit later
     public boolean isJobLocked(String jobId) {
         try {
@@ -201,9 +202,8 @@ public class SQLDatabaseManager {
 
         return false;
     }    	
-    	   
-    
-    //Loads From SQL For Updating Approved Jobs Already In database
+    	       
+    //Read/Loads From SQL For Updating Approved Jobs Already In database
     //get Job/Vehicle by Id methods reads sql data from row then converts it back to object
     //Note: also has place holder values since constructor would have more fields than Database stores
     
@@ -221,7 +221,7 @@ public class SQLDatabaseManager {
 
                 String jobID = rs.getString("job_id");
                 String jobName = rs.getString("job_name");
-                String clientID = String.valueOf(rs.getInt("job_clientid"));
+                String clientID = rs.getString("job_clientid");
                 Duration duration = Duration.ofMinutes(rs.getInt("job_duration"));
                 LocalDateTime createdAt = rs.getTimestamp("created_at").toLocalDateTime();
                 long deadlineMin = rs.getLong("job_deadline_min");
@@ -258,30 +258,31 @@ public class SQLDatabaseManager {
             if (rs.next()) {
 
                 String vehicleID = rs.getString("vehicle_id");
-                String ownerID = String.valueOf(rs.getInt("vehicle_ownerid"));
+                String ownerID = rs.getString("vehicle_ownerid");
                 String vehicleName = rs.getString("vehicle_model");
                 int yearMade = rs.getInt("vehicle_year");
-
                 double computePower = 2.5; // fallback (DB has no column)
-
+               
                 String residencyRaw = rs.getString("vehicle_residency");
+                
                 int residencyTime = 1;
-                String residencyUnit = "days";
+                String residencyUnit = "Days(s)";
 
-                if (residencyRaw != null) {
-                	
-                	residencyRaw = residencyRaw.toLowerCase().trim();
-                    String[] parts = residencyRaw.split(" ");
-                    
+                if (residencyRaw != null && !residencyRaw.isBlank()) {
+
+                    String[] parts = residencyRaw.trim().split("\\s+");
+
                     try {
+                        // number part
                         residencyTime = Integer.parseInt(parts[0]);
 
+                        // unit part (KEPT EXACT FORMAT, NO LOWERCASE)
                         if (parts.length > 1) {
-                            residencyUnit = parts[1].replace("(s)", "").replace("s", "");
+                            residencyUnit = parts[1];
                         }
 
                     } catch (Exception e) {
-                        System.out.println("Invalid residency format: " + residencyRaw);
+                        System.out.println("Invalid residency format in DB: " + residencyRaw);
                     }
                 }
 
@@ -308,5 +309,95 @@ public class SQLDatabaseManager {
         }
         return null;
     }
-}  
     
+    //============= Reads SQL Owner Methods =======================
+
+    //Kendra Worked On This: 
+    public String getJobOwner(String jobId) {
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT job_client FROM jobs WHERE job_id = ?"
+            );
+            ps.setString(1, jobId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) 
+            	return rs.getString("job_client");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    
+    //Moontarin Worked On this:
+    public String getVehicleOwner(String vehicleId) {
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT vehicle_owner FROM vehicles WHERE vehicle_id = ?"
+            );
+
+            ps.setString(1, vehicleId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) 
+            	return rs.getString("vehicle_owner");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    
+    
+ // ================= GET ALL APPROVED JOBS NO FIFO =================
+    //Subat + Jaden + Avneet 
+    public List<Job> getApprovedJobsNoFIFO() {
+        List<Job> jobs = new ArrayList<>();
+
+        try {
+            String sql = """ 
+            		SELECT * FROM jobs 
+            		WHERE job_status LIKE 'APPROVED%'  
+            		AND (completion_time_min IS NULL OR completion_time_min = 0) 
+            	""";
+
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                String jobID = rs.getString("job_id");
+                String jobName = rs.getString("job_name");
+                String clientID = rs.getString("job_clientid");
+
+                Duration duration = Duration.ofMinutes(rs.getInt("job_duration"));
+                LocalDateTime createdAt = rs.getTimestamp("created_at").toLocalDateTime();
+                long deadlineMin = rs.getLong("job_deadline_min");
+
+                Job job = new Job(
+                    jobID,
+                    jobName,
+                    clientID,
+                    duration,
+                    createdAt,
+                    deadlineMin,
+                    1
+                );
+
+                //IMPORTANT: mark as NOT calculated
+                job.setCompletionTimeCalculated(false);
+                jobs.add(job);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return jobs;
+    }
+}

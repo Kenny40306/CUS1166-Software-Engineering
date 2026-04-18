@@ -71,6 +71,9 @@ public class VCController {
     // persistent ownership tracking for job and vehicle so admin can notify user of updates
     private Map<String, String> jobOwnerMap = new HashMap<>();
     private Map<String, String> vehicleOwnerMap = new HashMap<>();
+    
+    //Restores admin changes upon startup base on SQL
+    private boolean systemRestoredFromDB = false; //restore in-memory system form database
     //----------------------------------------------------------------------------------------------------------------------------------
     
     
@@ -134,7 +137,7 @@ public class VCController {
        		pendingJobRequests.add(new JobRequest(job, client, requestID)); //Add pending jobs to list so admin can review it later
        		decisions.put(requestID, null); //Track decisions not decided yet so client thread will wait until decision is complete
 
-       		//M6
+       		//New M6 Change:
        		jobOwnerMap.put(job.getJobID(), client); //store owner
        		
        		addNotification("ADMIN", "Job request from " + client); //Notify admin for GUI on RoleSelectionFrame
@@ -164,14 +167,14 @@ public class VCController {
 
                     decisions.put(req.requestID, "APPROVED");  //stores admin decision hash map that's used for client to wait for response waitForDecision() unblocks
                     notifyAll(); //wakes and notify client threads that are waiting in waitForDecision()!!!
-                    
+                     
                     // Notifications
                     addNotification(req.client, "Your job \"" + job.getJobName() + "\" was APPROVED");  //updates GUI notifications
                   
                     //UPDATE SERVER FRAME GUI!!!
                     logServerMessage("Job " + job.getJobID() + " APPROVED");  //For global notifs tab
                     updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "APPROVED");  //for job tab
-
+					           
                     refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                     
                     it.remove(); // remove from pending AFTER notifications to avoid re-processing same request 
@@ -190,7 +193,7 @@ public class VCController {
 
                     jobIDs.remove(job.getJobID()); // removes jobID and allow client re-submission if needed
                     notifyAll(); //notify client of rejection
-
+   
                     // Notifications
                     addNotification(req.client, "Your job \"" + job.getJobName() + "\" was REJECTED");  //updates GUI notifications
                     
@@ -245,15 +248,23 @@ public class VCController {
             j.setCompletionTime(cumulativeTime); // gets in Job Class public void setCompletionTime (long completionTime)
             j.setCompletionTimeCalculated(true); // mark as processed true for completion, gets in Job Class 
            
-            //!!!LOCK JOB AFTER FIFO!!! 
-            j.lockJob(); //memory lock Called from Job Class Method
+            
+            //!!!New: LOCK JOB AFTER FIFO!!! ------------------------------------------- 
+            //Without this, after fifo runs job becomes editable 
             dbManager.lockJobs(j.getJobID()); // DB lock Called from SQLDatabaseManagement Class
             
+            String owner = jobOwnerMap.get(j.getJobID());
+            //Update job display to LOCKED
+            updateJobDisplay(j.getJobID(), owner,j.getJobName(), "APPROVED (LOCKED)");
+            
+            //notify admin and logs to server frame
+            logServerMessage("Job " + j.getJobID() + " LOCKED after FIFO calculation"); 
             completionTimes.add(cumulativeTime);
             
             //New: store fifo in database from SQLDatabase Class
             dbManager.updateJobFIFO(j, order, startTime);
-
+          //------------------------------------------------------------------------------
+            
             System.out.println("[\nVCController] -> Calculations");
             System.out.println("[VCController] Job " + j.getJobID()
             + " | Order: " + order
@@ -268,6 +279,7 @@ public class VCController {
         return completionTimes;
     }
     
+    
     //VCController becomes live system state (RAM/Java Objects) where everything happens here first that UI reads
     //Note: MainCOntrollerFrame UI reads from mostly VCController memory not SQL directly
   
@@ -276,110 +288,145 @@ public class VCController {
     
     // ================= Admin Fix Job =================
     //Jaden Worked On This 
-    public void updateApprovedJobFromDB(Job job, String oldName) {
+    public void updateApprovedJobFromDB(Job job, String oldName) { //Method Called in openEditDialog() -- Approved Job -- MainControllerFrame
 
-    	//Hard Lock Blocks admin after fifo to not update job 
-        if (job.isLocked()) {
-            logServerMessage("BLOCKED LOCKED JOB: " + job.getJobID());
-            return;
-        }
-               
         //calls update method from SQL Manager Class updates database / Calls SQL
-        boolean updated = dbManager.updateJob(job);
+        if (dbManager.updateJob(job)) {
 
-        if (updated) {
-
-            logServerMessage("DB UPDATED JOB: " + job.getJobID());
-
-            //Memory sync to match system values with approved jobs in database
+        	//Notify Server global notif
+        	logServerMessage("DB UPDATED JOB: " + job.getJobID());
+        	 //Reload latest version job from database
+            Job dbJob = dbManager.getJobById(job.getJobID());
+        	//Find correct owner from database (user feedback)
+            String owner = dbManager.getJobOwner(job.getJobID());
+           //update internal memory mapping for owner
+            jobOwnerMap.put(job.getJobID(), owner);
+            
+            //Important: Memory sync for list (active jobs) to match system values with approved jobs in database
             for (int i = 0; i < activeJobs.size(); i++) {
                 if (activeJobs.get(i).getJobID().equals(job.getJobID())) {
-                    activeJobs.set(i, job); //replace old job object in VCController memory to keep Controller consistent with SQL
+                    activeJobs.set(i, dbJob);
                 }
             }
-            
-         //Notify Owner (user feedback)
-         String owner = jobOwnerMap.get(job.getJobID());
-         if (owner != null) {
-              addNotification(owner,
-                        "Job Submission: "+ oldName + " Was Updated To: " + job.getJobName());
-           }
+            //Update SeverFrame job tab
+            updateJobDisplay(job.getJobID(), owner, job.getJobName(), "APPROVED (UPDATED)");
 
-         //UPDATE SERVER UI STATE
-         updateJobDisplay(job.getJobID(), owner, job.getJobName(), "APPROVED (UPDATED)");
+            if (owner != null) {
+            	//Notify User Dash board
+                addNotification(owner,
+                    "Job Submission: " + oldName + " Was Updated To: " + job.getJobName());
+            }
 
-         //GLOBAL UI REFRESH
-         refreshServerGUI();
+            //GLOBAL UI REFRESH
+            refreshServerGUI();
         }
     }
     
     //Database Fetch upon admin approval by job ID wrapper method returns object so UI can read it
-    public Job getJobFromDB(String id) {
-        return dbManager.getJobById(id); //In SQLDatabaseManager Class
+    public Job getJobFromDB(String id) {//Method Called openEditDialog() -- Approved Job -- MainControllerFrame
+        return dbManager.getJobById(id); //In SQLDatabaseManager
     }
     
-    //Ryan Worked on This
-    public boolean canEditJob(String id) {
+    
+    
+    //========== ADMIN FIFO DATABASE LOCK DECISION =========================
+    //Allows Edit Button To check if approved submissions in database is locked or not to edit
+    //Ryan Worked on This:
+    public boolean canEditJob(String id) { //Method Called in openEditDialog() -- Approved Job -- MainControllerFrame
     	
-    	//1. Always Check DB (persistent truth)
+    	//1. Always Check DB (persistent truth) Locked in DB can't edit
         if (dbManager.isJobLocked(id)) {
             return false;
         }
-
-        //2. Check FIFO memory lock (only if already loaded into RAM)
-        for (Job j : activeJobs) {
-            if (j.getJobID().equals(id)) {
-                return !j.isLocked();
-            }
-        }
-
-        //3. If not in memory but exists in DB → it's editable (approved state)
-        Job dbJob = getJobFromDB(id);
-        return dbJob != null; // exists = editable unless locked
-    }           
+        //2. If exists in DB → it's editable (approved state) unless locked
+        return dbManager.getJobById(id) != null;  
+     }           
    
+    
     
     // ================= Admin Fix Vehicle =================
     //Subat Worked On This
-    public void updateApprovedVehicleFromDB(Vehicle v, String oldName) {
-        
-        //calls update method from SQL Manager Class
-        boolean updated = dbManager.updateVehicle(v);
+    public void updateApprovedVehicleFromDB(Vehicle v, String oldName) { //Method Called in openEditDialog() -- Approved Vehicle -- MainControllerFrame
+        //calls update method from SQL Manager Class updates database / Calls SQL
+        if (dbManager.updateVehicle(v)) {
 
-        if (updated) {
-
-            logServerMessage("DB UPDATED VEHICLE: " + v.getVehicleID());
-
-            // MEMORY SYNC
+        	//Notify Server global notif
+        	logServerMessage("DB UPDATED VEHICLE: " + v.getVehicleID());	
+        	//Reload latest version vehicle from database
+            Vehicle dbVehicle = dbManager.getVehicleById(v.getVehicleID());
+          //Find correct owner from database (user feedback
+            String owner = dbManager.getVehicleOwner(v.getVehicleID());
+          //update internal memory mapping
+            vehicleOwnerMap.put(v.getVehicleID(), owner);
+           
+          //Important: Memory sync for list (connected vehicles) to match system values with approved vehicles in database
             for (int i = 0; i < connectedVehicles.size(); i++) {
                 if (connectedVehicles.get(i).getVehicleID().equals(v.getVehicleID())) {
-                    connectedVehicles.set(i, v);
+                    connectedVehicles.set(i, dbVehicle);
                 }
             }
-
-            String owner = vehicleOwnerMap.get(v.getVehicleID());
             
-            if (owner != null) {
-                addNotification(owner,
-                        "Vehicle Submission: " + oldName + " Was Updated To: " + v.getVehicleName());
-            }
-
-            //UPDATE SERVER UI STATE
+            //Update SeverFrame vehicle tab
             updateVehicleDisplay(v.getVehicleID(), owner, v.getVehicleName(), "APPROVED (UPDATED)");
 
+            if (owner != null) {
+            	//Notify User Dash board
+                addNotification(owner,
+                		"Vehicle Submission: " + oldName + " Was Updated To: " + v.getVehicleName());
+            }
             //GLOBAL UI REFRESH
             refreshServerGUI();
-
         }
-    }  
+    }
+    
     //Database Fetch upon admin approval by Vehicle ID wrapper method returns object so UI can read it
-    public Vehicle getVehicleFromDB(String id) {
+    public Vehicle getVehicleFromDB(String id) {//Method Called in openEditDialog() -- Approved Vehicle -- MainControllerFrame
         return dbManager.getVehicleById(id); //In SQLDatabaseManager Class
     }
     
-    //=======================================================================================================
-            
-  //Methods
+       
+    // ================= RESTORE UPON PROGRAM RE-OPEN =================
+    //Kendra + Jaden + Ryan + Avneet + Subat + Moontarin 
+   
+    //Allows start up recovery so when admin logs in and edits job submissions for no fifo calculations mainly
+    //it re-loads jobs and vehicle, fetch and maps owner, updates server frame and send notification
+    public void restoreStateFromDatabase() { //called in public ServerFrame openServerFrame() in VCController Class upon sever frame opening when admin logs in
+
+    	if (systemRestoredFromDB) return; //restore from database once 
+
+        //ONLY load jobs that have NOT gone through FIFO
+        activeJobs = dbManager.getApprovedJobsNoFIFO(); //Called in SQL Manager Class
+        int restoredJobCount = 0; //counts how many jobs approved no fifo
+        
+        // rebuild job owner maps and UI
+        for (Job j : activeJobs) {
+            String owner = dbManager.getJobOwner(j.getJobID()); //getJobOwner from SQLDATABASE Class
+            jobOwnerMap.put(j.getJobID(), owner); //stores in map
+            updateJobDisplay(j.getJobID(),owner,j.getJobName(),"APPROVED"); //updates display
+            restoredJobCount++; //count increment
+        }
+
+        // rebuild vehicle owner maps and UI
+        for (Vehicle v : connectedVehicles) {
+            String owner = dbManager.getVehicleOwner(v.getVehicleID()); //getVehicleOwner from SQLDATABASE Class
+            vehicleOwnerMap.put(v.getVehicleID(), owner); //stores in map
+        }
+
+        //GLOBAL SERVER NOTIFICATION
+        //Done only if there are approved jobs in database without fifo
+        if (restoredJobCount > 0) {
+        	logServerMessage(
+                "SYSTEM RESTORE: " + restoredJobCount +
+                " job(s) with no FIFO yet are ready for scheduling"
+            );
+        }
+
+        systemRestoredFromDB = true; //marks completed 
+        refreshServerGUI();  	//refresh GUI to server frame
+     }
+
+    
+    //Methods
     //(M5 Implementation: =========== Core Vehicle Methods ===================================
     //Subat Wrote This -
     // wrapper for vehicle requests - same idea as JobRequest
@@ -407,7 +454,7 @@ public class VCController {
         //Track decisions not decided yet
         decisions.put(requestID, null);
 
-        //store owner
+        ////New M6 Change: store owner
         vehicleOwnerMap.put(vehicle.getVehicleID(), client);
 
         // notify admin that a new vehicle request came in
@@ -449,6 +496,7 @@ public class VCController {
                 notifyAll();
                 
                 addNotification(req.client, "Your vehicle \"" + vehicle.getVehicleID() + "\" was APPROVED");
+                
                 logServerMessage("Vehicle " + vehicle.getVehicleID() + " APPROVED");
                 updateVehicleDisplay(vehicle.getVehicleID(), req.client, vehicle.getVehicleName(), "APPROVED");
 
@@ -470,7 +518,7 @@ public class VCController {
                 // put the decision in the map so waitForDecision() unblocks
                 decisions.put(req.requestID, "REJECTED");
                 notifyAll();
-                
+                 
                 // notify the vehicle owner
                 addNotification(req.client, "Your vehicle \"" + vehicle.getVehicleID() + "\" was REJECTED");
               
@@ -519,8 +567,8 @@ public class VCController {
    	}
     //=======================================================================================================================
     
-   	
-   	
+
+   
    	
     //Jaden Wrote This-
     //-----------------Set Current User Context-----------------------------
@@ -587,11 +635,8 @@ public class VCController {
         if (roleFrame == null || currentUserID == null) return;
 
         SwingUtilities.invokeLater(() -> {
-
             String current = normalize(currentUserID);
-
             boolean isAdminMsg = currentRole == UserRole.ADMIN && normalizedUser.equals("admin");
-
             boolean isUserMsg = currentRole == UserRole.USER && normalizedUser.equals(current);
 
             if (isAdminMsg || isUserMsg) {
@@ -631,12 +676,14 @@ public class VCController {
             //RESTORE DATA WHEN REOPENED
             serverFrame.updateLogs(serverLogs);
             serverFrame.updateJobs(jobDisplay);
-            serverFrame.updateVehicles(vehicleDisplay);
-           
-            serverFrame.updateUsers(userDisplay);
-            
-         // Immediately populate SYSTEM tab
+            serverFrame.updateVehicles(vehicleDisplay);     
+            serverFrame.updateUsers(userDisplay); 
+            // Immediately populate SYSTEM tab
             updateSystemTab();
+            
+            //Refresh UI upon admin update edit when program reopens
+            restoreStateFromDatabase();
+            
         } else {
             // bring existing window to front
             serverFrame.toFront();

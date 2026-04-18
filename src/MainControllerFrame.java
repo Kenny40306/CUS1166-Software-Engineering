@@ -452,12 +452,6 @@ public class MainControllerFrame extends JFrame{
 
                 if (jr.job.getJobID().equals(id)) {
 
-                    if (jr.job.isLocked()) {
-                        JOptionPane.showMessageDialog(this,
-                                "Job LOCKED after FIFO calculation.");
-                        return;
-                    }
-
                     //Fields to edit
                     JTextField nameField = new JTextField(jr.job.getJobName());
                     JTextField durationField = new JTextField(String.valueOf(jr.job.getDuration().toMinutes()));
@@ -540,7 +534,7 @@ public class MainControllerFrame extends JFrame{
                     dbJob.setDuration(Duration.ofMinutes(Long.parseLong(durationField.getText())));
                     dbJob.setDeadlineMinutes(Long.parseLong(deadlineField.getText()));
 
-                    vcController.updateApprovedJobFromDB(dbJob, oldName); //Calls dbManager.updateJob(job);
+                    vcController.updateApprovedJobFromDB(dbJob, oldName); //Within method itself calls dbManager.updateJob(job);
                     													//Updates memory, Server GUI Frame and sends notification
                 }
 
@@ -628,7 +622,7 @@ public class MainControllerFrame extends JFrame{
                     dbVehicle.setYearMade(Integer.parseInt(yearField.getText()));
                     dbVehicle.setResidencyDisplay(residencyField.getText());
 
-                    vcController.updateApprovedVehicleFromDB(dbVehicle, oldName); //calls dbManager.updateVehicle
+                    vcController.updateApprovedVehicleFromDB(dbVehicle, oldName); //Within method itself calls dbManager.updateVehicle
                     																//Updates memory, Server GUI Frame and sends update user notification
                 }
 

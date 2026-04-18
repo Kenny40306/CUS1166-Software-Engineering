@@ -25,7 +25,6 @@ public class Job implements Serializable{
 	private String jobID; //unique identifier
 	private String jobName;	//job name description
 	private String clientID; //gets clients id
-	//private String clientName; //gets name of client
 	private Duration duration;	//how much time job will take to finish
 	private LocalDateTime deadline;	//precise time job will finish
 	private long deadlineMin;
@@ -154,21 +153,8 @@ public class Job implements Serializable{
 	}
 	
 	
-	
-	//========== M6 LOCK SYSTEM =================
-    public boolean isLocked() {
-        return locked;
-    }
-    public void lockJob() {
-        this.locked = true;
-    }
-    
-    //useful for temporary unlock if admin needed to rerun fifo 
-    public void unlockJob() {
-        this.locked = false;
-    }
-    
 	// ================= M6 ADMIN EDIT SETTERS =================
+	//Kendra Worked On This:
 	public void setJobName(String jobName) {
 	    this.jobName = jobName;
 	}

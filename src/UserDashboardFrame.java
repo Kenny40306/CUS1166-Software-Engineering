@@ -159,7 +159,7 @@ public class UserDashboardFrame extends JFrame {
                 showSubmission(allSubmissions.get(displayIndex), "SUBMISSION");
             }
         });
-    	
+        
         // Initial load
         refreshNotifications();
         // Apply all decorations (dark theme, title
