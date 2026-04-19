@@ -179,7 +179,22 @@ public class UIStyling {
 	    JButton btn = new JButton(symbol);
 
 	    btn.setPreferredSize(new Dimension(45, 25));
-	    btn.setFont(new Font("Segoe UI Symbol", Font.BOLD, 14));
+	  	    
+	    //cross-platform font 
+	    Font font = new Font(Font.DIALOG, Font.BOLD, 14);
+	    btn.setFont(font);
+
+	    //fallback for unsupported glyphs (macOS safe)
+	    if (!font.canDisplay(symbol.charAt(0))) {
+
+	        if ("\u2714".equals(symbol)) {
+	            btn.setText("Accept");
+	        } else if ("\u2716".equals(symbol)) {
+	            btn.setText("Reject");
+	        } else {
+	            btn.setText(symbol);
+	        }
+	    }
 
 	    btn.setFocusPainted(false);
 	    btn.setBorderPainted(false);

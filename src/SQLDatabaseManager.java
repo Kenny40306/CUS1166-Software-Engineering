@@ -7,10 +7,10 @@ import java.util.List;
 //Handles SQL Database information being inserted, updated edits, fetch rows and does FIFO result updates
 //All methods get called in VCController Class and SQL is permanent storage
 
-public class SQLDatabaseManager {
+public class SQLDatabaseManager { // Called in VCController attribute private SQLDatabaseManager dbManager;
 
 	//Kendra Worked On This:
-	//Permanent connection is created once and is reused to avoid reconnection logic
+	//Permanent connection is created once and is reused to avoid any reconnection logic
 	//================ Connect To SQL Data Base ============
     private Connection connection;
 
@@ -33,7 +33,7 @@ public class SQLDatabaseManager {
     
     //Jaden Worked On This: 
     // ================= SAVE JOB =================
-    public void insertJob(Job job, String client) { 
+    public void insertJob(Job job, String client) { //Called in Method approvdJob() VCController Class
         try {
             String sql = "INSERT INTO jobs (job_id, job_client, job_clientid, job_name, job_duration, job_deadline_min, job_status) VALUES (?, ?, ?, ?, ?, ?, ?)"; //(?) are place holders for sql
             PreparedStatement ps = connection.prepareStatement(sql); //Allows data to be written into MYSQL Table 
@@ -57,7 +57,7 @@ public class SQLDatabaseManager {
 
     //Subat Worked On this 
     // ================= SAVE VEHICLE =================
-    public void insertVehicle(Vehicle v, String owner) {
+    public void insertVehicle(Vehicle v, String owner) { //Called in Method approvedVehicle() VCController Class
         try {
             String sql = "INSERT INTO vehicles (vehicle_id, vehicle_owner, vehicle_ownerid, vehicle_year, vehicle_model, vehicle_residency, vehicle_status) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -80,136 +80,12 @@ public class SQLDatabaseManager {
     }
 
     
-    //Update Job and Vehicle modify existing SQL Data by finding job / vehicle ID in database
-    //Updates established fields only core attributes
-    
-    //Moontarin Worked On This
-    // ================= ADMIN JOB EDIT UPDATE ====================
-    public boolean updateJob(Job job) {
-        String sql = "UPDATE jobs SET job_name=?, job_duration=?, job_deadline_min=?, job_status=? WHERE job_id=?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setString(1, job.getJobName());
-            ps.setInt(2, (int) job.getDuration().toMinutes());
-            ps.setInt(3, (int) job.getDeadlineMinutes());
-            ps.setString(4, "APPROVED (UPDATED)");
-            ps.setString(5, job.getJobID());
-
-            int rows = ps.executeUpdate();
-
-            System.out.println("[DB] UPDATE JOB: " + job.getJobID());
-
-            return rows > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-    //Avneet Worked On This
-    // ================ ADMIN VEHICLE EDIT UPDATE ====================
-    
-    public boolean updateVehicle(Vehicle v) {
-        String sql = "UPDATE vehicles SET vehicle_model=?, vehicle_year=?, vehicle_residency=?, vehicle_status=? WHERE vehicle_id=?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setString(1, v.getVehicleName());
-            ps.setInt(2, v.getYearMade());
-            ps.setString(3, v.getResidencyDisplay());
-            ps.setString(4, "APPROVED (UPDATED)");
-            ps.setString(5, v.getVehicleID());
-
-            int rows = ps.executeUpdate();
-
-            System.out.println("[DB] UPDATE VEHICLE: " + v.getVehicleID());
-
-            return rows > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-    //Used after Calculation Button Is Pressed, it writes scheduling results into database 
-    //SQL stores computed scheduling results not just raw data based on Alter job tables
-
-    //Ryan Worked On This:
-    // ================= FIFO UPDATE =================
-    public void updateJobFIFO(Job job, int order, long startTime) {
-        try {
-            String sql = "UPDATE jobs SET execution_order = ?, start_time = ?, completion_time_min = ? WHERE job_id = ?";
-            PreparedStatement ps = connection.prepareStatement(sql);
-
-            ps.setInt(1, order);
-            ps.setLong(2, startTime);
-            ps.setLong(3, job.getCompletionTime());
-            ps.setString(4, job.getJobID());
-
-            ps.executeUpdate(); //my sql handle insert row to create time stamp
-
-            System.out.println("[DB] FIFO updated: " + job.getJobID());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-   
-    
-    //========== WRITE AND READ LOCK METHODS ===============
-    // Ryan Worked On This:
-    //Write (updates database) as locked after fifo 1= true prevents future edits
-    public void lockJobs(String jobId) {
-        try {
-            String sql = "UPDATE jobs SET job_locked = 1, job_status = ? WHERE job_id = ?";
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, "APPROVED (LOCKED)");
-            ps.setString(2, jobId);
-
-            int rows = ps.executeUpdate();
-
-            System.out.println("[DB] Locked rows updated = " + rows + " for " + jobId);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    //Avneet + Subat Worked On This: 
-    //Reads lock state if true = 1 or false = 0 that maps boolean value and if true admin can't edit later
-    public boolean isJobLocked(String jobId) {
-        try {
-            String sql = "SELECT job_locked FROM jobs WHERE job_id = ?";
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, jobId);
-
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                boolean locked = rs.getBoolean("job_locked");
-
-                System.out.println("[DB] Job " + jobId + " -> " + locked);
-
-                return locked;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }    	
-    	       
-    //Read/Loads From SQL For Updating Approved Jobs Already In database
+    //Read/Loads From SQL For Then Update Approved Submissions Already In database
     //get Job/Vehicle by Id methods reads sql data from row then converts it back to object
-    //Note: also has place holder values since constructor would have more fields than Database stores
     
     //Subat + Kendra + Jaden
     // ================= GET JOB BY ID =================
-    public Job getJobById(String id) {
+    public Job getJobById(String id) { //Called in Method getJobFromDB() VCController under === Admin Fix Job === and canEditJob() VCController under === ADMIN FIFO DATABASE LOCK DECISION ===
         try {
             String sql = "SELECT * FROM jobs WHERE job_id = ?";
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -234,9 +110,7 @@ public class SQLDatabaseManager {
                     createdAt,        // used as base timestamp
                     deadlineMin,
                     1                 // redundancy default (DB doesn't store it yet)
-                );
-                
-                
+                );             
             }
             
         } catch (Exception e) {
@@ -247,7 +121,7 @@ public class SQLDatabaseManager {
     
     //Avneet + Moontarin + Ryan
     // ================= GET VEHICLE BY ID =================
-    public Vehicle getVehicleById(String id) {
+    public Vehicle getVehicleById(String id) { //Called in Method getVehicleFromDB() VCController under  === Admin Fix Vehicle ===
         try {
             String sql = "SELECT * FROM vehicles WHERE vehicle_id = ?";
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -310,10 +184,137 @@ public class SQLDatabaseManager {
         return null;
     }
     
-    //============= Reads SQL Owner Methods =======================
+    
+    //Update Job and Vehicle modify existing SQL Data by finding job / vehicle ID in database
+    //Updates established fields for only core attributes
+    
+    //Moontarin Worked On This
+    // ================= ADMIN JOB EDIT UPDATE ====================
+    public boolean updateJob(Job job) { //Called in Method updateApprovedJobFromDB() VCController under === Admin Fix Job ===
+        String sql = "UPDATE jobs SET job_name=?, job_duration=?, job_deadline_min=?, job_status=? WHERE job_id=?";
 
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, job.getJobName());
+            ps.setInt(2, (int) job.getDuration().toMinutes());
+            ps.setInt(3, (int) job.getDeadlineMinutes());
+            ps.setString(4, "APPROVED (UPDATED)");
+            ps.setString(5, job.getJobID());
+
+            int rows = ps.executeUpdate();
+
+            System.out.println("[DB] UPDATE JOB: " + job.getJobID());
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    //Avneet Worked On This
+    // ================ ADMIN VEHICLE EDIT UPDATE ====================
+    public boolean updateVehicle(Vehicle v) { //Called in Method updateApprovedVehicleFromDB() VCController under === Admin Fix Vehicle ===
+        String sql = "UPDATE vehicles SET vehicle_model=?, vehicle_year=?, vehicle_residency=?, vehicle_status=? WHERE vehicle_id=?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, v.getVehicleName());
+            ps.setInt(2, v.getYearMade());
+            ps.setString(3, v.getResidencyDisplay());
+            ps.setString(4, "APPROVED (UPDATED)");
+            ps.setString(5, v.getVehicleID());
+
+            int rows = ps.executeUpdate();
+
+            System.out.println("[DB] UPDATE VEHICLE: " + v.getVehicleID());
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+       
+   
+    //Used after Calculation Button Is Pressed, it writes scheduling results into database 
+    //SQL stores computed scheduling results not just raw data based on Alter job tables
+    //Ryan Worked On This:
+    // ================= FIFO UPDATE =================
+    public void updateJobFIFO(Job job, int order, long startTime) { //Called in Method calculateCompletionTimes() VCController new Lock JOB After FIFO
+        try {
+            String sql = "UPDATE jobs SET execution_order = ?, start_time = ?, completion_time_min = ? WHERE job_id = ?";
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, order);
+            ps.setLong(2, startTime);
+            ps.setLong(3, job.getCompletionTime());
+            ps.setString(4, job.getJobID());
+
+            ps.executeUpdate(); //my sql handle insert row to create time stamp
+
+            System.out.println("[DB] FIFO updated: " + job.getJobID());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    //========== WRITE AND READ LOCK METHODS ===============
+    // Ryan Worked On This:
+    //Write (updates database) as locked after fifo 1= true prevents future edits
+    public void lockJobs(String jobId) { //Called in Method calculateCompletionTimes() VCController new Lock JOB After FIFO
+        try {
+            String sql = "UPDATE jobs SET job_locked = 1, job_status = ? WHERE job_id = ?";
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, "APPROVED (LOCKED)");
+            ps.setString(2, jobId);
+
+            int rows = ps.executeUpdate();
+
+            System.out.println("[DB] Locked rows updated = " + rows + " for " + jobId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    //Avneet + Subat Worked On This: 
+    //Reads lock state if true = 1 or false = 0 that maps boolean value and if true admin can't edit later
+    public boolean isJobLocked(String jobId) { //Called in Method canEditJob() VCController under === ADMIN FIFO DATABASE LOCK DECISION ===
+        try {
+            String sql = "SELECT job_locked FROM jobs WHERE job_id = ?";
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, jobId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                boolean locked = rs.getBoolean("job_locked");
+
+                System.out.println("[DB] Job " + jobId + " -> " + locked);
+
+                return locked;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }    	
+   //----------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    
+    //Problem upon program restart approved Jobs without fifo calculations couldn't be retrieved from SQl
+    //New Fix: get Job / Vehicle owner IDs from approved submission without fifo calculations in database then upon reload into memory
+    //Admin now able to calculate fifo runtime form VCController since it was marked as false and then update database again which marks it as true
+    
+    //============= Reads SQL Owner Methods Upon Re-Loading Program =======================
     //Kendra Worked On This: 
-    public String getJobOwner(String jobId) {
+    public String getJobOwner(String jobId) { //Called in Method restoreStateFromDatabase() VCController Class under === RESTORE UPON PROGRAM RE-OPEN ===
 
         try {
             PreparedStatement ps = connection.prepareStatement(
@@ -333,7 +334,7 @@ public class SQLDatabaseManager {
     }
     
     //Moontarin Worked On this:
-    public String getVehicleOwner(String vehicleId) {
+    public String getVehicleOwner(String vehicleId) { //Called in Method restoreStateFromDatabase() VCController Class under === RESTORE UPON PROGRAM RE-OPEN ===
 
         try {
             PreparedStatement ps = connection.prepareStatement(
@@ -356,8 +357,10 @@ public class SQLDatabaseManager {
     
  // ================= GET ALL APPROVED JOBS NO FIFO =================
     //Subat + Jaden + Avneet 
-    public List<Job> getApprovedJobsNoFIFO() {
-        List<Job> jobs = new ArrayList<>();
+    public List<Job> getApprovedJobsNoFIFO() { //Called in Method restoreStateFromDatabase() VCController Class under === RESTORE UPON PROGRAM RE-OPEN ===
+        
+    	//Filters what FIFO is allowed to process and controls how method calculateCompletionTimes() work after restart
+    	List<Job> jobs = new ArrayList<>();
 
         try {
             String sql = """ 
@@ -374,11 +377,13 @@ public class SQLDatabaseManager {
                 String jobID = rs.getString("job_id");
                 String jobName = rs.getString("job_name");
                 String clientID = rs.getString("job_clientid");
-
                 Duration duration = Duration.ofMinutes(rs.getInt("job_duration"));
                 LocalDateTime createdAt = rs.getTimestamp("created_at").toLocalDateTime();
                 long deadlineMin = rs.getLong("job_deadline_min");
 
+                //Rebuild Job Object that sets setCompletionTimeCalculated() false to restore fresh unscheduled jobs in memory
+                //Upon reload active jobs now gets this job object to be processed for fifo from restoreStateFromDatabase() VCController
+                
                 Job job = new Job(
                     jobID,
                     jobName,

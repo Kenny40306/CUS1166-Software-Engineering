@@ -88,7 +88,6 @@ public class VCController {
         
         this.currentBatch = new ArrayList<>();
         this.jobIDs = new HashSet<>();
-        
         //----------------------------------------------------------
         this.pendingJobRequests = new ArrayList<>();
         this.pendingVehicleRequests = new ArrayList<>();
@@ -159,8 +158,9 @@ public class VCController {
                 if (req.job.equals(job)) { //Find correct match and push pending jobs to active jobs
                     activeJobs.add(job); //active jobs is now used here for FIFO calculations
                     
+                    
                     //---M6 Kendra Worked On This:
-                    dbManager.insertJob(job, req.client); //save to database upon admin approval
+                    dbManager.insertJob(job, req.client); //save to database upon admin approval called from SQL Manager Class
                     //-----------------------------------
                     
                     saveApprovedData("JOB", job.getJobID(), req.client, job.getJobName()); //Save job to file jobsApproved
@@ -265,6 +265,7 @@ public class VCController {
             dbManager.updateJobFIFO(j, order, startTime);
           //------------------------------------------------------------------------------
             
+            
             System.out.println("[\nVCController] -> Calculations");
             System.out.println("[VCController] Job " + j.getJobID()
             + " | Order: " + order
@@ -279,16 +280,34 @@ public class VCController {
         return completionTimes;
     }
     
+    //========== ADMIN FIFO DATABASE LOCK DECISION =========================
+    //Allows Edit Button To check if approved submissions in database is locked or not to edit
+    //Ryan Worked on This:
+    public boolean canEditJob(String id) { //Method Called in openEditDialog() -- Approved Job -- MainControllerFrame Class
+    	
+    	//1. Always Check DB (persistent truth) Locked in DB can't edit
+        if (dbManager.isJobLocked(id)) {
+            return false;
+        }
+        //2. If exists in DB then it's editable (approved state) unless locked
+        return dbManager.getJobById(id) != null;  
+     }           
+   //----------------------------------------------------------------------------------------------------------------------
     
-    //VCController becomes live system state (RAM/Java Objects) where everything happens here first that UI reads
-    //Note: MainCOntrollerFrame UI reads from mostly VCController memory not SQL directly
+    //VCController becomes live system state (RAM/Java Objects) where everything happens here first that UI reads After
   
     //updateApprovedJobFromDB() and updateApprovedVehicleFromDB() sync database and in-memory system (hybrid)
     //Changes written to SQL and Java memory VCCOntroller lists + UI stays consistent
-    
+
     // ================= Admin Fix Job =================
     //Jaden Worked On This 
-    public void updateApprovedJobFromDB(Job job, String oldName) { //Method Called in openEditDialog() -- Approved Job -- MainControllerFrame
+ 
+    //Database Fetch upon admin approval by job ID wrapper method returns object so UI can read it
+    public Job getJobFromDB(String id) {//Method Called openEditDialog() -- Approved Job -- MainControllerFrame Class
+        return dbManager.getJobById(id); //In SQLDatabaseManager
+    }
+
+    public void updateApprovedJobFromDB(Job job, String oldName) { //Method Called in openEditDialog() -- Approved Job -- MainControllerFrame Class
 
         //calls update method from SQL Manager Class updates database / Calls SQL
         if (dbManager.updateJob(job)) {
@@ -305,7 +324,7 @@ public class VCController {
             //Important: Memory sync for list (active jobs) to match system values with approved jobs in database
             for (int i = 0; i < activeJobs.size(); i++) {
                 if (activeJobs.get(i).getJobID().equals(job.getJobID())) {
-                    activeJobs.set(i, dbJob);
+                    activeJobs.set(i, dbJob); 
                 }
             }
             //Update SeverFrame job tab
@@ -322,31 +341,16 @@ public class VCController {
         }
     }
     
-    //Database Fetch upon admin approval by job ID wrapper method returns object so UI can read it
-    public Job getJobFromDB(String id) {//Method Called openEditDialog() -- Approved Job -- MainControllerFrame
-        return dbManager.getJobById(id); //In SQLDatabaseManager
-    }
-    
-    
-    
-    //========== ADMIN FIFO DATABASE LOCK DECISION =========================
-    //Allows Edit Button To check if approved submissions in database is locked or not to edit
-    //Ryan Worked on This:
-    public boolean canEditJob(String id) { //Method Called in openEditDialog() -- Approved Job -- MainControllerFrame
-    	
-    	//1. Always Check DB (persistent truth) Locked in DB can't edit
-        if (dbManager.isJobLocked(id)) {
-            return false;
-        }
-        //2. If exists in DB → it's editable (approved state) unless locked
-        return dbManager.getJobById(id) != null;  
-     }           
-   
-    
     
     // ================= Admin Fix Vehicle =================
     //Subat Worked On This
-    public void updateApprovedVehicleFromDB(Vehicle v, String oldName) { //Method Called in openEditDialog() -- Approved Vehicle -- MainControllerFrame
+    
+    //Database Fetch upon admin approval by Vehicle ID wrapper method returns object so UI can read it
+    public Vehicle getVehicleFromDB(String id) {//Method Called in openEditDialog() -- Approved Vehicle -- MainControllerFrame Class
+        return dbManager.getVehicleById(id); //In SQLDatabaseManager Class
+    }
+
+    public void updateApprovedVehicleFromDB(Vehicle v, String oldName) { //Method Called in openEditDialog() -- Approved Vehicle -- MainControllerFrame Class
         //calls update method from SQL Manager Class updates database / Calls SQL
         if (dbManager.updateVehicle(v)) {
 
@@ -378,12 +382,7 @@ public class VCController {
             refreshServerGUI();
         }
     }
-    
-    //Database Fetch upon admin approval by Vehicle ID wrapper method returns object so UI can read it
-    public Vehicle getVehicleFromDB(String id) {//Method Called in openEditDialog() -- Approved Vehicle -- MainControllerFrame
-        return dbManager.getVehicleById(id); //In SQLDatabaseManager Class
-    }
-    
+       
        
     // ================= RESTORE UPON PROGRAM RE-OPEN =================
     //Kendra + Jaden + Ryan + Avneet + Subat + Moontarin 
@@ -394,11 +393,11 @@ public class VCController {
 
     	if (systemRestoredFromDB) return; //restore from database once 
 
-        //ONLY load jobs that have NOT gone through FIFO
+        //Filters ONLY load jobs that have NOT gone through FIFO
         activeJobs = dbManager.getApprovedJobsNoFIFO(); //Called in SQL Manager Class
         int restoredJobCount = 0; //counts how many jobs approved no fifo
         
-        // rebuild job owner maps and UI
+        // rebuild job owner (active jobs in memory) then maps and update UI
         for (Job j : activeJobs) {
             String owner = dbManager.getJobOwner(j.getJobID()); //getJobOwner from SQLDATABASE Class
             jobOwnerMap.put(j.getJobID(), owner); //stores in map
@@ -425,6 +424,8 @@ public class VCController {
         refreshServerGUI();  	//refresh GUI to server frame
      }
 
+    
+    
     
     //Methods
     //(M5 Implementation: =========== Core Vehicle Methods ===================================
@@ -484,9 +485,11 @@ public class VCController {
             	 // add vehicle to connected vehicles list
                 connectedVehicles.add(vehicle);
 
+                
                 //---M6 Kendra Worked On This:
-                dbManager.insertVehicle(vehicle, req.client);  //save to database upon admin aproval
+                dbManager.insertVehicle(vehicle, req.client);  //save to database upon admin aproval called from SQL Manager Class
                 //-------------------------------------------
+                
                 
                 // save to file only on approval (requirement)
                 saveApprovedData("VEHICLE",vehicle.getVehicleID(), req.client, vehicle.getVehicleName());
@@ -681,9 +684,13 @@ public class VCController {
             // Immediately populate SYSTEM tab
             updateSystemTab();
             
-            //Refresh UI upon admin update edit when program reopens
-            restoreStateFromDatabase();
             
+            //New: Refresh UI upon admin update edit when program reopens
+            restoreStateFromDatabase();
+            //--------------------------------------------------------------------------
+            
+            
+    
         } else {
             // bring existing window to front
             serverFrame.toFront();
