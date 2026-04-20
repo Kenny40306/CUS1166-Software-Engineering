@@ -254,10 +254,15 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     
     //Avneet Worked On This
     // ================ ADMIN VEHICLE EDIT UPDATE ====================
+    //updates an existing vehicle in the database after admin edits
+    //it is called from VCController when admin confirms changes in edit dialog
+    // updates model, year, residency time, and status
     public boolean updateVehicle(Vehicle v) { //Called in Method updateApprovedVehicleFromDB() VCController under === Admin Fix Vehicle ===
-        String sql = "UPDATE vehicles SET vehicle_model=?, vehicle_year=?, vehicle_residency=?, vehicle_status=? WHERE vehicle_id=?";
+        //SQL query to update vehicle details based on vehicle_id
+    	String sql = "UPDATE vehicles SET vehicle_model=?, vehicle_year=?, vehicle_residency=?, vehicle_status=? WHERE vehicle_id=?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        //set updated vehicle values into the prepared statement
+    	try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setString(1, v.getVehicleName());
             ps.setInt(2, v.getYearMade());
@@ -265,13 +270,15 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
             ps.setString(4, "APPROVED (UPDATED)");
             ps.setString(5, v.getVehicleID());
 
+            //execute update and get number of affected rows
             int rows = ps.executeUpdate();
 
             System.out.println("[DB] UPDATE VEHICLE: " + v.getVehicleID());
 
+            //return true if update was successful
             return rows > 0;
 
-        } catch (Exception e) {
+        } catch (Exception e) { //handle any database errors during update
             e.printStackTrace();
             return false;
         }
@@ -324,24 +331,28 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     //Reads lock state if true = 1 or false = 0 that maps boolean value and if true admin can't edit later
     public boolean isJobLocked(String jobId) { //Called in Method canEditJob() VCController under === ADMIN FIFO DATABASE LOCK DECISION ===
         try {
-            String sql = "SELECT job_locked FROM jobs WHERE job_id = ?";
+            //SQL query to retrieve lock status
+        	String sql = "SELECT job_locked FROM jobs WHERE job_id = ?";
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, jobId);
-
+            // execute query
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
+            	//read lock status
                 boolean locked = rs.getBoolean("job_locked");
 
                 System.out.println("[DB] Job " + jobId + " -> " + locked);
-
+                
+                //return result
                 return locked;
             }
 
         } catch (Exception e) {
+        	//handle errors
             e.printStackTrace();
         }
-
+        // default if not found
         return false;
     }    	
    //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -412,17 +423,18 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     	List<Job> jobs = new ArrayList<>();
 
         try {
+        	// SQL query to retrieve approved jobs without completion time
             String sql = """ 
             		SELECT * FROM jobs 
             		WHERE job_status LIKE 'APPROVED%'  
             		AND (completion_time_min IS NULL OR completion_time_min = 0) 
             	""";
-
+            // prepare and execute SQL query
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-
+            	// extrat job data from result set
                 String jobID = rs.getString("job_id");
                 String jobName = rs.getString("job_name");
                 String clientID = rs.getString("job_clientid");
@@ -449,6 +461,7 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
             }
 
         } catch (Exception e) {
+        	// handle database errors
             e.printStackTrace();
         }
 
