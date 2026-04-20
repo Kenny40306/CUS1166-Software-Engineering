@@ -121,16 +121,27 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     
     //Avneet + Moontarin + Ryan
     // ================= GET VEHICLE BY ID =================
+  
+    // This method retrieves a vehicle from the database using its ID
     public Vehicle getVehicleById(String id) { //Called in Method getVehicleFromDB() VCController under  === Admin Fix Vehicle ===
         try {
+
+    // SQL query to select all columns from vehicles table where vehicle_id matches
             String sql = "SELECT * FROM vehicles WHERE vehicle_id = ?";
+    
+    // Prepare the SQL statement to prevent SQL injection
             PreparedStatement ps = connection.prepareStatement(sql);
+
+     // Set the vehicle ID parameter in the query  
             ps.setString(1, id);
 
+    // Execute the query and store the result in ResultSet
             ResultSet rs = ps.executeQuery(); //return row then convert to java objects
 
+     // Check if a matching vehicle was found
             if (rs.next()) {
 
+     // Extract vehicle data from database columns
                 String vehicleID = rs.getString("vehicle_id");
                 String ownerID = rs.getString("vehicle_ownerid");
                 String vehicleName = rs.getString("vehicle_model");
@@ -139,31 +150,41 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
                
                 String residencyRaw = rs.getString("vehicle_residency");
                 
+                // Default fallback values
                 int residencyTime = 1;
                 String residencyUnit = "Days(s)";
 
+                 // If residency exists and is not empty, parse it
                 if (residencyRaw != null && !residencyRaw.isBlank()) {
-
+                   
+                     // Split string into parts 
                     String[] parts = residencyRaw.trim().split("\\s+");
 
                     try {
-                        // number part
+                        // first part is the number part
                         residencyTime = Integer.parseInt(parts[0]);
 
-                        // unit part (KEPT EXACT FORMAT, NO LOWERCASE)
+                        // second part is unit part (KEPT EXACT FORMAT, NO LOWERCASE)
                         if (parts.length > 1) {
                             residencyUnit = parts[1];
                         }
 
                     } catch (Exception e) {
+                         // Handle invalid format (prevents crash)
                         System.out.println("Invalid residency format in DB: " + residencyRaw);
                     }
                 }
-
+                
+                // Get arrival time from database timestamp
                 LocalDateTime arrival = rs.getTimestamp("created_at").toLocalDateTime();
+               
+                // No departure column → use arrival as fallback
                 LocalDateTime departure = arrival; // no DB column, fallback
+              
+                 // Schedule is unknown since DB does not track it
                 boolean scheduleKnown = false;
 
+                // Create and return a Vehicle object with all extracted data
                 return new Vehicle(
                     vehicleID,
                     ownerID,
@@ -179,6 +200,7 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
             }
 
         } catch (Exception e) {
+              // Print error if something goes wrong (SQL issue, parsing, etc.)
             e.printStackTrace();
         }
         return null;
@@ -190,21 +212,38 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     
     //Moontarin Worked On This
     // ================= ADMIN JOB EDIT UPDATE ====================
+   
+    // This method updates an existing job in the database
     public boolean updateJob(Job job) { //Called in Method updateApprovedJobFromDB() VCController under === Admin Fix Job ===
-        String sql = "UPDATE jobs SET job_name=?, job_duration=?, job_deadline_min=?, job_status=? WHERE job_id=?";
+    
+     // SQL query to update job details in the jobs table
+    // It updates name, duration, deadline, and status based on job_id
+     String sql = "UPDATE jobs SET job_name=?, job_duration=?, job_deadline_min=?, job_status=? WHERE job_id=?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
+             
+             // Set new job name from Job object
             ps.setString(1, job.getJobName());
+
+             // Convert duration from hours/minutes object to total minutes
             ps.setInt(2, (int) job.getDuration().toMinutes());
+
+             // Set job deadline in minutes
             ps.setInt(3, (int) job.getDeadlineMinutes());
+
+            // Mark job as updated and approved in system
             ps.setString(4, "APPROVED (UPDATED)");
+
+             //Specify which job to update using job ID
             ps.setString(5, job.getJobID());
-
+            
+            // Execute update query and get number of affected rows
             int rows = ps.executeUpdate();
-
+            
+            // Log update action in console for debugging
             System.out.println("[DB] UPDATE JOB: " + job.getJobID());
 
+            // Return true if at least one row was updated successfully
             return rows > 0;
 
         } catch (Exception e) {
@@ -334,16 +373,26 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     }
     
     //Moontarin Worked On this:
+
+
+// This method retrieves the owner of a vehicle from the database using the vehicle ID
+// It is used during system restart to restore saved data (restoreStateFromDatabase)
     public String getVehicleOwner(String vehicleId) { //Called in Method restoreStateFromDatabase() VCController Class under === RESTORE UPON PROGRAM RE-OPEN ===
 
         try {
+
+            // SQL query to get the vehicle owner for a specific vehicle ID
             PreparedStatement ps = connection.prepareStatement(
                     "SELECT vehicle_owner FROM vehicles WHERE vehicle_id = ?"
             );
-
+            
+            // Insert the vehicle ID into the query safely
             ps.setString(1, vehicleId);
+
+         // Execute query and store result
             ResultSet rs = ps.executeQuery();
 
+             // If a matching record is found, return the owner name
             if (rs.next()) 
             	return rs.getString("vehicle_owner");
 
