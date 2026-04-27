@@ -265,12 +265,12 @@ public class MainControllerFrame extends JFrame{
         
         //Button Action Listeners
         approve.addActionListener(e -> {
-            vcController.approveJob(req.job);
+            vcController.approveJob(req.requestID);
             refreshRequests();
         });
 
         reject.addActionListener(e -> {
-            vcController.rejectJob(req.job);
+            vcController.rejectJob(req.requestID);
             refreshRequests();
         });
 
@@ -361,12 +361,12 @@ public class MainControllerFrame extends JFrame{
         
         //Button Action Listeners
         approve.addActionListener(e -> {
-            vcController.approveVehicle(req.vehicle);
+            vcController.approveVehicle(req.requestID);
             refreshRequests();
         });
 
         reject.addActionListener(e -> {
-            vcController.rejectVehicle(req.vehicle);
+            vcController.rejectVehicle(req.requestID);
             refreshRequests();
         });
 
@@ -559,117 +559,98 @@ public class MainControllerFrame extends JFrame{
                 return;
             }        
 
-//Avneet + Moontarin + Ryan     
-// ================= VEHICLE EDIT =========================
-// This section handles editing of both pending (in-memory) and approved (database) vehicles
+        //Avneet + Moontarin + Ryan     
+        // ================= VEHICLE EDIT =========================
+        else {
 
-else {
+            // -------- PENDING VEHICLE (Memory Only) --------
+            for (VCController.VehicleRequest vr : vcController.getPendingVehicleRequests()) { 
 
-    // -------- PENDING VEHICLE (Memory Only) --------
-    // Loop through all pending vehicle requests stored in memory
-    for (VCController.VehicleRequest vr : vcController.getPendingVehicleRequests()) {
+                if (vr.vehicle.getVehicleID().equals(id)) {
 
-        // Check if the entered ID matches a pending vehicle
-        if (vr.vehicle.getVehicleID().equals(id)) {
+                	//Fields to edit
+                    JTextField nameField = new JTextField(vr.vehicle.getVehicleName());
+                    JTextField yearField = new JTextField(String.valueOf(vr.vehicle.getYearMade()));
+                    JTextField residencyField = new JTextField(vr.vehicle.getResidencyDisplay());
 
-            // Create editable fields pre-filled with existing vehicle data
-            JTextField nameField = new JTextField(vr.vehicle.getVehicleName());
-            JTextField yearField = new JTextField(String.valueOf(vr.vehicle.getYearMade()));
-            JTextField residencyField = new JTextField(vr.vehicle.getResidencyDisplay());
+                    Object[] fields = {
+                            "Vehicle Name:", nameField,
+                            "Year Made:", yearField,
+                            "Residency:", residencyField
+                    };
 
-            // UI form for editing vehicle details
-            Object[] fields = {
-                    "Vehicle Name:", nameField,
-                    "Year Made:", yearField,
-                    "Residency:", residencyField
-            };
+                    int result = JOptionPane.showConfirmDialog(
+                            this,
+                            fields,
+                            "Edit Pending Vehicle",
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
 
-            // Show confirmation dialog for editing pending vehicle
-            int result = JOptionPane.showConfirmDialog(
-                    this,
-                    fields,
-                    "Edit Pending Vehicle",
-                    JOptionPane.OK_CANCEL_OPTION
-            );
+                    if (result == JOptionPane.OK_OPTION) {
 
-            // If admin confirms changes
-            if (result == JOptionPane.OK_OPTION) {
+                        vr.vehicle.setVehicleName(nameField.getText());
+                        vr.vehicle.setYearMade(Integer.parseInt(yearField.getText()));
+                        vr.vehicle.setResidencyDisplay(residencyField.getText());
 
-                // Update vehicle object in memory
-                vr.vehicle.setVehicleName(nameField.getText());
-                vr.vehicle.setYearMade(Integer.parseInt(yearField.getText()));
-                vr.vehicle.setResidencyDisplay(residencyField.getText());
+                        //UPDATE SERVER FRAME
+                        vcController.updateVehicleDisplay(
+                                vr.vehicle.getVehicleID(),
+                                vr.client,
+                                vr.vehicle.getVehicleName(),
+                                "PENDING (EDITED)"
+                        );
 
-                // Update server display with new values
-                vcController.updateVehicleDisplay(
-                        vr.vehicle.getVehicleID(),
-                        vr.client,
-                        vr.vehicle.getVehicleName(),
-                        "PENDING (EDITED)"
-                );
+                        //GUI REFRESH
+                        vcController.refreshServerGUI();
+                        refreshRequests(); //Refresh Pending Request Panel from Memory
+                    }
 
-                // Refresh GUI so changes appear immediately
-                vcController.refreshServerGUI();
-
-                // Refresh pending request panel from memory
-                refreshRequests();
+                    return;
+                }
             }
 
-            return;
+            // -------- APPROVED VEHICLE (SQL EDIT PATH) --------
+            Vehicle dbVehicle = vcController.getVehicleFromDB(id); //Vehicle path fetch from SQL to edit real stored data instead of memory only (avoid editing stale data)
+            													//SQL is fetched when admin explicitly edits approved vehicle data, getVehicleFromDB calls dbManager.getVehicleById(id);
+            if (dbVehicle != null) {
+
+            	//Fields to edit
+                JTextField nameField = new JTextField(dbVehicle.getVehicleName());
+                JTextField yearField = new JTextField(String.valueOf(dbVehicle.getYearMade()));
+                JTextField residencyField = new JTextField(dbVehicle.getResidencyDisplay());
+
+                Object[] fields = {
+                        "Vehicle Name:", nameField,
+                        "Year Made:", yearField,
+                        "Residency:", residencyField
+                };
+
+                int result = JOptionPane.showConfirmDialog(
+                        this,
+                        fields,
+                        "Edit Approved Vehicle (DB)",
+                        JOptionPane.OK_CANCEL_OPTION
+                );
+
+                if (result == JOptionPane.OK_OPTION) {
+
+                    String oldName = dbVehicle.getVehicleName();
+
+                    dbVehicle.setVehicleName(nameField.getText());
+                    dbVehicle.setYearMade(Integer.parseInt(yearField.getText()));
+                    dbVehicle.setResidencyDisplay(residencyField.getText());
+
+                    vcController.updateApprovedVehicleFromDB(dbVehicle, oldName); //Within method itself calls dbManager.updateVehicle
+                    																//Updates memory, Server GUI Frame and sends update user notification
+                }
+
+                return;
+            }
+            JOptionPane.showMessageDialog(this, "Vehicle ID not found.");
         }
-    }
-
-    // -------- APPROVED VEHICLE (SQL EDIT PATH) --------
-    // Fetch vehicle directly from database for permanent updates
-    Vehicle dbVehicle = vcController.getVehicleFromDB(id);
-
-    // If vehicle exists in database
-    if (dbVehicle != null) {
-
-        // Create editable fields with existing DB values
-        JTextField nameField = new JTextField(dbVehicle.getVehicleName());
-        JTextField yearField = new JTextField(String.valueOf(dbVehicle.getYearMade()));
-        JTextField residencyField = new JTextField(dbVehicle.getResidencyDisplay());
-
-        // UI form for editing approved vehicle
-        Object[] fields = {
-                "Vehicle Name:", nameField,
-                "Year Made:", yearField,
-                "Residency:", residencyField
-        };
-
-        // Show confirmation dialog for DB vehicle edit
-        int result = JOptionPane.showConfirmDialog(
-                this,
-                fields,
-                "Edit Approved Vehicle (DB)",
-                JOptionPane.OK_CANCEL_OPTION
-        );
-
-        // If admin confirms changes
-        if (result == JOptionPane.OK_OPTION) {
-
-            // Store old name for logging/updates
-            String oldName = dbVehicle.getVehicleName();
-
-            // Update DB vehicle object with new values
-            dbVehicle.setVehicleName(nameField.getText());
-            dbVehicle.setYearMade(Integer.parseInt(yearField.getText()));
-            dbVehicle.setResidencyDisplay(residencyField.getText());
-
-            // Update database + memory + UI + notifications
-            vcController.updateApprovedVehicleFromDB(dbVehicle, oldName);
-        }
-
-        return;
-    }
-
-    // If no vehicle is found with the given ID
-    JOptionPane.showMessageDialog(this, "Vehicle ID not found.");
+    }   
 }
-    }
-}
-
+	    
     //=====================
     // FUTURE METHODS (NOT IMPLEMENTED YET)
     //=====================

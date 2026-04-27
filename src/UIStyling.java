@@ -1,7 +1,10 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.GeneralPath;
+import java.awt.image.BufferedImage;
 
 // =====================
 // Styling and Layout - Moontarin + Subat (added new UI updates for aesthetics)
@@ -221,10 +224,7 @@ public class UIStyling {
 	}
 	
 	
-	
 	// ================= SCROLL BAR STYLING =================	
-	
-	
 	public static void styleScrollPaneCompact(JScrollPane scrollPane) {
 		
 		// smooth, smaller scroll steps
@@ -238,6 +238,71 @@ public class UIStyling {
 	    // keep consistent dark styling
 	    scrollPane.setBorder(BorderFactory.createLineBorder(BORDER, 1));
 	    scrollPane.setBackground(BG_DARK);
+	}
+		
+	public static class SpinningImageLogo extends JComponent {
+
+	    private BufferedImage image;
+	    private double angle = 0;
+
+	    public SpinningImageLogo(String path, int size) {
+	        try {
+	            // load image safely (works on Mac + Windows)
+	            image = ImageIO.read(getClass().getResource(path));
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+	        setPreferredSize(new Dimension(size, size));
+
+	        // animation timer (smooth + cross-platform)
+	        new Timer(35, e -> {
+	            angle += Math.toRadians(2); // speed
+	            repaint();
+	        }).start();
+	    }
+
+	    @Override
+	    protected void paintComponent(Graphics g) {
+	        super.paintComponent(g);
+
+	        if (image == null) return;
+
+	        Graphics2D g2 = (Graphics2D) g.create();
+
+	        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+	                RenderingHints.VALUE_ANTIALIAS_ON);
+
+	        int iw = image.getWidth();
+	        int ih = image.getHeight();
+
+	        int cx = getWidth() / 2;
+	        int cy = getHeight() / 2;
+
+	        double theta = angle;
+
+	        //base size control 
+	        double baseScale = 0.3;   // try 0.2 - 0.6
+
+	        // true 3D illusion: cosine controls width, sine controls depth illusion
+	        double scaleX = Math.cos(theta);
+
+	        g2.translate(cx, cy);
+
+	        // apply 3D + base scaling together
+	        double finalScaleX = scaleX * baseScale;
+
+	        // flip direction fix so it doesn't disappear
+	        if (finalScaleX < 0) {
+	            g2.scale(-finalScaleX, baseScale);
+	        } else {
+	            g2.scale(finalScaleX, baseScale);
+	        }
+
+	        g2.drawImage(image, -iw / 2, -ih / 2, iw, ih, null);
+	        g2.dispose();
+	    }	
 	
 	}
+	
 }

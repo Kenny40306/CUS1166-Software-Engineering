@@ -32,7 +32,7 @@ private List<Job> jobSubmitted;
         new Thread(() -> {
             try {
                 ClientConnection connection = new ClientConnection("localhost", 5001); //connect to server port
-                MessageServer message = new MessageServer( MessageServer.Type.JOB_REQUEST,job,this.userID);
+                ClientConnection.MessageServer message = new ClientConnection.MessageServer( ClientConnection.MessageServer.Type.JOB_REQUEST,job,this.userID);
                 String response = connection.send(message); // Send job and receive server response
 
                 //Notify user with server decision locally

@@ -1,8 +1,8 @@
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -30,7 +30,7 @@ public class VCTRSViewerConsole {
         //--------------Start socket server using thread in the console------
     	//Important: Used for Async Communication for GUI and keep it responsive for real time updates
         new Thread(() -> {
-            new VCControllerServer(5001, vcController).start();
+            new VCControllerServerConnection(5001, vcController).start();
         }).start();
         //-------------------------------------------------------------------
         
@@ -79,18 +79,24 @@ public class VCTRSViewerConsole {
 	       JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
 	       UIStyling.styleDashboardPanel(centerPanel);
 	       centerPanel.add(separator, BorderLayout.NORTH);
-	  //....'..............ppppp[[ppppppp     // description text area
+	       // description text area
 	       JTextArea description = new JTextArea(
 	           "\nThis application allows clients to submit computational jobs to available vehicles " +
 	           "and vehicle owners to rent out their vehicles for processing tasks within the cloud."
 	       );
-	      
+	           
 	       description.setEditable(false); // prevents user from changing text
 	       description.setLineWrap(true); // prevents edge casing for text
 	       description.setFocusable(false); // prevents blinking cursor
 	       description.setWrapStyleWord(true); // waits for spacing for line for readability
+	     
 	       UIStyling.styleTextAreaDark(description); // apply dark theme styling
+	       
+	  
 	       description.setFont(new Font("Georgia", Font.PLAIN, 18)); // override font size to be bigger
+	       description.setOpaque(false);
+	       description.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+	       
 	       centerPanel.add(description, BorderLayout.CENTER);
 	      
 	       // prompt label above the button
@@ -101,26 +107,50 @@ public class VCTRSViewerConsole {
 	       promptLabel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 	       centerPanel.add(promptLabel, BorderLayout.SOUTH);
 	       panel.add(centerPanel, BorderLayout.CENTER);
-	       
-	       // bottom button panel
-	       JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-	       UIStyling.styleDashboardPanel(buttonPanel);
-	       buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-	      
-	       // continue button using UIStyling
+	               	       
+	       // ================= BOTTOM (PROPER CENTER ALIGNMENT) =================
+	       JPanel bottomPanel = new JPanel(new BorderLayout());
+	       UIStyling.styleDashboardPanel(bottomPanel);
+
+	       // Create a 3-column balancing panel
+	       JPanel alignPanel = new JPanel(new GridLayout(1, 3));
+	       UIStyling.styleDashboardPanel(alignPanel);
+
+	       // LEFT: empty spacer (balances icon width)
+	       JPanel leftSpacer = new JPanel();
+	       UIStyling.styleDashboardPanel(leftSpacer);
+
+	       // CENTER: button 
+	       JPanel centerButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+	       UIStyling.styleDashboardPanel(centerButtonPanel);
+
 	       JButton continueBtn = new JButton("Continue");
 	       continueBtn.setFont(new Font("Georgia", Font.BOLD, 18));
 	       continueBtn.setPreferredSize(new Dimension(160, 42));
 	       UIStyling.styleButton(continueBtn);
-	       // close this frame and open login frame
+
 	       continueBtn.addActionListener(e -> {
-	           dispose(); // close the description frame
-	           new UserLoginFrame(vcController); // open role selection frame next
+	           dispose();
+	           new UserLoginFrame(vcController);
 	       });
-	      
-	      buttonPanel.add(continueBtn);
-	      panel.add(buttonPanel, BorderLayout.SOUTH);
+
+	       centerButtonPanel.add(continueBtn);
+
+	       // RIGHT: spinning icon
+	       JPanel rightIconPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	       UIStyling.styleDashboardPanel(rightIconPanel);
+
+	       UIStyling.SpinningImageLogo logo = new UIStyling.SpinningImageLogo("/icons/image.png", 60);
+	       rightIconPanel.add(logo);
 	       
+	       // assemble
+	       alignPanel.add(leftSpacer);
+	       alignPanel.add(centerButtonPanel);
+	       alignPanel.add(rightIconPanel);
+
+	       bottomPanel.add(alignPanel, BorderLayout.CENTER);
+
+	       panel.add(bottomPanel, BorderLayout.SOUTH);	       
 	      add(panel);
 	      setVisible(true);
 	  }

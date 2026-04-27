@@ -151,29 +151,31 @@ public class VCController {
        	}
        	
         //---- Approve / Reject Jobs ---- Called in MainControllerFrame
-        public synchronized void approveJob(Job job) {
-            Iterator<JobRequest> it = pendingJobRequests.iterator(); //Iterator allows safe removal during iteration while looping through requests
-            while (it.hasNext()) {
-                JobRequest req = it.next();
-                if (req.job.equals(job)) { //Find correct match and push pending jobs to active jobs
-                    activeJobs.add(job); //active jobs is now used here for FIFO calculations
-                    
-                    
+        public synchronized void approveJob(String requestID) {
+            
+        	 decisions.put(requestID, "APPROVED");  //stores admin decision hash map that's used for client to wait for response waitForDecision() unblocks          
+             notifyAll(); //wakes and notify client threads that are waiting in waitForDecision()!!!
+             
+        	for(Iterator<JobRequest> it = pendingJobRequests.iterator(); 
+        		it.hasNext();) {	//Iterator allows safe removal during iteration while looping through requests
+        		
+        		JobRequest req = it.next();
+               
+                if (req.requestID.equals(requestID)) { //Find correct match and push pending jobs to active jobs
+                    activeJobs.add(req.job); //active jobs is now used here for FIFO calculations
+                  
                     //---M6 Kendra Worked On This:
-                    dbManager.insertJob(job, req.client); //save to database upon admin approval called from SQL Manager Class
+                    dbManager.insertJob(req.job, req.client); //save to database upon admin approval called from SQL Manager Class
                     //-----------------------------------
                     
-                    saveApprovedData("JOB", job.getJobID(), req.client, job.getJobName()); //Save job to file jobsApproved
-
-                    decisions.put(req.requestID, "APPROVED");  //stores admin decision hash map that's used for client to wait for response waitForDecision() unblocks
-                    notifyAll(); //wakes and notify client threads that are waiting in waitForDecision()!!!
+                    saveApprovedData("JOB", req.job.getJobID(), req.client, req.job.getJobName()); //Save job to file jobsApproved 
                      
                     // Notifications
-                    addNotification(req.client, "Your job \"" + job.getJobName() + "\" was APPROVED");  //updates GUI notifications
+                    addNotification(req.client, "Your job \"" + req.job.getJobName() + "\" was APPROVED");  //updates GUI notifications
                   
                     //UPDATE SERVER FRAME GUI!!!
-                    logServerMessage("Job " + job.getJobID() + " APPROVED");  //For global notifs tab
-                    updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "APPROVED");  //for job tab
+                    logServerMessage("Job " + req.job.getJobID() + " APPROVED");  //For global notifs tab
+                    updateJobDisplay(req.job.getJobID(), req.client, req.job.getJobName(), "APPROVED");  //for job tab
 					           
                     refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                     
@@ -184,22 +186,27 @@ public class VCController {
             }
         }
 
-        public synchronized void rejectJob(Job job) {
-            Iterator<JobRequest> it = pendingJobRequests.iterator(); //Iterator allows safe removal during iteration 
-            while (it.hasNext()) {
-                JobRequest req = it.next();
-                if (req.job.equals(job)) { //finds correct match request
-                    decisions.put(req.requestID, "REJECTED"); //updates decision map and notify the client waitForDecision() unblocks
-
-                    jobIDs.remove(job.getJobID()); // removes jobID and allow client re-submission if needed
-                    notifyAll(); //notify client of rejection
-   
+        public synchronized void rejectJob(String requestID) {
+           
+        	 decisions.put(requestID, "REJECTED"); //updates decision map and notify the client waitForDecision() unblocks
+        	 notifyAll(); //notify client of rejection
+        	
+        	for (Iterator<JobRequest> it = pendingJobRequests.iterator(); //Iterator allows safe removal during iteration 
+        		it.hasNext();) {
+               
+        		JobRequest req = it.next();
+               
+        		if (req.requestID.equals(requestID)) { //finds correct match request
+                   
+                	
+                    jobIDs.remove(req.job.getJobID()); // removes jobID and allow client re-submission if needed
+                   
                     // Notifications
-                    addNotification(req.client, "Your job \"" + job.getJobName() + "\" was REJECTED");  //updates GUI notifications
+                    addNotification(req.client, "Your job \"" + req.job.getJobName() + "\" was REJECTED");  //updates GUI notifications
                     
                     //UPDATE SERVER FRAME
-                    logServerMessage("Job " + job.getJobID() + " REJECTED");
-                    updateJobDisplay(job.getJobID(), req.client, job.getJobName(), "REJECTED");  //for job tab
+                    logServerMessage("Job " + req.job.getJobID() + " REJECTED");
+                    updateJobDisplay(req.job.getJobID(), req.client, req.job.getJobName(), "REJECTED");  //for job tab
 
                     refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                     
@@ -476,32 +483,35 @@ public class VCController {
 
 
     // admin approved the vehicle - add it to the system and save to file
-    public synchronized void approveVehicle(Vehicle vehicle) {
-        Iterator<VehicleRequest> it = pendingVehicleRequests.iterator();
-        while (it.hasNext()) {
-            VehicleRequest req = it.next();
-            if (req.vehicle.equals(vehicle)) {
+    public synchronized void approveVehicle(String requestID) {
+        
+    	// put the decision in the map so waitForDecision() unblocks
+        decisions.put(requestID, "APPROVED");
+        notifyAll();
+
+    	for (Iterator<VehicleRequest> it = pendingVehicleRequests.iterator();
+    		it.hasNext();) {
+          
+    		VehicleRequest req = it.next();
+           
+    		if (req.requestID.equals(requestID)) {
             	
             	 // add vehicle to connected vehicles list
-                connectedVehicles.add(vehicle);
+                connectedVehicles.add(req.vehicle);
 
                 
                 //---M6 Kendra Worked On This:
-                dbManager.insertVehicle(vehicle, req.client);  //save to database upon admin aproval called from SQL Manager Class
+                dbManager.insertVehicle(req.vehicle, req.client);  //save to database upon admin aproval called from SQL Manager Class
                 //-------------------------------------------
                 
                 
                 // save to file only on approval (requirement)
-                saveApprovedData("VEHICLE",vehicle.getVehicleID(), req.client, vehicle.getVehicleName());
+                saveApprovedData("VEHICLE",req.vehicle.getVehicleID(), req.client, req.vehicle.getVehicleName());
+                                
+                addNotification(req.client, "Your vehicle \"" + req.vehicle.getVehicleID() + "\" was APPROVED");
                 
-                // put the decision in the map so waitForDecision() unblocks
-                decisions.put(req.requestID, "APPROVED");
-                notifyAll();
-                
-                addNotification(req.client, "Your vehicle \"" + vehicle.getVehicleID() + "\" was APPROVED");
-                
-                logServerMessage("Vehicle " + vehicle.getVehicleID() + " APPROVED");
-                updateVehicleDisplay(vehicle.getVehicleID(), req.client, vehicle.getVehicleName(), "APPROVED");
+                logServerMessage("Vehicle " + req.vehicle.getVehicleID() + " APPROVED");
+                updateVehicleDisplay(req.vehicle.getVehicleID(), req.client, req.vehicle.getVehicleName(), "APPROVED");
 
                 refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                 
@@ -512,22 +522,25 @@ public class VCController {
     }
 
     // admin rejected the vehicle, do NOT save to file
-    public synchronized void rejectVehicle(Vehicle vehicle) {
-        Iterator<VehicleRequest> it = pendingVehicleRequests.iterator();
-        while (it.hasNext()) {
-            VehicleRequest req = it.next();
-            if (req.vehicle.equals(vehicle)) {
+    public synchronized void rejectVehicle(String requestID) {
+       
+    	 // put the decision in the map so waitForDecision() unblocks
+        decisions.put(requestID, "REJECTED");
+        notifyAll();
 
-                // put the decision in the map so waitForDecision() unblocks
-                decisions.put(req.requestID, "REJECTED");
-                notifyAll();
+    	for(Iterator<VehicleRequest> it = pendingVehicleRequests.iterator();
+          it.hasNext();) {
+            
+        	VehicleRequest req = it.next();
+          
+        	if (req.requestID.equals(requestID)) {
                  
                 // notify the vehicle owner
-                addNotification(req.client, "Your vehicle \"" + vehicle.getVehicleID() + "\" was REJECTED");
+                addNotification(req.client, "Your vehicle \"" + req.vehicle.getVehicleID() + "\" was REJECTED");
               
                 // update server frame
-                logServerMessage("Vehicle " + vehicle.getVehicleID() + " REJECTED");
-                updateVehicleDisplay(vehicle.getVehicleID(), req.client, vehicle.getVehicleName(), "REJECTED");
+                logServerMessage("Vehicle " + req.vehicle.getVehicleID() + " REJECTED");
+                updateVehicleDisplay(req.vehicle.getVehicleID(), req.client, req.vehicle.getVehicleName(), "REJECTED");
 
                 refreshServerGUI(); //Moontarin added this - updates all GUI in server when admin changes database
                 
@@ -559,7 +572,7 @@ public class VCController {
     
     //Used by client Socket to wait until admin approves or reject job
    	public synchronized String waitForDecision(String requestID) {
-   	    while (!decisions.containsKey(requestID)) { //ensure thread waits until decision exists
+   	    while (!decisions.containsKey(requestID) || decisions.get(requestID) == null) { //ensure thread waits until decision exists
    	        try {
    	            wait(); //wait until notifyAll is called *note used for thread sync (called by clientHandler)*
    	        } catch (InterruptedException e) {
@@ -769,14 +782,9 @@ public class VCController {
     }
 
     //-------New M6 Moontarin Worked on This------------------------------------
-    // This method refreshes/updates the server GUI display
-// It ensures that the latest job and vehicle data are shown on the server interface
     public void refreshServerGUI() {
-        // Check if the server frame (GUI window) exists to avoid null errors
         if (serverFrame != null) {
-        // Update the jobs section of the GUI with the latest job data
             serverFrame.updateJobs(jobDisplay);
-        // Update the vehicles section of the GUI with the latest vehicle data
             serverFrame.updateVehicles(vehicleDisplay);
         }
     }

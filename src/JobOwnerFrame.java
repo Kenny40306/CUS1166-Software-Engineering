@@ -112,13 +112,12 @@ class JobOwnerFrame extends JFrame{ //this class inherits GUI window with extend
 	//Needs save Job method for handling validation requests and storage
 	private void saveJobData() {
 		// get input from user 
-		
 		String cID = clientIDField.getText().trim(); //gets from user input for file
 		String jName = jobNameField.getText().trim();
 		String durText = durationField.getText().trim();
 		String ddlText = deadlineField.getText().trim();
-		//M5 change gets from system user for notification logic
 		
+		//M5 change gets from system user for notification logic
 		// ===== LOGIN CONTEXT =====
 		String systemID = vcController.getCurrentUserID(); //(!!!) root cause for notification link
 		

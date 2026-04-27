@@ -35,7 +35,7 @@ public class VehicleOwner extends User{ //implements ClientInterface{
                 ClientConnection connection = new ClientConnection("localhost", 5001);
                 
                 // wrap the vehicle in a message packet with this owner's ID
-                MessageServer message = new MessageServer(MessageServer.Type.VEHICLE_REQUEST, v, this.userID);
+                ClientConnection.MessageServer message = new ClientConnection.MessageServer(ClientConnection.MessageServer.Type.VEHICLE_REQUEST, v, this.userID);
           
                 // send it off and wait for the server's response
                 String response = connection.send(message);
@@ -84,4 +84,4 @@ public class VehicleOwner extends User{ //implements ClientInterface{
 			this.residencyTime = residencyTime;
 		}
 	}
-	//test
+	

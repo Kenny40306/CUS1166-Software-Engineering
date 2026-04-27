@@ -153,18 +153,18 @@ Vehicle Owner Frame - Subat + Avneet
 
     	 private void saveVehicle() {
    	    	//this code receives the user input from the text fields
-   	        String ownerID = ownerIDField.getText();
-   	        String make = makeField.getText();
-   	        String model = modelField.getText();
-   	        String vin = vinField.getText();
+   	        String ownerID = ownerIDField.getText().trim();
+   	        String make = makeField.getText().trim();
+   	        String model = modelField.getText().trim();
+   	        String vin = vinField.getText().trim();
+   	        
    	        //allows us to get the selected value from Residency Time dropdown
+   	        String residencyInput = residencyField.getText().trim();
    	        String residencyUnit = (String) residencyBox.getSelectedItem();
-   	        String residencyInput = residencyField.getText();
    	       
    	        //M5 change gets from system user for notification logic
    			String systemID = vcController.getCurrentUserID(); //(!!!) root cause for notification link
 
-   	        
    	        // first i checked for empty fields
    	        if (ownerID.isEmpty() || make.isEmpty() || model.isEmpty() || vin.isEmpty() || residencyInput.isEmpty()) {
    	        	JOptionPane.showMessageDialog(this,

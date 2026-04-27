@@ -6,6 +6,40 @@ import java.net.Socket;
 //Acts as bridge between JobOwner(Client) and VCControllerServer
 public class ClientConnection {
 
+	//Encapsulate messages that travel between client and server over sockets
+	//Needs to be serializable so it can be sent over to method ObjectOutput/InputStream
+	public static class MessageServer implements Serializable {
+		private static final long serialVersionUID = 1L; //safe declaration
+
+		//Enum acts as data packet for socket communication (modifiable) 
+	    public enum Type {
+	        JOB_REQUEST, //User 1
+	        VEHICLE_REQUEST, //User 2
+	        RESPONSE, //Client Response 
+	        ACK //Server acknowledgement
+	    }
+
+	    private Type type; //nested enums type of message
+	    private Object data; //actual job or vehicle object
+	    private String senderId; //identifier user who sent message
+   
+	    public MessageServer(Type type, Object data, String senderId) {
+	        this.type = type;
+	        this.data = data;
+	        this.senderId = senderId;
+	    }
+
+	    public Type getType() {
+	        return type;
+	    }
+	    public Object getData() {
+	        return data;
+	    }
+	    public String getSenderId() {
+	        return senderId;
+	    }
+	}
+	
 	//connects to server using host/port
     private String host; 
     private int port;
