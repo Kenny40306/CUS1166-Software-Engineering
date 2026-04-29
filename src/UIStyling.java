@@ -240,6 +240,10 @@ public class UIStyling {
 	    scrollPane.setBackground(BG_DARK);
 	}
 		
+	
+	//Kendra + Avneet + Subat + Moontarin
+	//=========== SPINNING ICON ==========================================
+	//Object Image Spinning
 	public static class SpinningImageLogo extends JComponent {
 
 	    private BufferedImage image;

@@ -136,6 +136,7 @@ public class VCTRSViewerConsole {
 
 	       centerButtonPanel.add(continueBtn);
 
+	       //===== Spinning Icon ==========================================================================
 	       // RIGHT: spinning icon
 	       JPanel rightIconPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	       UIStyling.styleDashboardPanel(rightIconPanel);

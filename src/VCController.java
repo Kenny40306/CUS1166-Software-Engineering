@@ -783,9 +783,11 @@ public class VCController {
 
     //-------New M6 Moontarin Worked on This------------------------------------
     public void refreshServerGUI() {
-        if (serverFrame != null) {
-            serverFrame.updateJobs(jobDisplay);
-            serverFrame.updateVehicles(vehicleDisplay);
+    	// This method refreshes/updates the server GUI display
+    	// It ensures that the latest job and vehicle data are shown on the server interface
+    	if (serverFrame != null) {   // Check if the server frame (GUI window) exists to avoid null errors
+            serverFrame.updateJobs(jobDisplay); // Update the jobs section of the GUI with the latest job data
+            serverFrame.updateVehicles(vehicleDisplay); // Update the vehicles section of the GUI with the latest vehicle data
         }
     }
   //---------------------------------------------------------------------

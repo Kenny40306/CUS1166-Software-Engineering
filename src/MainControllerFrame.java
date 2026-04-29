@@ -562,23 +562,28 @@ public class MainControllerFrame extends JFrame{
         //Avneet + Moontarin + Ryan     
         // ================= VEHICLE EDIT =========================
         else {
+        	// This section handles editing of both pending (in-memory) and approved (database) vehicles
 
             // -------- PENDING VEHICLE (Memory Only) --------
-            for (VCController.VehicleRequest vr : vcController.getPendingVehicleRequests()) { 
+        	// Loop through all pending vehicle requests stored in memory
+        	for (VCController.VehicleRequest vr : vcController.getPendingVehicleRequests()) { 
 
+        		// Check if the entered ID matches a pending vehicle
                 if (vr.vehicle.getVehicleID().equals(id)) {
 
-                	//Fields to edit
+                	//Fields to edit (pre-filled with existing vehicle data)
                     JTextField nameField = new JTextField(vr.vehicle.getVehicleName());
                     JTextField yearField = new JTextField(String.valueOf(vr.vehicle.getYearMade()));
                     JTextField residencyField = new JTextField(vr.vehicle.getResidencyDisplay());
 
+                 // UI form for editing vehicle details
                     Object[] fields = {
                             "Vehicle Name:", nameField,
                             "Year Made:", yearField,
                             "Residency:", residencyField
                     };
 
+                 // Show confirmation dialog for editing pending vehicle
                     int result = JOptionPane.showConfirmDialog(
                             this,
                             fields,
@@ -586,13 +591,14 @@ public class MainControllerFrame extends JFrame{
                             JOptionPane.OK_CANCEL_OPTION
                     );
 
+                 // If admin confirms changes
                     if (result == JOptionPane.OK_OPTION) {
-
+                    	 // Update vehicle object in memory
                         vr.vehicle.setVehicleName(nameField.getText());
                         vr.vehicle.setYearMade(Integer.parseInt(yearField.getText()));
                         vr.vehicle.setResidencyDisplay(residencyField.getText());
 
-                        //UPDATE SERVER FRAME
+                     // Update server display with new values
                         vcController.updateVehicleDisplay(
                                 vr.vehicle.getVehicleID(),
                                 vr.client,
@@ -610,21 +616,25 @@ public class MainControllerFrame extends JFrame{
             }
 
             // -------- APPROVED VEHICLE (SQL EDIT PATH) --------
-            Vehicle dbVehicle = vcController.getVehicleFromDB(id); //Vehicle path fetch from SQL to edit real stored data instead of memory only (avoid editing stale data)
+        	// Fetch vehicle directly from database for permanent updates
+        	Vehicle dbVehicle = vcController.getVehicleFromDB(id); //Vehicle path fetch from SQL to edit real stored data instead of memory only (avoid editing stale data)
             													//SQL is fetched when admin explicitly edits approved vehicle data, getVehicleFromDB calls dbManager.getVehicleById(id);
+        	// If vehicle exists in database
             if (dbVehicle != null) {
 
-            	//Fields to edit
+            	//Fields to edit with existing DB values
                 JTextField nameField = new JTextField(dbVehicle.getVehicleName());
                 JTextField yearField = new JTextField(String.valueOf(dbVehicle.getYearMade()));
                 JTextField residencyField = new JTextField(dbVehicle.getResidencyDisplay());
 
+             // UI form for editing approved vehicle
                 Object[] fields = {
                         "Vehicle Name:", nameField,
                         "Year Made:", yearField,
                         "Residency:", residencyField
                 };
 
+                // Show confirmation dialog for DB vehicle edit
                 int result = JOptionPane.showConfirmDialog(
                         this,
                         fields,
@@ -632,8 +642,10 @@ public class MainControllerFrame extends JFrame{
                         JOptionPane.OK_CANCEL_OPTION
                 );
 
+                // If admin confirms changes
                 if (result == JOptionPane.OK_OPTION) {
 
+                    // Store old name for logging/updates
                     String oldName = dbVehicle.getVehicleName();
 
                     dbVehicle.setVehicleName(nameField.getText());
@@ -646,6 +658,7 @@ public class MainControllerFrame extends JFrame{
 
                 return;
             }
+            // If no vehicle is found with the given ID
             JOptionPane.showMessageDialog(this, "Vehicle ID not found.");
         }
     }   

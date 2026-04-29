@@ -127,10 +127,12 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, id);
 
+         // Execute the query and store the result in ResultSet
             ResultSet rs = ps.executeQuery(); //return row then convert to java objects
 
             if (rs.next()) {
 
+            	// Extract vehicle data from database columns
                 String vehicleID = rs.getString("vehicle_id");
                 String ownerID = rs.getString("vehicle_ownerid");
                 String vehicleName = rs.getString("vehicle_model");
@@ -142,6 +144,7 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
                 int residencyTime = 1;
                 String residencyUnit = "Days(s)";
 
+                // If residency exists and is not empty, parse it
                 if (residencyRaw != null && !residencyRaw.isBlank()) {
 
                     String[] parts = residencyRaw.trim().split("\\s+");
@@ -190,22 +193,25 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     
     //Moontarin Worked On This
     // ================= ADMIN JOB EDIT UPDATE ====================
+    // This method updates an existing job in the database
     public boolean updateJob(Job job) { //Called in Method updateApprovedJobFromDB() VCController under === Admin Fix Job ===
-        String sql = "UPDATE jobs SET job_name=?, job_duration=?, job_deadline_min=?, job_status=? WHERE job_id=?";
+        // SQL query to update job details in the jobs table
+        // It updates name, duration, deadline, and status based on job_id
+    	String sql = "UPDATE jobs SET job_name=?, job_duration=?, job_deadline_min=?, job_status=? WHERE job_id=?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            ps.setString(1, job.getJobName());
-            ps.setInt(2, (int) job.getDuration().toMinutes());
-            ps.setInt(3, (int) job.getDeadlineMinutes());
-            ps.setString(4, "APPROVED (UPDATED)");
-            ps.setString(5, job.getJobID());
+            ps.setString(1, job.getJobName());  // Set new job name from Job object
+            ps.setInt(2, (int) job.getDuration().toMinutes()); // Convert duration from hours/minutes object to total minutes
+            ps.setInt(3, (int) job.getDeadlineMinutes()); // Set job deadline in minutes
+            ps.setString(4, "APPROVED (UPDATED)");  // Mark job as updated and approved in system
+            ps.setString(5, job.getJobID()); //Specify which job to update using job ID
 
-            int rows = ps.executeUpdate();
+            int rows = ps.executeUpdate(); // Execute update query and get number of affected rows
 
-            System.out.println("[DB] UPDATE JOB: " + job.getJobID());
+            System.out.println("[DB] UPDATE JOB: " + job.getJobID()); // Log update action in console for debugging
 
-            return rows > 0;
+            return rows > 0; // Return true if at least one row was updated successfully
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -334,17 +340,19 @@ public class SQLDatabaseManager { // Called in VCController attribute private SQ
     }
     
     //Moontarin Worked On this:
+    // This method retrieves the owner of a vehicle from the database using the vehicle ID
+    // It is used during system restart to restore saved data (restoreStateFromDatabase)
     public String getVehicleOwner(String vehicleId) { //Called in Method restoreStateFromDatabase() VCController Class under === RESTORE UPON PROGRAM RE-OPEN ===
-
+    	// SQL query to get the vehicle owner for a specific vehicle ID
         try {
             PreparedStatement ps = connection.prepareStatement(
                     "SELECT vehicle_owner FROM vehicles WHERE vehicle_id = ?"
             );
 
-            ps.setString(1, vehicleId);
-            ResultSet rs = ps.executeQuery();
+            ps.setString(1, vehicleId); // Insert the vehicle ID into the query safely
+            ResultSet rs = ps.executeQuery(); // Execute query and store result
 
-            if (rs.next()) 
+            if (rs.next())  // If a matching record is found, return the owner name
             	return rs.getString("vehicle_owner");
 
         } catch (SQLException e) {
